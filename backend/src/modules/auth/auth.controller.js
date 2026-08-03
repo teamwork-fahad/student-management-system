@@ -4,12 +4,13 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await loginService(email, password);
+    const result = await loginService(email, password);
 
     return res.status(200).json({
       success: true,
       message: "Login successful",
-      data: user,
+      data: result.user,
+      token: result.token,
     });
   } catch (error) {
     return res.status(401).json({
@@ -17,4 +18,11 @@ export const login = async (req, res) => {
       message: error.message,
     });
   }
+};
+
+export const getMe = async (req, res) => {
+  return res.status(200).json({
+    success: true,
+    data: req.user,
+  });
 };

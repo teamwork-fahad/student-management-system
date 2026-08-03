@@ -1,5 +1,6 @@
 import prisma from "../../config/prisma.js";
 import bcrypt from "bcrypt";
+import { generateToken } from "../../utils/jwt.js";
 
 export const loginService = async (email, password) => {
   const user = await prisma.user.findUnique({
@@ -18,8 +19,14 @@ export const loginService = async (email, password) => {
     throw new Error("Invalid email or password");
   }
 
-  // Password remove before sending response
+  // Generate JWT Token
+  const token = generateToken(user);
+
+  // Remove password from response
   const { password: _, ...userData } = user;
 
-  return userData;
+  return {
+    user: userData,
+    token,
+  };
 };
