@@ -13,6 +13,13 @@ enum Role {
   STUDENT
 }
 
+enum DurationType {
+  DAYS
+  WEEKS
+  MONTHS
+  YEARS
+}
+
 model User {
   id        String   @id @default(cuid())
   name      String
@@ -22,4 +29,17 @@ model User {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Course {
+  id           String       @id @default(cuid())
+  name         String
+  code         String       @unique
+  description  String?
+  duration     Int
+  durationType DurationType
+  fees         Decimal      @db.Decimal(10, 2)
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 }

@@ -26,3 +26,11 @@ export const getMe = async (req, res) => {
     data: req.user,
   });
 };
+
+export const adminDashboard = async (req, res) => {
+  return res.status(200).json({
+    success: true,
+    message: "Welcome Super Admin 🚀",
+    user: req.user,
+  });
+};
