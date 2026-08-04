@@ -20,15 +20,26 @@ enum DurationType {
   YEARS
 }
 
+enum InquiryStatus {
+  NEW
+  FOLLOW_UP
+  INTERESTED
+  ADMISSION_DONE
+  NOT_INTERESTED
+  CLOSED
+}
+
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  password  String
-  role      Role     @default(STUDENT)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                String            @id @default(cuid())
+  name              String
+  email             String            @unique
+  password          String
+  role              Role              @default(STUDENT)
+  isActive          Boolean           @default(true)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  assignedInquiries Inquiry[]         @relation("InquiryAssignedUser")
+  inquiryFollowUps  InquiryFollowUp[] @relation("InquiryFollowUpCreatedBy")
 }
 
 model Course {
@@ -42,4 +53,64 @@ model Course {
   isActive     Boolean      @default(true)
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
+  inquiries    Inquiry[]
+}
+
+model LeadSource {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  inquiries   Inquiry[]
+}
+
+model Inquiry {
+  id               String            @id @default(cuid())
+  inquiryNumber    String            @unique
+  fullName         String
+  mobile           String
+  whatsapp         String?
+  gender           String
+  email            String?
+  remarks          String?
+  expectedFees     Decimal           @db.Decimal(10, 2)
+  inquiryDate      DateTime          @default(now())
+  nextFollowUpDate DateTime
+  lastContactDate  DateTime?
+  status           InquiryStatus     @default(NEW)
+  courseId         String
+  leadSourceId     String
+  assignedToId     String
+  isActive         Boolean           @default(true)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  course           Course            @relation(fields: [courseId], references: [id])
+  leadSource       LeadSource        @relation(fields: [leadSourceId], references: [id])
+  assignedTo       User              @relation("InquiryAssignedUser", fields: [assignedToId], references: [id])
+  followUps        InquiryFollowUp[]
+
+  @@index([courseId])
+  @@index([leadSourceId])
+  @@index([assignedToId])
+  @@index([status])
+  @@index([nextFollowUpDate])
+  @@index([isActive])
+}
+
+model InquiryFollowUp {
+  id               String   @id @default(cuid())
+  inquiryId        String
+  followUpDate     DateTime
+  remarks          String
+  nextFollowUpDate DateTime?
+  createdById      String
+  createdAt        DateTime @default(now())
+  inquiry          Inquiry  @relation(fields: [inquiryId], references: [id])
+  createdBy        User     @relation("InquiryFollowUpCreatedBy", fields: [createdById], references: [id])
+
+  @@index([inquiryId])
+  @@index([createdById])
+  @@index([followUpDate])
 }
