@@ -1,6 +1,7 @@
 import prisma from "../../config/prisma.js";
 import bcrypt from "bcrypt";
 import { generateToken } from "../../utils/jwt.js";
+import { createHttpError } from "../../utils/httpError.js";
 
 export const loginService = async (email, password) => {
   const user = await prisma.user.findUnique({
@@ -10,13 +11,13 @@ export const loginService = async (email, password) => {
   });
 
   if (!user) {
-    throw new Error("Invalid email or password");
+    throw createHttpError("Invalid email or password", 401);
   }
 
   const isPasswordValid = await bcrypt.compare(password, user.password);
 
   if (!isPasswordValid) {
-    throw new Error("Invalid email or password");
+    throw createHttpError("Invalid email or password", 401);
   }
 
   // Generate JWT Token

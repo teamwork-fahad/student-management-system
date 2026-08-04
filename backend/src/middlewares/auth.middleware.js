@@ -1,31 +1,22 @@
 import jwt from "jsonwebtoken";
+import env from "../config/env.js";
+import { errorResponse } from "../utils/response.js";
 
 export const authenticate = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
-    // Token missing
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({
-        success: false,
-        message: "Access denied. Token missing.",
-      });
+      return errorResponse(res, "Access denied. Token missing.", 401);
     }
 
-    // Remove "Bearer "
     const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, env.JWT_SECRET);
 
-    // Verify Token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // Save logged-in user
     req.user = decoded;
 
     next();
   } catch (error) {
-    return res.status(401).json({
-      success: false,
-      message: "Invalid or expired token.",
-    });
+    return errorResponse(res, "Invalid or expired token.", 401);
   }
 };

@@ -1,10 +1,5 @@
 import prisma from "../../config/prisma.js";
-
-const createHttpError = (message, statusCode) => {
-  const error = new Error(message);
-  error.statusCode = statusCode;
-  return error;
-};
+import { createHttpError } from "../../utils/httpError.js";
 
 const findActiveCourseById = async (id) => {
   const course = await prisma.course.findFirst({
@@ -33,7 +28,7 @@ const ensureUniqueCode = async (code, courseId = null) => {
   });
 
   if (existingCourse && existingCourse.id !== courseId) {
-    throw createHttpError("Course code already exists", 400);
+    throw createHttpError("Course code already exists", 409);
   }
 };
 

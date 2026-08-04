@@ -4,7 +4,7 @@ import courseRoutes from "../modules/course/course.routes.js";
 
 const router = Router();
 
-router.use("/auth", authRoutes);
+router.use("/v1/auth", authRoutes);
 router.use("/v1/courses", courseRoutes);
 
 export default router;

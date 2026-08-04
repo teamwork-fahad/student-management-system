@@ -9,96 +9,37 @@ import {
   createCourseSchema,
   updateCourseSchema,
 } from "./course.validation.js";
+import { asyncHandler } from "../../utils/asyncHandler.js";
+import { successResponse } from "../../utils/response.js";
 
-const sendErrorResponse = (res, error) => {
-  return res.status(error.statusCode || 500).json({
-    success: false,
-    message: error.message || "Internal server error",
-  });
-};
+export const createCourseController = asyncHandler(async (req, res) => {
+  const validatedData = createCourseSchema.parse(req.body);
+  const course = await createCourse(validatedData);
 
-export const createCourseController = async (req, res) => {
-  try {
-    const validatedData = createCourseSchema.parse(req.body);
-    const course = await createCourse(validatedData);
+  return successResponse(res, "Course created successfully", course, 201);
+});
 
-    return res.status(201).json({
-      success: true,
-      message: "Course created successfully",
-      data: course,
-    });
-  } catch (error) {
-    if (error.name === "ZodError") {
-      return res.status(400).json({
-        success: false,
-        message: error.issues[0]?.message || "Validation failed",
-      });
-    }
+export const getAllCoursesController = asyncHandler(async (req, res) => {
+  const courses = await getAllCourses();
 
-    return sendErrorResponse(res, error);
-  }
-};
+  return successResponse(res, "Courses fetched successfully", courses, 200);
+});
 
-export const getAllCoursesController = async (req, res) => {
-  try {
-    const courses = await getAllCourses();
+export const getCourseByIdController = asyncHandler(async (req, res) => {
+  const course = await getCourseById(req.params.id);
 
-    return res.status(200).json({
-      success: true,
-      message: "Courses fetched successfully",
-      data: courses,
-    });
-  } catch (error) {
-    return sendErrorResponse(res, error);
-  }
-};
+  return successResponse(res, "Course fetched successfully", course, 200);
+});
 
-export const getCourseByIdController = async (req, res) => {
-  try {
-    const course = await getCourseById(req.params.id);
+export const updateCourseController = asyncHandler(async (req, res) => {
+  const validatedData = updateCourseSchema.parse(req.body);
+  const course = await updateCourse(req.params.id, validatedData);
 
-    return res.status(200).json({
-      success: true,
-      message: "Course fetched successfully",
-      data: course,
-    });
-  } catch (error) {
-    return sendErrorResponse(res, error);
-  }
-};
+  return successResponse(res, "Course updated successfully", course, 200);
+});
 
-export const updateCourseController = async (req, res) => {
-  try {
-    const validatedData = updateCourseSchema.parse(req.body);
-    const course = await updateCourse(req.params.id, validatedData);
+export const deleteCourseController = asyncHandler(async (req, res) => {
+  const course = await deleteCourse(req.params.id);
 
-    return res.status(200).json({
-      success: true,
-      message: "Course updated successfully",
-      data: course,
-    });
-  } catch (error) {
-    if (error.name === "ZodError") {
-      return res.status(400).json({
-        success: false,
-        message: error.issues[0]?.message || "Validation failed",
-      });
-    }
-
-    return sendErrorResponse(res, error);
-  }
-};
-
-export const deleteCourseController = async (req, res) => {
-  try {
-    const course = await deleteCourse(req.params.id);
-
-    return res.status(200).json({
-      success: true,
-      message: "Course deleted successfully",
-      data: course,
-    });
-  } catch (error) {
-    return sendErrorResponse(res, error);
-  }
-};
+  return successResponse(res, "Course deleted successfully", course, 200);
+});
