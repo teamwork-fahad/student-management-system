@@ -29,6 +29,56 @@ enum InquiryStatus {
   CLOSED
 }
 
+enum AdmissionStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum StudentStatus {
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+  DROPPED
+  TRANSFERRED
+}
+
+enum StudentCategory {
+  SCHOOL
+  COLLEGE
+  WORKING
+  PROFESSIONAL
+  OTHER
+}
+
+enum GuardianRelation {
+  FATHER
+  MOTHER
+  BROTHER
+  SISTER
+  SPOUSE
+  OTHER
+}
+
+enum PaymentMode {
+  CASH
+  UPI
+  CARD
+  BANK_TRANSFER
+  CHEQUE
+}
+
+enum DocumentType {
+  PHOTO
+  AADHAAR
+  PAN
+  MARKSHEET_10
+  MARKSHEET_12
+  GRADUATION
+  ADDRESS_PROOF
+  OTHER
+}
+
 model User {
   id                String            @id @default(cuid())
   name              String
@@ -40,6 +90,7 @@ model User {
   updatedAt         DateTime          @updatedAt
   assignedInquiries Inquiry[]         @relation("InquiryAssignedUser")
   inquiryFollowUps  InquiryFollowUp[] @relation("InquiryFollowUpCreatedBy")
+  student           Student?
 }
 
 model Course {
@@ -54,6 +105,7 @@ model Course {
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
   inquiries    Inquiry[]
+  admissions   Admission[]
 }
 
 model LeadSource {
@@ -90,6 +142,7 @@ model Inquiry {
   leadSource       LeadSource        @relation(fields: [leadSourceId], references: [id])
   assignedTo       User              @relation("InquiryAssignedUser", fields: [assignedToId], references: [id])
   followUps        InquiryFollowUp[]
+  admission        Admission?
 
   @@index([courseId])
   @@index([leadSourceId])
@@ -113,4 +166,155 @@ model InquiryFollowUp {
   @@index([inquiryId])
   @@index([createdById])
   @@index([followUpDate])
+}
+
+model Sequence {
+  id           String   @id @default(cuid())
+  name         String   @unique
+  currentValue Int      @default(0)
+  instituteId  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([instituteId])
+}
+
+model Admission {
+  id                 String             @id @default(cuid())
+  admissionNumber    String             @unique
+  inquiryId          String             @unique
+  studentId          String?            @unique
+  courseId           String
+  batchId            String?
+  courseNameSnapshot String
+  courseFeesSnapshot Decimal            @db.Decimal(10, 2)
+  admissionDate      DateTime           @default(now())
+  admissionYear      String
+  courseFees         Decimal            @db.Decimal(10, 2)
+  discount           Decimal            @default(0.00) @db.Decimal(10, 2)
+  finalFees          Decimal            @db.Decimal(10, 2)
+  paidAmount         Decimal            @default(0.00) @db.Decimal(10, 2)
+  pendingAmount      Decimal            @db.Decimal(10, 2)
+  remarks            String?
+  referredBy         String?
+  studentCategory    StudentCategory
+  guardianName       String
+  guardianMobile     String
+  guardianRelation   GuardianRelation
+  status             AdmissionStatus    @default(ACTIVE)
+  admittedBy         String
+  updatedBy          String?
+  deletedAt          DateTime?
+  instituteId        String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  inquiry            Inquiry            @relation(fields: [inquiryId], references: [id])
+  course             Course             @relation(fields: [courseId], references: [id])
+  student            Student?
+  payments           AdmissionPayment[]
+
+  @@index([admissionNumber])
+  @@index([inquiryId])
+  @@index([studentId])
+  @@index([courseId])
+  @@index([batchId])
+  @@index([status])
+  @@index([admissionDate])
+  @@index([admissionYear])
+  @@index([deletedAt])
+  @@index([instituteId])
+}
+
+model AdmissionPayment {
+  id                   String      @id @default(cuid())
+  admissionId          String
+  amount               Decimal     @db.Decimal(10, 2)
+  paymentMode          PaymentMode
+  transactionReference String?
+  paymentDate          DateTime    @default(now())
+  remarks              String?
+  instituteId          String?
+  createdAt            DateTime    @default(now())
+  admission            Admission   @relation(fields: [admissionId], references: [id], onDelete: Cascade)
+
+  @@index([admissionId])
+  @@index([paymentMode])
+  @@index([paymentDate])
+  @@index([createdAt])
+  @@index([instituteId])
+}
+
+model Student {
+  id               String            @id @default(cuid())
+  studentId        String            @unique
+  userId           String?           @unique
+  admissionId      String            @unique
+  fullName         String
+  fatherName       String?
+  motherName       String?
+  gender           String
+  dob              DateTime?
+  mobile           String
+  whatsapp         String?
+  email            String?
+  address          String?
+  area             String?
+  city             String?
+  state            String?
+  country          String?           @default("India")
+  pincode          String?
+  qualification    String?
+  schoolCollege    String?
+  bloodGroup       String?
+  aadhaarNumber    String?
+  joinedDate       DateTime          @default(now())
+  leftDate         DateTime?
+  status           StudentStatus     @default(ACTIVE)
+  profileCompleted Boolean           @default(false)
+  deletedAt        DateTime?
+  instituteId      String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  admission        Admission         @relation(fields: [admissionId], references: [id])
+  user             User?             @relation(fields: [userId], references: [id])
+  documents        StudentDocument[]
+
+  @@index([studentId])
+  @@index([admissionId])
+  @@index([userId])
+  @@index([mobile])
+  @@index([email])
+  @@index([status])
+  @@index([joinedDate])
+  @@index([deletedAt])
+  @@index([instituteId])
+}
+
+model StudentDocument {
+  id             String       @id @default(cuid())
+  studentId      String
+  documentType   DocumentType
+  documentNumber String?
+  fileName       String
+  fileUrl        String
+  mimeType       String
+  fileSize       Int
+  issueDate      DateTime?
+  expiryDate     DateTime?
+  isRequired     Boolean      @default(false)
+  verified       Boolean      @default(false)
+  verifiedAt     DateTime?
+  verifiedBy     String?
+  rejectedReason String?
+  uploadedBy     String
+  remarks        String?
+  instituteId    String?
+  createdAt      DateTime     @default(now())
+  student        Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([documentType])
+  @@index([verified])
+  @@index([createdAt])
+  @@index([instituteId])
 }
