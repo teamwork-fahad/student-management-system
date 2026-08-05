@@ -3,7 +3,9 @@ import { successResponse } from "../../utils/response.js";
 import {
   completeAdmission,
   getAdmissionById,
+  getAdmissionStatistics,
   getAllAdmissions,
+  searchAdmissions,
   updateAdmission,
 } from "./admission.service.js";
 import {
@@ -13,7 +15,6 @@ import {
 
 /**
  * Controller to process a new Admission
- * Workflow: Validate Body -> Call completeAdmission service -> Return HTTP 201 Response
  */
 export const createAdmissionController = asyncHandler(async (req, res) => {
   const validatedData = createAdmissionSchema.parse(req.body);
@@ -32,15 +33,44 @@ export const createAdmissionController = asyncHandler(async (req, res) => {
 });
 
 /**
- * Controller to fetch all Admissions with optional search and filter criteria
+ * Controller to fetch all Admissions with pagination, filters, search, and sorting
  */
 export const getAdmissionsController = asyncHandler(async (req, res) => {
-  const admissions = await getAllAdmissions(req.query);
+  const result = await getAllAdmissions(req.query);
 
   return successResponse(
     res,
     "Admissions fetched successfully",
-    admissions,
+    result,
+    200
+  );
+});
+
+/**
+ * Controller to fetch dedicated search results for Admissions
+ */
+export const searchAdmissionsController = asyncHandler(async (req, res) => {
+  const query = req.query.q || req.query.query || req.query.search || "";
+  const result = await searchAdmissions(query, req.query);
+
+  return successResponse(
+    res,
+    "Admission search completed successfully",
+    result,
+    200
+  );
+});
+
+/**
+ * Controller to fetch aggregate Admission Statistics
+ */
+export const getAdmissionStatisticsController = asyncHandler(async (req, res) => {
+  const statistics = await getAdmissionStatistics();
+
+  return successResponse(
+    res,
+    "Admission statistics fetched successfully",
+    statistics,
     200
   );
 });

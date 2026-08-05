@@ -3,6 +3,8 @@ import authRoutes from "../modules/auth/auth.routes.js";
 import courseRoutes from "../modules/course/course.routes.js";
 import inquiryRoutes from "../modules/inquiry/inquiry.routes.js";
 import admissionRoutes from "../modules/admission/admission.routes.js";
+import feeRoutes from "../modules/fees/fee.routes.js";
+import studentRoutes from "../modules/students/student.routes.js";
 
 const router = Router();
 
@@ -10,5 +12,7 @@ router.use("/v1/auth", authRoutes);
 router.use("/v1/courses", courseRoutes);
 router.use("/v1/inquiries", inquiryRoutes);
 router.use("/v1/admissions", admissionRoutes);
+router.use("/v1/fees", feeRoutes);
+router.use("/v1/students", studentRoutes);
 
 export default router;

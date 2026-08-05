@@ -5,11 +5,10 @@ import { createHttpError } from "../../utils/httpError.js";
 
 /**
  * ============================================================================
- * SPRINT 5.2A & 5.2B: ADMISSION BUSINESS LOGIC SERVICE
+ * END-TO-END ADMISSION MODULE SERVICE
  * ============================================================================
- *
- * This module implements the production-ready business logic for student
- * onboarding, admission completion, and querying/updating admissions.
+ * Production-grade business logic for student onboarding, sequence generation,
+ * pagination, filtering, searching, statistics, and transaction management.
  */
 
 /**
@@ -17,10 +16,6 @@ import { createHttpError } from "../../utils/httpError.js";
  * 1. validateInquiry(inquiryId, tx)
  * ----------------------------------------------------------------------------
  * Validates that an inquiry exists, is active, and has not already been admitted.
- *
- * @param {string} inquiryId - ID of the inquiry to validate
- * @param {object} [tx=prisma] - Prisma transaction context
- * @returns {Promise<object>} - Validated Inquiry object
  */
 export const validateInquiry = async (inquiryId, tx = prisma) => {
   const inquiry = await tx.inquiry.findFirst({
@@ -49,10 +44,6 @@ export const validateInquiry = async (inquiryId, tx = prisma) => {
  * 2. validateCourse(courseId, tx)
  * ----------------------------------------------------------------------------
  * Validates that the requested course exists and is active.
- *
- * @param {string} courseId - ID of the course
- * @param {object} [tx=prisma] - Prisma transaction context
- * @returns {Promise<object>} - Validated Course object
  */
 export const validateCourse = async (courseId, tx = prisma) => {
   const course = await tx.course.findFirst({
@@ -74,17 +65,12 @@ export const validateCourse = async (courseId, tx = prisma) => {
  * 3. validateBatch(batchId, tx)
  * ----------------------------------------------------------------------------
  * Validates that the requested batch (if provided) exists and is active.
- *
- * @param {string|null} batchId - ID of the batch (optional)
- * @param {object} [tx=prisma] - Prisma transaction context
- * @returns {Promise<object|null>} - Validated Batch object or null
  */
 export const validateBatch = async (batchId, tx = prisma) => {
   if (!batchId) {
     return null;
   }
 
-  // Gracefully check Batch table if model exists in active schema
   if (tx.batch) {
     const batch = await tx.batch.findFirst({
       where: {
@@ -107,12 +93,7 @@ export const validateBatch = async (batchId, tx = prisma) => {
  * ----------------------------------------------------------------------------
  * 4. generateAdmissionNumber(tx, instituteId)
  * ----------------------------------------------------------------------------
- * Generates an atomic sequential Admission Number (e.g. ADM-2026-0001)
- * using the Sequence table.
- *
- * @param {object} tx - Prisma transaction context (Mandatory)
- * @param {string|null} [instituteId=null] - Institute ID for multi-tenant scope
- * @returns {Promise<string>} - Formatted Admission Number
+ * Generates an atomic sequential Admission Number (e.g. ADM-2026-0001).
  */
 export const generateAdmissionNumber = async (tx, instituteId = null) => {
   const sequenceRecord = await tx.sequence.findFirst({
@@ -144,12 +125,7 @@ export const generateAdmissionNumber = async (tx, instituteId = null) => {
  * ----------------------------------------------------------------------------
  * 5. generateStudentId(tx, instituteId)
  * ----------------------------------------------------------------------------
- * Generates an atomic sequential Student ID (e.g. STD260001)
- * using the Sequence table.
- *
- * @param {object} tx - Prisma transaction context (Mandatory)
- * @param {string|null} [instituteId=null] - Institute ID for multi-tenant scope
- * @returns {Promise<string>} - Formatted Student ID
+ * Generates an atomic sequential Student ID (e.g. STD260001).
  */
 export const generateStudentId = async (tx, instituteId = null) => {
   const sequenceRecord = await tx.sequence.findFirst({
@@ -182,10 +158,6 @@ export const generateStudentId = async (tx, instituteId = null) => {
  * 6. createAdmission(admissionData, tx)
  * ----------------------------------------------------------------------------
  * Inserts the core Admission record into the database with fee snapshots.
- *
- * @param {object} admissionData - Admission fields & snapshots
- * @param {object} [tx=prisma] - Prisma transaction context
- * @returns {Promise<object>} - Created Admission record
  */
 export const createAdmission = async (admissionData, tx = prisma) => {
   const {
@@ -251,11 +223,6 @@ export const createAdmission = async (admissionData, tx = prisma) => {
  * 7. createStudent(studentData, tx)
  * ----------------------------------------------------------------------------
  * Creates the Student profile record linked strictly to an Admission.
- * (Rule 5: Student can NEVER be created manually).
- *
- * @param {object} studentData - Student profile details
- * @param {object} [tx=prisma] - Prisma transaction context
- * @returns {Promise<object>} - Created Student record
  */
 export const createStudent = async (studentData, tx = prisma) => {
   const {
@@ -323,12 +290,7 @@ export const createStudent = async (studentData, tx = prisma) => {
  * ----------------------------------------------------------------------------
  * 8. createUser(userData, tx)
  * ----------------------------------------------------------------------------
- * Provision a User login account for the admitted student if credentials/flag
- * are provided.
- *
- * @param {object} userData - User login credentials (name, email, password)
- * @param {object} [tx=prisma] - Prisma transaction context
- * @returns {Promise<object>} - Created User record
+ * Provision a User login account for the student (Role: STUDENT).
  */
 export const createUser = async (userData, tx = prisma) => {
   const { name, email, password } = userData;
@@ -362,12 +324,7 @@ export const createUser = async (userData, tx = prisma) => {
  * ----------------------------------------------------------------------------
  * 9. createAdmissionPayments(admissionId, paymentsData, tx)
  * ----------------------------------------------------------------------------
- * Inserts multiple payment entries for an admission (Rule 9).
- *
- * @param {string} admissionId - ID of the admission
- * @param {Array<object>} paymentsData - List of payment objects
- * @param {object} [tx=prisma] - Prisma transaction context
- * @returns {Promise<Array<object>>} - List of created AdmissionPayment records
+ * Inserts multiple payment entries for an admission.
  */
 export const createAdmissionPayments = async (admissionId, paymentsData = [], tx = prisma) => {
   if (!paymentsData || paymentsData.length === 0) {
@@ -397,14 +354,47 @@ export const createAdmissionPayments = async (admissionId, paymentsData = [], tx
 
 /**
  * ----------------------------------------------------------------------------
- * 10. updateInquiryStatus(inquiryId, status, tx)
+ * 10. createStudentDocuments(studentId, documentsData, tx)
  * ----------------------------------------------------------------------------
- * Updates the Inquiry status to ADMISSION_DONE (Rule 8).
- *
- * @param {string} inquiryId - ID of the inquiry
- * @param {string} [status="ADMISSION_DONE"] - Target status
- * @param {object} [tx=prisma] - Prisma transaction context
- * @returns {Promise<object>} - Updated Inquiry record
+ * Creates initial document metadata entries for a student.
+ */
+export const createStudentDocuments = async (studentId, documentsData = [], uploadedBy, tx = prisma) => {
+  if (!documentsData || documentsData.length === 0) {
+    return [];
+  }
+
+  const createdDocs = [];
+
+  for (const doc of documentsData) {
+    const documentRecord = await tx.studentDocument.create({
+      data: {
+        studentId,
+        documentType: doc.documentType,
+        documentNumber: doc.documentNumber || null,
+        fileName: doc.fileName,
+        fileUrl: doc.fileUrl,
+        mimeType: doc.mimeType,
+        fileSize: Number(doc.fileSize || 0),
+        issueDate: doc.issueDate ? new Date(doc.issueDate) : null,
+        expiryDate: doc.expiryDate ? new Date(doc.expiryDate) : null,
+        isRequired: doc.isRequired || false,
+        uploadedBy,
+        remarks: doc.remarks || null,
+        instituteId: doc.instituteId || null,
+      },
+    });
+
+    createdDocs.push(documentRecord);
+  }
+
+  return createdDocs;
+};
+
+/**
+ * ----------------------------------------------------------------------------
+ * 11. updateInquiryStatus(inquiryId, status, tx)
+ * ----------------------------------------------------------------------------
+ * Updates the Inquiry status to ADMISSION_DONE.
  */
 export const updateInquiryStatus = async (inquiryId, status = "ADMISSION_DONE", tx = prisma) => {
   return tx.inquiry.update({
@@ -415,13 +405,10 @@ export const updateInquiryStatus = async (inquiryId, status = "ADMISSION_DONE", 
 
 /**
  * ----------------------------------------------------------------------------
- * 11. completeAdmission(admissionPayload)
+ * 12. completeAdmission(admissionPayload)
  * ----------------------------------------------------------------------------
- * Master Orchestrator Method for Sprint 5.2A.
+ * Master Orchestrator Method.
  * Executes the full admission workflow atomically inside Prisma $transaction().
- *
- * @param {object} admissionPayload - Full payload containing inquiry, student, and payment details
- * @returns {Promise<object>} - Completed Admission onboarding object
  */
 export const completeAdmission = async (admissionPayload) => {
   const {
@@ -439,9 +426,9 @@ export const completeAdmission = async (admissionPayload) => {
     admissionYear,
     admissionDate,
     studentDetails = {},
-    createUserAccount = false,
     userCredentials = {},
     payments = [],
+    documents = [],
     instituteId = null,
   } = admissionPayload;
 
@@ -495,25 +482,26 @@ export const completeAdmission = async (admissionPayload) => {
       tx
     );
 
-    // Step 7: Create User Login Account if requested
-    let createdUser = null;
-    if (createUserAccount && (userCredentials.email || studentDetails.email)) {
-      createdUser = await createUser(
-        {
-          name: studentDetails.fullName || inquiry.fullName,
-          email: userCredentials.email || studentDetails.email || inquiry.email,
-          password: userCredentials.password,
-        },
-        tx
-      );
-    }
+    // Step 7: Always Create User Account (Auto-generate credentials if not provided)
+    const userEmail = userCredentials.email || studentDetails.email || inquiry.email || `${studentIdStr.toLowerCase()}@student.erp`;
+    const userPassword = userCredentials.password || `${studentIdStr}@Pass2026`;
+    const userName = studentDetails.fullName || inquiry.fullName;
+
+    const createdUser = await createUser(
+      {
+        name: userName,
+        email: userEmail,
+        password: userPassword,
+      },
+      tx
+    );
 
     // Step 8: Create Student record linked to Admission & User (Rule 5)
     const student = await createStudent(
       {
         studentId: studentIdStr,
         admissionId: admission.id,
-        userId: createdUser ? createdUser.id : null,
+        userId: createdUser.id,
         fullName: studentDetails.fullName || inquiry.fullName,
         fatherName: studentDetails.fatherName || null,
         motherName: studentDetails.motherName || null,
@@ -521,7 +509,7 @@ export const completeAdmission = async (admissionPayload) => {
         dob: studentDetails.dob || null,
         mobile: studentDetails.mobile || inquiry.mobile,
         whatsapp: studentDetails.whatsapp || inquiry.whatsapp,
-        email: studentDetails.email || inquiry.email,
+        email: studentDetails.email || inquiry.email || userEmail,
         address: studentDetails.address || null,
         area: studentDetails.area || null,
         city: studentDetails.city || null,
@@ -544,40 +532,68 @@ export const completeAdmission = async (admissionPayload) => {
       data: { studentId: student.id },
     });
 
-    // Step 10: Create Admission Payments (Rule 9)
+    // Step 10: Create Admission Payments
     const createdPayments = await createAdmissionPayments(
       admission.id,
       payments,
       tx
     );
 
-    // Step 11: Update Inquiry Status to ADMISSION_DONE (Rule 8)
+    // Step 11: Create Student Document Metadata if provided
+    const createdDocuments = await createStudentDocuments(
+      student.id,
+      documents,
+      admittedBy,
+      tx
+    );
+
+    // Step 12: Update Inquiry Status to ADMISSION_DONE
     await updateInquiryStatus(inquiry.id, "ADMISSION_DONE", tx);
 
-    // Step 12: Return complete onboarding record
+    // Return complete onboarding result
     return {
       admission: {
         ...admission,
         studentId: student.id,
       },
       student,
-      user: createdUser ? { id: createdUser.id, email: createdUser.email, role: createdUser.role } : null,
+      user: {
+        id: createdUser.id,
+        name: createdUser.name,
+        email: createdUser.email,
+        role: createdUser.role,
+        initialPassword: userPassword,
+      },
       payments: createdPayments,
+      documents: createdDocuments,
     };
   });
 };
 
 /**
  * ----------------------------------------------------------------------------
- * 12. getAllAdmissions(queryParams)
+ * 13. getAllAdmissions(queryParams)
  * ----------------------------------------------------------------------------
- * Retrieves admissions list with optional search and filter criteria.
- *
- * @param {object} [queryParams={}] - Query filters (status, search, courseId, batchId, admissionYear)
- * @returns {Promise<Array<object>>} - List of admission records
+ * Retrieves paginated admissions list with filters, search, and sorting options.
  */
 export const getAllAdmissions = async (queryParams = {}) => {
-  const { status, search, courseId, batchId, admissionYear } = queryParams;
+  const {
+    page = 1,
+    limit = 10,
+    status,
+    studentStatus,
+    courseId,
+    batchId,
+    admissionYear,
+    startDate,
+    endDate,
+    search,
+    sortBy = "newest",
+  } = queryParams;
+
+  const pageNum = Math.max(1, parseInt(page, 10) || 1);
+  const limitNum = Math.max(1, parseInt(limit, 10) || 10);
+  const skip = (pageNum - 1) * limitNum;
 
   const where = {
     deletedAt: null,
@@ -599,40 +615,97 @@ export const getAllAdmissions = async (queryParams = {}) => {
     where.admissionYear = admissionYear;
   }
 
+  if (studentStatus) {
+    where.student = {
+      status: studentStatus,
+    };
+  }
+
+  if (startDate || endDate) {
+    where.admissionDate = {};
+    if (startDate) where.admissionDate.gte = new Date(startDate);
+    if (endDate) where.admissionDate.lte = new Date(endDate);
+  }
+
   if (search) {
+    const trimmedSearch = String(search).trim();
     where.OR = [
-      { admissionNumber: { contains: search, mode: "insensitive" } },
-      { studentCategory: { contains: search, mode: "insensitive" } },
-      { guardianName: { contains: search, mode: "insensitive" } },
-      { guardianMobile: { contains: search, mode: "insensitive" } },
-      { student: { fullName: { contains: search, mode: "insensitive" } } },
-      { student: { studentId: { contains: search, mode: "insensitive" } } },
-      { student: { mobile: { contains: search, mode: "insensitive" } } },
+      { admissionNumber: { contains: trimmedSearch, mode: "insensitive" } },
+      { guardianName: { contains: trimmedSearch, mode: "insensitive" } },
+      { guardianMobile: { contains: trimmedSearch, mode: "insensitive" } },
+      { courseNameSnapshot: { contains: trimmedSearch, mode: "insensitive" } },
+      { course: { name: { contains: trimmedSearch, mode: "insensitive" } } },
+      { course: { code: { contains: trimmedSearch, mode: "insensitive" } } },
+      { student: { fullName: { contains: trimmedSearch, mode: "insensitive" } } },
+      { student: { studentId: { contains: trimmedSearch, mode: "insensitive" } } },
+      { student: { mobile: { contains: trimmedSearch, mode: "insensitive" } } },
     ];
   }
 
-  return prisma.admission.findMany({
-    where,
-    include: {
-      inquiry: true,
-      course: true,
-      student: true,
-      payments: true,
+  // Sorting maps
+  let orderBy = { createdAt: "desc" };
+  if (sortBy === "oldest") {
+    orderBy = { createdAt: "asc" };
+  } else if (sortBy === "studentName") {
+    orderBy = { student: { fullName: "asc" } };
+  } else if (sortBy === "admissionNumber") {
+    orderBy = { admissionNumber: "asc" };
+  }
+
+  const [total, admissions] = await Promise.all([
+    prisma.admission.count({ where }),
+    prisma.admission.findMany({
+      where,
+      include: {
+        inquiry: true,
+        course: true,
+        student: {
+          include: {
+            documents: true,
+          },
+        },
+        payments: true,
+      },
+      orderBy,
+      skip,
+      take: limitNum,
+    }),
+  ]);
+
+  const totalPages = Math.ceil(total / limitNum) || 1;
+
+  return {
+    admissions,
+    pagination: {
+      total,
+      page: pageNum,
+      limit: limitNum,
+      totalPages,
+      hasNextPage: pageNum < totalPages,
+      hasPreviousPage: pageNum > 1,
     },
-    orderBy: {
-      createdAt: "desc",
-    },
+  };
+};
+
+/**
+ * ----------------------------------------------------------------------------
+ * 14. searchAdmissions(query, queryParams)
+ * ----------------------------------------------------------------------------
+ * Specialized search endpoint for admission number, student ID, student name,
+ * mobile, guardian mobile, or course.
+ */
+export const searchAdmissions = async (query, queryParams = {}) => {
+  return getAllAdmissions({
+    ...queryParams,
+    search: query,
   });
 };
 
 /**
  * ----------------------------------------------------------------------------
- * 13. getAdmissionById(id)
+ * 15. getAdmissionById(id)
  * ----------------------------------------------------------------------------
- * Retrieves a single admission by ID.
- *
- * @param {string} id - Admission ID
- * @returns {Promise<object>} - Single admission record with relations
+ * Retrieves a single admission by ID with full relations.
  */
 export const getAdmissionById = async (id) => {
   const admission = await prisma.admission.findFirst({
@@ -643,8 +716,25 @@ export const getAdmissionById = async (id) => {
     include: {
       inquiry: true,
       course: true,
-      student: true,
-      payments: true,
+      student: {
+        include: {
+          documents: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              role: true,
+              isActive: true,
+            },
+          },
+        },
+      },
+      payments: {
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
     },
   });
 
@@ -657,15 +747,9 @@ export const getAdmissionById = async (id) => {
 
 /**
  * ----------------------------------------------------------------------------
- * 14. updateAdmission(id, updateData, updatedBy)
+ * 16. updateAdmission(id, updateData, updatedBy)
  * ----------------------------------------------------------------------------
- * Updates allowed editable fields of an admission and linked student record.
- * (Restricts updating admissionNumber, studentId, inquiryId, course snapshots).
- *
- * @param {string} id - Admission ID
- * @param {object} updateData - Allowed fields to update
- * @param {string} updatedBy - User ID performing the update
- * @returns {Promise<object>} - Updated admission record
+ * Updates allowed editable fields of an admission and linked student.
  */
 export const updateAdmission = async (id, updateData, updatedBy) => {
   const existingAdmission = await getAdmissionById(id);
@@ -681,7 +765,6 @@ export const updateAdmission = async (id, updateData, updatedBy) => {
   } = updateData;
 
   return prisma.$transaction(async (tx) => {
-    // Update Student details if studentDetails provided
     if (studentDetails && existingAdmission.studentId) {
       await tx.student.update({
         where: { id: existingAdmission.studentId },
@@ -689,7 +772,6 @@ export const updateAdmission = async (id, updateData, updatedBy) => {
       });
     }
 
-    // Build admission update payload
     const admissionUpdate = {
       updatedBy,
     };
@@ -707,9 +789,100 @@ export const updateAdmission = async (id, updateData, updatedBy) => {
       include: {
         inquiry: true,
         course: true,
-        student: true,
+        student: {
+          include: {
+            documents: true,
+          },
+        },
         payments: true,
       },
     });
   });
+};
+
+/**
+ * ----------------------------------------------------------------------------
+ * 17. getAdmissionStatistics()
+ * ----------------------------------------------------------------------------
+ * Calculates comprehensive aggregate metrics for the dashboard.
+ */
+export const getAdmissionStatistics = async () => {
+  const [
+    totalAdmissions,
+    activeAdmissions,
+    completedAdmissions,
+    cancelledAdmissions,
+    studentStatusCounts,
+    categoryCounts,
+    yearCounts,
+    financialAggregates,
+  ] = await Promise.all([
+    prisma.admission.count({ where: { deletedAt: null } }),
+    prisma.admission.count({ where: { status: "ACTIVE", deletedAt: null } }),
+    prisma.admission.count({ where: { status: "COMPLETED", deletedAt: null } }),
+    prisma.admission.count({ where: { status: "CANCELLED", deletedAt: null } }),
+
+    prisma.student.groupBy({
+      by: ["status"],
+      where: { deletedAt: null },
+      _count: { status: true },
+    }),
+
+    prisma.admission.groupBy({
+      by: ["studentCategory"],
+      where: { deletedAt: null },
+      _count: { studentCategory: true },
+    }),
+
+    prisma.admission.groupBy({
+      by: ["admissionYear"],
+      where: { deletedAt: null },
+      _count: { admissionYear: true },
+    }),
+
+    prisma.admission.aggregate({
+      where: { deletedAt: null },
+      _sum: {
+        courseFees: true,
+        discount: true,
+        finalFees: true,
+        paidAmount: true,
+        pendingAmount: true,
+      },
+    }),
+  ]);
+
+  const studentStatusBreakdown = studentStatusCounts.reduce((acc, curr) => {
+    acc[curr.status] = curr._count.status;
+    return acc;
+  }, {});
+
+  const categoryBreakdown = categoryCounts.reduce((acc, curr) => {
+    acc[curr.studentCategory] = curr._count.studentCategory;
+    return acc;
+  }, {});
+
+  const yearBreakdown = yearCounts.reduce((acc, curr) => {
+    acc[curr.admissionYear] = curr._count.admissionYear;
+    return acc;
+  }, {});
+
+  return {
+    totalAdmissions,
+    statusBreakdown: {
+      ACTIVE: activeAdmissions,
+      COMPLETED: completedAdmissions,
+      CANCELLED: cancelledAdmissions,
+    },
+    studentStatusBreakdown,
+    categoryBreakdown,
+    yearBreakdown,
+    financialSummary: {
+      totalCourseFees: financialAggregates._sum.courseFees || 0,
+      totalDiscounts: financialAggregates._sum.discount || 0,
+      totalFinalFees: financialAggregates._sum.finalFees || 0,
+      totalPaidAmount: financialAggregates._sum.paidAmount || 0,
+      totalPendingAmount: financialAggregates._sum.pendingAmount || 0,
+    },
+  };
 };

@@ -25,6 +25,17 @@ const paymentModes = [
   "CHEQUE",
 ];
 
+const documentTypes = [
+  "PHOTO",
+  "AADHAAR",
+  "PAN",
+  "MARKSHEET_10",
+  "MARKSHEET_12",
+  "GRADUATION",
+  "ADDRESS_PROOF",
+  "OTHER",
+];
+
 const optionalStringSchema = z
   .string()
   .trim()
@@ -48,6 +59,21 @@ const paymentItemSchema = z.object({
   }),
   transactionReference: optionalStringSchema,
   paymentDate: z.coerce.date().optional(),
+  remarks: optionalStringSchema,
+});
+
+const documentMetadataSchema = z.object({
+  documentType: z.enum(documentTypes, {
+    errorMap: () => ({ message: "Invalid document type" }),
+  }),
+  documentNumber: optionalStringSchema,
+  fileName: z.string().trim().min(1, "File name is required"),
+  fileUrl: z.string().trim().url("Valid file URL is required"),
+  mimeType: z.string().trim().min(1, "MIME type is required"),
+  fileSize: z.number().positive("File size must be greater than zero"),
+  issueDate: z.coerce.date().optional(),
+  expiryDate: z.coerce.date().optional(),
+  isRequired: z.boolean().optional(),
   remarks: optionalStringSchema,
 });
 
@@ -112,11 +138,11 @@ export const createAdmissionSchema = z.object({
     })
     .optional(),
   payments: z.array(paymentItemSchema).optional(),
+  documents: z.array(documentMetadataSchema).optional(),
 });
 
 /**
  * Zod validation schema for Update Admission
- * Disallows updating admissionNumber, studentId, inquiryId, course snapshot, fee snapshot
  */
 export const updateAdmissionSchema = z
   .object({

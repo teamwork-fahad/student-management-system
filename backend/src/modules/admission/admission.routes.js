@@ -5,12 +5,14 @@ import {
   createAdmissionController,
   getAdmissionByIdController,
   getAdmissionsController,
+  getAdmissionStatisticsController,
+  searchAdmissionsController,
   updateAdmissionController,
 } from "./admission.controller.js";
 
 const router = Router();
 
-// POST /api/v1/admissions - Create Admission (SUPER_ADMIN, FACULTY)
+// POST /api/v1/admissions - Take/Create Admission (SUPER_ADMIN, FACULTY)
 router.post(
   "/",
   authenticate,
@@ -18,7 +20,7 @@ router.post(
   createAdmissionController
 );
 
-// GET /api/v1/admissions - Get All Admissions (SUPER_ADMIN, FACULTY)
+// GET /api/v1/admissions - List Admissions with pagination, filters & sorting (SUPER_ADMIN, FACULTY)
 router.get(
   "/",
   authenticate,
@@ -26,7 +28,23 @@ router.get(
   getAdmissionsController
 );
 
-// GET /api/v1/admissions/:id - Get Admission By ID (SUPER_ADMIN, FACULTY)
+// GET /api/v1/admissions/statistics - Aggregate Admission Statistics (SUPER_ADMIN, FACULTY)
+router.get(
+  "/statistics",
+  authenticate,
+  authorize("SUPER_ADMIN", "FACULTY"),
+  getAdmissionStatisticsController
+);
+
+// GET /api/v1/admissions/search - Dedicated Admission Search (SUPER_ADMIN, FACULTY)
+router.get(
+  "/search",
+  authenticate,
+  authorize("SUPER_ADMIN", "FACULTY"),
+  searchAdmissionsController
+);
+
+// GET /api/v1/admissions/:id - Get Admission Details by ID (SUPER_ADMIN, FACULTY)
 router.get(
   "/:id",
   authenticate,
@@ -34,7 +52,7 @@ router.get(
   getAdmissionByIdController
 );
 
-// PUT /api/v1/admissions/:id - Update Admission (SUPER_ADMIN)
+// PUT /api/v1/admissions/:id - Update Admission details (SUPER_ADMIN)
 router.put(
   "/:id",
   authenticate,

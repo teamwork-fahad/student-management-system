@@ -1,9 +1,9 @@
 import prisma from "../config/prisma.js";
 import bcrypt from "bcrypt";
 
-async function seedSuperAdmin() {
+async function seedSuperAdminAndSequences() {
   try {
-    console.log("🌱 Creating Super Admin...");
+    console.log("🌱 Seeding Super Admin and Sequence counters...");
 
     // Check if admin already exists
     const existingAdmin = await prisma.user.findUnique({
@@ -12,32 +12,40 @@ async function seedSuperAdmin() {
       },
     });
 
-    if (existingAdmin) {
+    if (!existingAdmin) {
+      const hashedPassword = await bcrypt.hash("AppXwinD@03082026", 10);
+      await prisma.user.create({
+        data: {
+          name: "Fahad Sir",
+          email: "admin@appxwind.com",
+          password: hashedPassword,
+          role: "SUPER_ADMIN",
+        },
+      });
+      console.log("🎉 Super Admin Created Successfully! (email: admin@appxwind.com)");
+    } else {
       console.log("✅ Super Admin already exists.");
-      return;
     }
 
-    // Hash Password
-    const hashedPassword = await bcrypt.hash("AppXwinD@03082026", 10);
+    // Seed required sequences
+    const sequences = ["ADMISSION", "STUDENT", "RECEIPT", "CERTIFICATE"];
+    for (const seqName of sequences) {
+      await prisma.sequence.upsert({
+        where: { name: seqName },
+        update: {},
+        create: {
+          name: seqName,
+          currentValue: 0,
+        },
+      });
+    }
+    console.log("✅ Sequences initialized (ADMISSION, STUDENT, RECEIPT, CERTIFICATE).");
 
-    // Create Admin
-    await prisma.user.create({
-      data: {
-        name: "Fahad Sir",
-        email: "admin@appxwind.com",
-        password: hashedPassword,
-        role: "SUPER_ADMIN",
-      },
-    });
-
-    console.log("🎉 Super Admin Created Successfully!");
-    console.log("Email : admin@appxwind.com");
-    console.log("Password : Admin@123");
   } catch (error) {
-    console.error(error);
+    console.error("❌ Seed Error:", error);
   } finally {
     await prisma.$disconnect();
   }
 }
 
-seedSuperAdmin();
+seedSuperAdminAndSequences();
