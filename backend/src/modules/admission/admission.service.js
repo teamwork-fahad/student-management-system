@@ -5,16 +5,11 @@ import { createHttpError } from "../../utils/httpError.js";
 
 /**
  * ============================================================================
- * SPRINT 5.2A: ADMISSION BUSINESS LOGIC SERVICE
+ * SPRINT 5.2A & 5.2B: ADMISSION BUSINESS LOGIC SERVICE
  * ============================================================================
  *
  * This module implements the production-ready business logic for student
- * onboarding and admission completion.
- *
- * Workflow:
- * Inquiry -> Validate Inquiry -> Validate Course & Batch -> Generate Numbers
- * -> Create Admission -> Create User (Optional) -> Create Student -> Payments
- * -> Update Inquiry Status -> Commit $transaction()
+ * onboarding, admission completion, and querying/updating admissions.
  */
 
 /**
@@ -425,13 +420,6 @@ export const updateInquiryStatus = async (inquiryId, status = "ADMISSION_DONE", 
  * Master Orchestrator Method for Sprint 5.2A.
  * Executes the full admission workflow atomically inside Prisma $transaction().
  *
- * Flow:
- * Validate Inquiry -> Validate Course & Batch -> Generate Admission No & Student ID
- * -> Create Admission -> Create User (optional) -> Create Student
- * -> Link Student to Admission -> Create Payments -> Update Inquiry -> Commit
- *
- * If ANY step fails, the entire transaction is automatically rolled back.
- *
  * @param {object} admissionPayload - Full payload containing inquiry, student, and payment details
  * @returns {Promise<object>} - Completed Admission onboarding object
  */
@@ -576,5 +564,152 @@ export const completeAdmission = async (admissionPayload) => {
       user: createdUser ? { id: createdUser.id, email: createdUser.email, role: createdUser.role } : null,
       payments: createdPayments,
     };
+  });
+};
+
+/**
+ * ----------------------------------------------------------------------------
+ * 12. getAllAdmissions(queryParams)
+ * ----------------------------------------------------------------------------
+ * Retrieves admissions list with optional search and filter criteria.
+ *
+ * @param {object} [queryParams={}] - Query filters (status, search, courseId, batchId, admissionYear)
+ * @returns {Promise<Array<object>>} - List of admission records
+ */
+export const getAllAdmissions = async (queryParams = {}) => {
+  const { status, search, courseId, batchId, admissionYear } = queryParams;
+
+  const where = {
+    deletedAt: null,
+  };
+
+  if (status) {
+    where.status = status;
+  }
+
+  if (courseId) {
+    where.courseId = courseId;
+  }
+
+  if (batchId) {
+    where.batchId = batchId;
+  }
+
+  if (admissionYear) {
+    where.admissionYear = admissionYear;
+  }
+
+  if (search) {
+    where.OR = [
+      { admissionNumber: { contains: search, mode: "insensitive" } },
+      { studentCategory: { contains: search, mode: "insensitive" } },
+      { guardianName: { contains: search, mode: "insensitive" } },
+      { guardianMobile: { contains: search, mode: "insensitive" } },
+      { student: { fullName: { contains: search, mode: "insensitive" } } },
+      { student: { studentId: { contains: search, mode: "insensitive" } } },
+      { student: { mobile: { contains: search, mode: "insensitive" } } },
+    ];
+  }
+
+  return prisma.admission.findMany({
+    where,
+    include: {
+      inquiry: true,
+      course: true,
+      student: true,
+      payments: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+};
+
+/**
+ * ----------------------------------------------------------------------------
+ * 13. getAdmissionById(id)
+ * ----------------------------------------------------------------------------
+ * Retrieves a single admission by ID.
+ *
+ * @param {string} id - Admission ID
+ * @returns {Promise<object>} - Single admission record with relations
+ */
+export const getAdmissionById = async (id) => {
+  const admission = await prisma.admission.findFirst({
+    where: {
+      id,
+      deletedAt: null,
+    },
+    include: {
+      inquiry: true,
+      course: true,
+      student: true,
+      payments: true,
+    },
+  });
+
+  if (!admission) {
+    throw createHttpError("Admission not found", 404);
+  }
+
+  return admission;
+};
+
+/**
+ * ----------------------------------------------------------------------------
+ * 14. updateAdmission(id, updateData, updatedBy)
+ * ----------------------------------------------------------------------------
+ * Updates allowed editable fields of an admission and linked student record.
+ * (Restricts updating admissionNumber, studentId, inquiryId, course snapshots).
+ *
+ * @param {string} id - Admission ID
+ * @param {object} updateData - Allowed fields to update
+ * @param {string} updatedBy - User ID performing the update
+ * @returns {Promise<object>} - Updated admission record
+ */
+export const updateAdmission = async (id, updateData, updatedBy) => {
+  const existingAdmission = await getAdmissionById(id);
+
+  const {
+    remarks,
+    batchId,
+    guardianName,
+    guardianMobile,
+    guardianRelation,
+    studentCategory,
+    studentDetails,
+  } = updateData;
+
+  return prisma.$transaction(async (tx) => {
+    // Update Student details if studentDetails provided
+    if (studentDetails && existingAdmission.studentId) {
+      await tx.student.update({
+        where: { id: existingAdmission.studentId },
+        data: studentDetails,
+      });
+    }
+
+    // Build admission update payload
+    const admissionUpdate = {
+      updatedBy,
+    };
+
+    if (remarks !== undefined) admissionUpdate.remarks = remarks;
+    if (batchId !== undefined) admissionUpdate.batchId = batchId;
+    if (guardianName !== undefined) admissionUpdate.guardianName = guardianName;
+    if (guardianMobile !== undefined) admissionUpdate.guardianMobile = guardianMobile;
+    if (guardianRelation !== undefined) admissionUpdate.guardianRelation = guardianRelation;
+    if (studentCategory !== undefined) admissionUpdate.studentCategory = studentCategory;
+
+    return tx.admission.update({
+      where: { id },
+      data: admissionUpdate,
+      include: {
+        inquiry: true,
+        course: true,
+        student: true,
+        payments: true,
+      },
+    });
   });
 };
