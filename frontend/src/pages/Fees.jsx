@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from "react";
 import api from "../api/axios";
-import { LoadingSpinner } from "../components/common/LoadingSpinner";
-import { EmptyState } from "../components/common/EmptyState";
-import { Modal } from "../components/common/Modal";
+import { ReceiptModal } from "../components/receipts/ReceiptModal";
 import {
   CreditCard,
   CheckCircle2,
   AlertCircle,
   Search,
   Receipt,
-  RefreshCw,
   PlusCircle,
+  Printer,
+  TrendingUp,
+  PieChart,
 } from "lucide-react";
 
 export const Fees = () => {
@@ -19,7 +19,7 @@ export const Fees = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [successReceipt, setSuccessReceipt] = useState(null);
+  const [selectedReceiptPayment, setSelectedReceiptPayment] = useState(null);
 
   // Form state
   const [selectedStudentId, setSelectedStudentId] = useState("");
@@ -28,7 +28,6 @@ export const Fees = () => {
   const [transactionReference, setTransactionReference] = useState("");
   const [remarks, setRemarks] = useState("");
 
-  // Derived selected student summary
   const selectedStudentObj = students.find(
     (s) => s.id === selectedStudentId || s.studentId === selectedStudentId
   );
@@ -41,8 +40,8 @@ export const Fees = () => {
     setLoading(true);
     try {
       const [studentsRes, historyRes] = await Promise.all([
-        api.get("/students?limit=50"),
-        api.get("/fees?limit=15"),
+        api.get("/students?limit=100"),
+        api.get("/fees?limit=50"),
       ]);
 
       setStudents(studentsRes.data?.data?.students || []);
@@ -59,319 +58,266 @@ export const Fees = () => {
     e.preventDefault();
     setError("");
 
-    if (!selectedStudentId) {
-      setError("Please select a student to collect fee payment.");
-      return;
-    }
-
-    if (!amount || Number(amount) <= 0) {
-      setError("Please enter a valid payment amount greater than zero.");
+    if (!selectedStudentId || !amount || Number(amount) <= 0) {
+      setError("Please select a student and enter a valid payment amount.");
       return;
     }
 
     setSubmitting(true);
-
     try {
-      const payload = {
-        studentId: selectedStudentObj?.studentId || selectedStudentId,
+      const response = await api.post("/fees/collect", {
+        studentId: selectedStudentId,
         amount: Number(amount),
         paymentMode,
-        transactionReference: transactionReference || undefined,
-        remarks: remarks || "Fee Installment Collection",
-      };
+        transactionReference,
+        remarks,
+      });
 
-      const response = await api.post("/fees", payload);
-      const result = response.data?.data;
+      const payment = response.data?.data?.payment;
+      setSelectedReceiptPayment(payment);
 
-      setSuccessReceipt(result);
-      fetchInitialData(); // Refresh history and balances
-
-      // Reset form
-      setSelectedStudentId("");
+      // Reset form & reload list
       setAmount("");
-      setPaymentMode("CASH");
       setTransactionReference("");
       setRemarks("");
+      setSelectedStudentId("");
+      fetchInitialData();
     } catch (err) {
-      console.error("Collect fee error:", err);
-      setError(err.response?.data?.message || "Failed to record fee payment.");
+      console.error("Fee collection error:", err);
+      setError(err.response?.data?.message || "Failed to record payment.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const formatCurrency = (val) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 0,
-    }).format(val || 0);
-  };
-
-  if (loading) {
-    return <LoadingSpinner label="Loading fee collection module..." />;
-  }
+  // Calculate analytics
+  const totalExpected = students.reduce(
+    (acc, s) => acc + Number(s.admission?.finalFees || s.admission?.courseFees || 0),
+    0
+  );
+  const totalCollected = students.reduce(
+    (acc, s) => acc + Number(s.admission?.paidAmount || 0),
+    0
+  );
+  const totalPending = Math.max(0, totalExpected - totalCollected);
+  const efficiencyRate = totalExpected > 0 ? ((totalCollected / totalExpected) * 100).toFixed(1) : 0;
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <div className="space-y-6">
+      {/* Printable Receipt Modal */}
+      {selectedReceiptPayment && (
+        <ReceiptModal
+          payment={selectedReceiptPayment}
+          student={students.find((s) => s.admission?.id === selectedReceiptPayment.admissionId)}
+          admission={selectedReceiptPayment.admission}
+          onClose={() => setSelectedReceiptPayment(null)}
+        />
+      )}
+
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-            <CreditCard className="w-7 h-7 text-emerald-400" />
-            Fee Collection & Payment Ledger
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Record installment payments, issue receipts, and view real-time student payment logs.
-          </p>
+      <div>
+        <h1 className="text-2xl font-black text-white tracking-tight">Fees & Financial Revenue Analytics</h1>
+        <p className="text-xs text-slate-400">Collect tuition payments, view financial efficiency, and print receipts.</p>
+      </div>
+
+      {/* REVENUE ANALYTICS SUMMARY CARDS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl">
+          <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Total Expected Revenue</span>
+          <span className="text-xl font-extrabold text-white">₹{totalExpected.toLocaleString("en-IN")}</span>
+        </div>
+
+        <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl">
+          <span className="text-[10px] uppercase font-bold text-emerald-400 block mb-1">Total Collected</span>
+          <span className="text-xl font-extrabold text-emerald-400">₹{totalCollected.toLocaleString("en-IN")}</span>
+        </div>
+
+        <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl">
+          <span className="text-[10px] uppercase font-bold text-amber-400 block mb-1">Pending Balance</span>
+          <span className="text-xl font-extrabold text-amber-400">₹{totalPending.toLocaleString("en-IN")}</span>
+        </div>
+
+        <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl">
+          <span className="text-[10px] uppercase font-bold text-cyan-400 block mb-1">Collection Efficiency</span>
+          <span className="text-xl font-extrabold text-cyan-400">{efficiencyRate}%</span>
         </div>
       </div>
 
-      {/* Error Alert */}
-      {error && (
-        <div className="p-4 rounded-2xl bg-rose-950/60 border border-rose-800 text-rose-300 text-xs flex items-center space-x-3">
-          <AlertCircle className="w-5 h-5 flex-shrink-0 text-rose-400" />
-          <span>{error}</span>
-        </div>
-      )}
+      {/* TWO COLUMN GRID: COLLECT FEE FORM & HISTORY TABLE */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* COLLECT FEE FORM */}
+        <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 space-y-4">
+          <div className="flex items-center space-x-2 pb-3 border-b border-slate-800">
+            <PlusCircle className="w-5 h-5 text-cyan-400" />
+            <h3 className="text-base font-bold text-white">Collect Student Fee</h3>
+          </div>
 
-      {/* Fee Collection Card */}
-      <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-6">
-        <h3 className="text-sm font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
-          <PlusCircle className="w-4 h-4" /> Collect Fee Payment
-        </h3>
+          {error && (
+            <div className="p-3 bg-red-950/80 border border-red-800 text-red-300 rounded-xl text-xs flex items-center space-x-2">
+              <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
 
-        <form onSubmit={handleCollectFee} className="space-y-5">
-          {/* Student Selector */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form onSubmit={handleCollectFee} className="space-y-3.5 text-xs">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Select Enrolled Student <span className="text-rose-400">*</span>
-              </label>
+              <label className="block font-semibold text-slate-300 mb-1">Select Student *</label>
               <select
+                required
                 value={selectedStudentId}
                 onChange={(e) => setSelectedStudentId(e.target.value)}
-                required
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:border-emerald-500 focus:outline-none"
+                className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500"
               >
-                <option value="">-- Choose Student --</option>
-                {students.map((st) => (
-                  <option key={st.id} value={st.id}>
-                    {st.studentId} - {st.fullName} ({st.admission?.courseNameSnapshot})
+                <option value="">Select Enrolled Student...</option>
+                {students.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.fullName} ({s.studentId}) - Pending: ₹{Number(s.admission?.pendingAmount || 0).toLocaleString("en-IN")}
                   </option>
                 ))}
               </select>
             </div>
 
-            {/* Selected Student Balance Badge */}
-            {selectedStudentObj && selectedStudentObj.admission && (
-              <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800/80 flex items-center justify-between text-xs">
-                <div>
-                  <span className="text-slate-400 block font-medium">Pending Dues:</span>
-                  <span className="text-lg font-black text-amber-400">
-                    {formatCurrency(selectedStudentObj.admission.pendingAmount)}
+            {selectedStudentObj && (
+              <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1 text-[11px]">
+                <div className="flex justify-between text-slate-400">
+                  <span>Course:</span>
+                  <span className="font-semibold text-slate-200">
+                    {selectedStudentObj.admission?.courseNameSnapshot || selectedStudentObj.admission?.course?.name}
                   </span>
                 </div>
-                <div className="text-right">
-                  <span className="text-slate-400 block font-medium">Already Paid:</span>
-                  <span className="text-sm font-bold text-emerald-400">
-                    {formatCurrency(selectedStudentObj.admission.paidAmount)}
-                  </span>
+                <div className="flex justify-between text-amber-400 font-bold">
+                  <span>Current Pending Fees:</span>
+                  <span>₹{Number(selectedStudentObj.admission?.pendingAmount || 0).toLocaleString("en-IN")}</span>
                 </div>
               </div>
             )}
-          </div>
 
-          {/* Payment Input Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Payment Amount (₹) <span className="text-rose-400">*</span>
-              </label>
+              <label className="block font-semibold text-slate-300 mb-1">Payment Amount (₹) *</label>
               <input
                 type="number"
+                required
+                min={1}
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                placeholder="e.g. 5000"
-                min="1"
-                required
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:border-emerald-500 focus:outline-none"
+                placeholder="Enter amount paid"
+                className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500 font-bold text-sm"
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Payment Mode <span className="text-rose-400">*</span>
-              </label>
-              <select
-                value={paymentMode}
-                onChange={(e) => setPaymentMode(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:border-emerald-500 focus:outline-none"
-              >
-                <option value="CASH">CASH</option>
-                <option value="UPI">UPI</option>
-                <option value="CARD">CARD</option>
-                <option value="BANK_TRANSFER">BANK_TRANSFER</option>
-                <option value="CHEQUE">CHEQUE</option>
-              </select>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">Payment Mode</label>
+                <select
+                  value={paymentMode}
+                  onChange={(e) => setPaymentMode(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500"
+                >
+                  <option value="CASH">CASH</option>
+                  <option value="UPI">UPI / GPAY</option>
+                  <option value="CARD">CARD</option>
+                  <option value="BANK_TRANSFER">BANK TRANSFER</option>
+                  <option value="CHEQUE">CHEQUE</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">Txn Ref / Receipt No</label>
+                <input
+                  type="text"
+                  value={transactionReference}
+                  onChange={(e) => setTransactionReference(e.target.value)}
+                  placeholder="Optional reference"
+                  className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500"
+                />
+              </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Reference / UTR
-              </label>
-              <input
-                type="text"
-                value={transactionReference}
-                onChange={(e) => setTransactionReference(e.target.value)}
-                placeholder="e.g. UPI/123456789"
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:border-emerald-500 focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Remarks</label>
+              <label className="block font-semibold text-slate-300 mb-1">Remarks / Installment Note</label>
               <input
                 type="text"
                 value={remarks}
                 onChange={(e) => setRemarks(e.target.value)}
-                placeholder="e.g. Month 2 installment"
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:border-emerald-500 focus:outline-none"
+                placeholder="Installment payment note..."
+                className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500"
               />
             </div>
-          </div>
 
-          <div className="flex justify-end pt-2">
             <button
               type="submit"
               disabled={submitting}
-              className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-950 transition-all flex items-center space-x-2 disabled:opacity-50"
+              className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center space-x-2 disabled:opacity-50"
             >
-              {submitting ? (
-                <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Recording Fee...</span>
-                </>
-              ) : (
-                <>
-                  <Receipt className="w-4 h-4" />
-                  <span>Save Fee Payment</span>
-                </>
-              )}
+              <CreditCard className="w-4 h-4" />
+              <span>{submitting ? "Processing..." : "Record Payment & Print Receipt"}</span>
             </button>
+          </form>
+        </div>
+
+        {/* FEE HISTORY TABLE */}
+        <div className="lg:col-span-2 bg-slate-900/60 border border-slate-800 rounded-3xl p-6 space-y-4">
+          <div className="flex items-center space-x-2 pb-3 border-b border-slate-800">
+            <Receipt className="w-5 h-5 text-emerald-400" />
+            <h3 className="text-base font-bold text-white">Recent Fee Payment Receipts</h3>
           </div>
-        </form>
-      </div>
 
-      {/* Fee History Table */}
-      <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
-        <h3 className="text-lg font-bold text-slate-100">Recent Fee Payment History</h3>
-
-        {feeHistory.length === 0 ? (
-          <EmptyState
-            title="No Fee Payments Recorded"
-            description="Fee payments collected will appear here in chronological order."
-          />
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-300">
-              <thead className="bg-slate-950/80 text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800">
-                <tr>
-                  <th className="p-3.5">Payment Date</th>
-                  <th className="p-3.5">Student ID</th>
-                  <th className="p-3.5">Student Name</th>
-                  <th className="p-3.5">Amount</th>
-                  <th className="p-3.5">Mode</th>
-                  <th className="p-3.5">Reference / Receipt</th>
-                  <th className="p-3.5">Remarks</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60">
-                {feeHistory.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="p-3.5 text-xs text-slate-400">
-                      {new Date(item.paymentDate || item.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="p-3.5 font-mono text-xs font-bold text-cyan-400">
-                      {item.admission?.student?.studentId || "N/A"}
-                    </td>
-                    <td className="p-3.5 font-bold text-slate-100">
-                      {item.admission?.student?.fullName || "N/A"}
-                    </td>
-                    <td className="p-3.5 font-bold text-emerald-400">
-                      {formatCurrency(item.amount)}
-                    </td>
-                    <td className="p-3.5">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">
-                        {item.paymentMode}
-                      </span>
-                    </td>
-                    <td className="p-3.5 font-mono text-xs text-slate-300">
-                      {item.transactionReference || "N/A"}
-                    </td>
-                    <td className="p-3.5 text-xs text-slate-400">{item.remarks || "-"}</td>
+          {loading ? (
+            <div className="text-center py-16 text-xs text-slate-500">Loading fee history...</div>
+          ) : feeHistory.length === 0 ? (
+            <div className="text-center py-16 text-xs text-slate-500">No payment receipts recorded yet.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+                  <tr>
+                    <th className="py-3 px-4">Receipt / Ref</th>
+                    <th className="py-3 px-4">Student</th>
+                    <th className="py-3 px-4">Date</th>
+                    <th className="py-3 px-4">Mode</th>
+                    <th className="py-3 px-4 text-right">Amount</th>
+                    <th className="py-3 px-4 text-center">Receipt</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                  {feeHistory.map((p) => (
+                    <tr key={p.id} className="hover:bg-slate-800/30 transition">
+                      <td className="py-3 px-4 font-mono font-bold text-cyan-400">
+                        {p.transactionReference || `REC-${p.id.slice(-6).toUpperCase()}`}
+                      </td>
+                      <td className="py-3 px-4 font-bold text-white">
+                        {p.admission?.student?.fullName || "Student"}
+                      </td>
+                      <td className="py-3 px-4 text-slate-400">
+                        {new Date(p.paymentDate || p.createdAt).toLocaleDateString("en-IN")}
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="px-2 py-0.5 bg-blue-950 text-blue-300 rounded font-bold uppercase text-[10px]">
+                          {p.paymentMode || "CASH"}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-right font-extrabold text-emerald-400 text-sm">
+                        ₹{Number(p.amount).toLocaleString("en-IN")}
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <button
+                          onClick={() => setSelectedReceiptPayment(p)}
+                          className="px-2.5 py-1 bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white rounded-lg font-semibold text-[11px] inline-flex items-center space-x-1 transition"
+                        >
+                          <Printer className="w-3.5 h-3.5" />
+                          <span>Print</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
       </div>
-
-      {/* Fee Success Modal */}
-      <Modal
-        isOpen={!!successReceipt}
-        onClose={() => setSuccessReceipt(null)}
-        title="🧾 Fee Payment Receipt Issued"
-      >
-        {successReceipt && (
-          <div className="space-y-4 text-slate-200">
-            <div className="p-4 rounded-2xl bg-emerald-950/60 border border-emerald-800/80 flex items-center space-x-3 text-emerald-300">
-              <CheckCircle2 className="w-6 h-6 flex-shrink-0 text-emerald-400" />
-              <div>
-                <p className="font-bold text-sm">Fee Collection Recorded Successfully!</p>
-                <p className="text-xs text-emerald-400/80">
-                  Receipt generated and admission balance updated.
-                </p>
-              </div>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
-              <div className="flex justify-between py-1 border-b border-slate-800">
-                <span className="text-slate-400">Receipt No:</span>
-                <span className="font-mono text-cyan-400 font-bold">
-                  {successReceipt.payment?.receiptNumber || successReceipt.payment?.transactionReference || "REC-2026-OK"}
-                </span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-slate-800">
-                <span className="text-slate-400">Paid Amount:</span>
-                <span className="font-bold text-emerald-400 text-sm">
-                  {formatCurrency(successReceipt.payment?.amount)}
-                </span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-slate-800">
-                <span className="text-slate-400">Payment Mode:</span>
-                <span className="font-bold text-white">{successReceipt.payment?.paymentMode}</span>
-              </div>
-              <div className="flex justify-between py-1">
-                <span className="text-slate-400">Remaining Dues:</span>
-                <span className="font-bold text-amber-400">
-                  {formatCurrency(successReceipt.admission?.pendingAmount)}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-2">
-              <button
-                onClick={() => setSuccessReceipt(null)}
-                className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        )}
-      </Modal>
     </div>
   );
 };

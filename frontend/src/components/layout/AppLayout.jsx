@@ -12,6 +12,9 @@ import {
   X,
   ShieldCheck,
   Calendar,
+  MessageSquare,
+  BookOpen,
+  CalendarCheck,
 } from "lucide-react";
 
 export const AppLayout = () => {
@@ -22,14 +25,17 @@ export const AppLayout = () => {
 
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Admissions", href: "/admissions", icon: UserPlus },
-    { name: "Students", href: "/students", icon: Users },
-    { name: "Fees", href: "/fees", icon: CreditCard },
+    { name: "Inquiries & Leads", href: "/dashboard/inquiries", icon: MessageSquare },
+    { name: "Admissions", href: "/dashboard/admissions", icon: UserPlus },
+    { name: "Students", href: "/dashboard/students", icon: Users },
+    { name: "Courses", href: "/dashboard/courses", icon: BookOpen },
+    { name: "Attendance", href: "/dashboard/attendance", icon: CalendarCheck },
+    { name: "Fees & Analytics", href: "/dashboard/fees", icon: CreditCard },
   ];
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    navigate("/");
   };
 
   const currentDate = new Date().toLocaleDateString("en-US", {
@@ -40,7 +46,7 @@ export const AppLayout = () => {
   });
 
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden">
+    <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden font-sans">
       {/* Mobile Backdrop */}
       {mobileOpen && (
         <div
@@ -75,7 +81,7 @@ export const AppLayout = () => {
         </div>
 
         {/* Navigation Links */}
-        <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
           {navigation.map((item) => {
             const isActive = location.pathname === item.href;
             const Icon = item.icon;
@@ -84,13 +90,13 @@ export const AppLayout = () => {
                 key={item.name}
                 to={item.href}
                 onClick={() => setMobileOpen(false)}
-                className={`flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-150 ${
+                className={`flex items-center px-4 py-3 text-xs font-semibold rounded-xl transition-all duration-150 ${
                   isActive
                     ? "bg-gradient-to-r from-cyan-600/90 to-blue-600/90 text-white shadow-lg shadow-cyan-950/50"
                     : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-200"
                 }`}
               >
-                <Icon className={`w-5 h-5 mr-3 ${isActive ? "text-white" : "text-slate-400"}`} />
+                <Icon className={`w-4 h-4 mr-3 ${isActive ? "text-white" : "text-slate-400"}`} />
                 {item.name}
               </Link>
             );
@@ -140,9 +146,15 @@ export const AppLayout = () => {
           </div>
 
           <div className="flex items-center space-x-3">
+            <button
+              onClick={() => navigate("/")}
+              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition"
+            >
+              Public Website
+            </button>
             <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-950/80 text-emerald-400 border border-emerald-800/60">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-2 animate-pulse" />
-              Production ERP Live
+              Super Admin ERP Active
             </span>
           </div>
         </header>

@@ -5,8 +5,11 @@ import { AppLayout } from "./components/layout/AppLayout";
 import { LandingPage } from "./pages/LandingPage";
 import { StudentDashboard } from "./pages/StudentDashboard";
 import { Dashboard } from "./pages/Dashboard";
+import { Inquiries } from "./pages/Inquiries";
 import { Admissions } from "./pages/Admissions";
 import { Students } from "./pages/Students";
+import { Courses } from "./pages/Courses";
+import { Attendance } from "./pages/Attendance";
 import { Fees } from "./pages/Fees";
 
 const AdminProtectedRoute = ({ children }) => {
@@ -60,8 +63,11 @@ export const App = () => {
             }
           >
             <Route index element={<Dashboard />} />
+            <Route path="inquiries" element={<Inquiries />} />
             <Route path="admissions" element={<Admissions />} />
             <Route path="students" element={<Students />} />
+            <Route path="courses" element={<Courses />} />
+            <Route path="attendance" element={<Attendance />} />
             <Route path="fees" element={<Fees />} />
           </Route>
 

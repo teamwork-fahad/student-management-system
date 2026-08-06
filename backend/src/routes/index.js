@@ -5,6 +5,7 @@ import inquiryRoutes from "../modules/inquiry/inquiry.routes.js";
 import admissionRoutes from "../modules/admission/admission.routes.js";
 import feeRoutes from "../modules/fees/fee.routes.js";
 import studentRoutes from "../modules/students/student.routes.js";
+import attendanceRoutes from "../modules/attendance/attendance.routes.js";
 
 const router = Router();
 
@@ -14,5 +15,6 @@ router.use("/v1/inquiries", inquiryRoutes);
 router.use("/v1/admissions", admissionRoutes);
 router.use("/v1/fees", feeRoutes);
 router.use("/v1/students", studentRoutes);
+router.use("/v1/attendance", attendanceRoutes);
 
 export default router;
