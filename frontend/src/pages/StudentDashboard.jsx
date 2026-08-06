@@ -292,8 +292,10 @@ export const StudentDashboard = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs">
               <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-2">
-                <span className="text-slate-500 uppercase font-semibold text-[10px] block">Admission Number</span>
-                <span className="text-sm font-bold text-white block">{admission?.admissionNumber || "N/A"}</span>
+                <span className="text-slate-500 uppercase font-semibold text-[10px] block">Primary Course Admission</span>
+                <span className="text-sm font-bold text-white block">
+                  {admission?.courseNameSnapshot || course?.name || "General Course"} ({admission?.admissionNumber || "N/A"})
+                </span>
                 <span className="text-slate-400 block">Date: {admission?.admissionDate ? new Date(admission.admissionDate).toLocaleDateString("en-IN") : "N/A"}</span>
               </div>
 
@@ -313,6 +315,31 @@ export const StudentDashboard = () => {
                 </div>
               </div>
             </div>
+
+            {/* MULTIPLE ENROLLED COURSES LIST */}
+            {studentData?.allAdmissions && studentData.allAdmissions.length > 0 && (
+              <div className="pt-4 border-t border-slate-800 space-y-3">
+                <span className="text-[11px] font-bold text-cyan-400 uppercase tracking-wider block">
+                  My Enrolled Courses ({studentData.allAdmissions.length})
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  {studentData.allAdmissions.map((adm) => (
+                    <div key={adm.id} className="p-3.5 bg-slate-950/80 border border-slate-800 rounded-2xl space-y-1.5">
+                      <div className="flex items-center justify-between font-bold text-white">
+                        <span className="truncate pr-2">{adm.courseNameSnapshot || adm.course?.name}</span>
+                        <span className="text-cyan-400 font-mono text-[10px] bg-cyan-950 border border-cyan-800 px-2 py-0.5 rounded-full shrink-0">
+                          {adm.admissionNumber}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-slate-400 text-[11px] pt-1 border-t border-slate-900">
+                        <span>Fee: ₹{Number(adm.finalFees || adm.courseFees).toLocaleString("en-IN")}</span>
+                        <span className="text-amber-400 font-semibold">Pending: ₹{Number(adm.pendingAmount).toLocaleString("en-IN")}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

@@ -2,6 +2,7 @@ import prisma from "../../config/prisma.js";
 import bcrypt from "bcrypt";
 import { generateToken } from "../../utils/jwt.js";
 import { createHttpError } from "../../utils/httpError.js";
+import { getStudentById } from "../students/student.service.js";
 import {
   sendAdminRegistrationNotification,
   sendForgotPasswordEmail,
@@ -363,32 +364,38 @@ export const resetPasswordService = async (identifier, otpCode, newPassword) => 
 };
 
 export const getStudentProfileService = async (userId) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { student: true },
+  });
+
   const student = await prisma.student.findFirst({
-    where: { userId },
-    include: {
-      admission: {
-        include: {
-          course: true,
-          payments: {
-            orderBy: { paymentDate: "desc" },
-          },
-        },
-      },
-      documents: true,
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          role: true,
-        },
-      },
+    where: {
+      OR: [
+        { userId },
+        user?.email ? { email: { equals: user.email, mode: "insensitive" } } : undefined,
+        user?.student?.mobile ? { mobile: user.student.mobile } : undefined,
+      ].filter(Boolean),
+      deletedAt: null,
     },
+    orderBy: { createdAt: "desc" },
   });
 
   if (!student) {
     throw createHttpError("Student profile not found", 404);
   }
 
-  return student;
+  const fullStudent = await getStudentById(student.id);
+
+  // Set primary `admission` to the most recent active admission
+  if (fullStudent.allAdmissions && fullStudent.allAdmissions.length > 0) {
+    const activeAdmissions = fullStudent.allAdmissions.filter(
+      (a) => a.status === "ACTIVE" && !a.deletedAt
+    );
+    if (activeAdmissions.length > 0) {
+      fullStudent.admission = activeAdmissions[0];
+    }
+  }
+
+  return fullStudent;
 };
