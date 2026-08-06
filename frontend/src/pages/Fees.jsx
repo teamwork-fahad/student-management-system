@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import api from "../api/axios";
 import { ReceiptModal } from "../components/receipts/ReceiptModal";
 import { Modal } from "../components/common/Modal";
+import { SearchableSelect } from "../components/common/SearchableSelect";
 import { formatDate } from "../utils/formatters";
 import {
   CreditCard,
@@ -610,19 +611,18 @@ export const Fees = () => {
           <form onSubmit={handleCollectFee} className="space-y-3.5 text-xs">
             <div>
               <label className="block font-semibold text-slate-300 mb-1">Select Student *</label>
-              <select
-                required
+              <SearchableSelect
+                options={students.map((s) => ({
+                  value: s.id,
+                  label: `${s.fullName} (${s.studentId})`,
+                  subLabel: `Pending Fees: ₹${Number(s.admission?.pendingAmount || 0).toLocaleString("en-IN")}`,
+                }))}
                 value={selectedStudentId}
-                onChange={(e) => setSelectedStudentId(e.target.value)}
-                className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500"
-              >
-                <option value="">Select Enrolled Student...</option>
-                {students.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.fullName} ({s.studentId}) - Pending: ₹{Number(s.admission?.pendingAmount || 0).toLocaleString("en-IN")}
-                  </option>
-                ))}
-              </select>
+                onChange={(_, val) => setSelectedStudentId(val)}
+                placeholder="-- Search & Select Student --"
+                searchPlaceholder="Type name, mobile or student ID..."
+                required
+              />
             </div>
 
             {selectedStudentObj && (

@@ -3,6 +3,7 @@ import api from "../api/axios";
 import { LoadingSpinner } from "../components/common/LoadingSpinner";
 import { EmptyState } from "../components/common/EmptyState";
 import { Modal } from "../components/common/Modal";
+import { SearchableSelect } from "../components/common/SearchableSelect";
 import { ReceiptModal } from "../components/receipts/ReceiptModal";
 import { formatDate } from "../utils/formatters";
 import {
@@ -1788,19 +1789,18 @@ export const Students = () => {
             <form onSubmit={handleAddCourseSubmit} className="space-y-3.5 text-xs">
               <div>
                 <label className="block font-semibold text-slate-300 mb-1">Select New Course *</label>
-                <select
-                  required
+                <SearchableSelect
+                  options={coursesList.map((c) => ({
+                    value: c.id,
+                    label: `${c.name} (${c.code})`,
+                    subLabel: `Fee: ₹${Number(c.fees).toLocaleString("en-IN")}`,
+                  }))}
                   value={addCourseForm.courseId}
-                  onChange={(e) => handleSelectAddCourse(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-indigo-500 font-bold"
-                >
-                  <option value="">Choose Course...</option>
-                  {coursesList.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} ({c.code}) - Fee: ₹{Number(c.fees).toLocaleString("en-IN")}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(_, val) => handleSelectAddCourse(val)}
+                  placeholder="-- Search & Choose Course --"
+                  searchPlaceholder="Type Python, Web Dev, Code..."
+                  required
+                />
               </div>
 
               <div className="p-3.5 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">

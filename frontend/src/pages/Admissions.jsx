@@ -11,7 +11,7 @@ import {
   RefreshCw,
   Sparkles,
 } from "lucide-react";
-
+import { SearchableSelect } from "../components/common/SearchableSelect";
 export const Admissions = () => {
   const [inquiries, setInquiries] = useState([]);
   const [courses, setCourses] = useState([]);
@@ -242,39 +242,35 @@ export const Admissions = () => {
               <label className="block text-xs font-semibold text-slate-300 mb-1">
                 Select Inquiry <span className="text-rose-400">*</span>
               </label>
-              <select
-                name="inquiryId"
+              <SearchableSelect
+                options={inquiries.map((inq) => ({
+                  value: inq.id,
+                  label: `${inq.inquiryNumber} - ${inq.fullName}`,
+                  subLabel: `Mobile: ${inq.mobile}`,
+                }))}
                 value={formData.inquiryId}
-                onChange={(e) => handleInquiryChange(e.target.value)}
+                onChange={(_, val) => handleInquiryChange(val)}
+                placeholder="-- Search & Choose Lead Inquiry --"
+                searchPlaceholder="Type name, mobile or inquiry no..."
                 required
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:border-cyan-500 focus:outline-none"
-              >
-                <option value="">-- Choose Lead Inquiry --</option>
-                {inquiries.map((inq) => (
-                  <option key={inq.id} value={inq.id}>
-                    {inq.inquiryNumber} - {inq.fullName} ({inq.mobile})
-                  </option>
-                ))}
-              </select>
+              />
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1">
                 Enrolled Course
               </label>
-              <select
-                name="courseId"
+              <SearchableSelect
+                options={courses.map((c) => ({
+                  value: c.id,
+                  label: `${c.name} (${c.code})`,
+                  subLabel: `Tuition Fee: ₹${Number(c.fees).toLocaleString("en-IN")}`,
+                }))}
                 value={formData.courseId}
-                onChange={handleInputChange}
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:border-cyan-500 focus:outline-none"
-              >
-                <option value="">-- Use Course From Inquiry --</option>
-                {courses.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} ({c.code}) - ₹{c.fees}
-                  </option>
-                ))}
-              </select>
+                onChange={(_, val) => setFormData((prev) => ({ ...prev, courseId: val }))}
+                placeholder="-- Search & Select Course --"
+                searchPlaceholder="Type course name or code..."
+              />
             </div>
 
             <div>
