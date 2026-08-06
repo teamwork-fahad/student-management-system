@@ -13,6 +13,8 @@ import {
   ChevronRight,
   X,
   Send,
+  LayoutGrid,
+  List,
 } from "lucide-react";
 import api from "../api/axios";
 
@@ -21,6 +23,9 @@ export const Inquiries = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+
+  // View Mode: 'table' | 'grid'
+  const [viewMode, setViewMode] = useState("table");
 
   // Modal states
   const [isFollowUpOpen, setIsFollowUpOpen] = useState(false);
@@ -89,12 +94,38 @@ export const Inquiries = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-white tracking-tight">Inquiries & Leads Management</h1>
           <p className="text-xs text-slate-400">Track prospective student inquiries, follow-ups, and admissions conversion.</p>
+        </div>
+
+        {/* View Mode Toggle Switch */}
+        <div className="flex items-center space-x-1 p-1 bg-slate-900 border border-slate-800 rounded-xl w-fit">
+          <button
+            type="button"
+            onClick={() => setViewMode("table")}
+            className={`p-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
+              viewMode === "table" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
+            }`}
+            title="Table List View"
+          >
+            <List className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">List View</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("grid")}
+            className={`p-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
+              viewMode === "grid" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
+            }`}
+            title="Grid Cards View"
+          >
+            <LayoutGrid className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Grid View</span>
+          </button>
         </div>
       </div>
 
@@ -128,13 +159,14 @@ export const Inquiries = () => {
         </div>
       </div>
 
-      {/* Inquiries Table */}
-      <div className="bg-slate-900/60 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
+      {/* Inquiries Content Section */}
+      <div className="bg-slate-900/60 border border-slate-800 rounded-3xl overflow-hidden shadow-xl p-6">
         {loading ? (
           <div className="text-center py-16 text-xs text-slate-500">Loading inquiries...</div>
         ) : inquiries.length === 0 ? (
           <div className="text-center py-16 text-xs text-slate-500">No inquiries found matching criteria.</div>
-        ) : (
+        ) : viewMode === "table" ? (
+          /* TABLE LIST VIEW */
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
@@ -200,6 +232,64 @@ export const Inquiries = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        ) : (
+          /* GRID CARDS VIEW */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {inquiries.map((inq) => (
+              <div key={inq.id} className="p-5 bg-slate-950/80 border border-slate-800 rounded-2xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-xs font-bold text-cyan-400">{inq.inquiryNumber}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
+                    inq.status === "ADMISSION_DONE"
+                      ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
+                      : (inq.status === "INTERESTED"
+                        ? "bg-blue-950 text-blue-300 border border-blue-800"
+                        : "bg-amber-950 text-amber-400 border border-amber-800")
+                  }`}>
+                    {inq.status}
+                  </span>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-bold text-white">{inq.fullName}</h4>
+                  <p className="text-xs text-slate-400 mt-0.5">{inq.course?.name || "General Course"}</p>
+                </div>
+
+                <div className="space-y-1 text-xs text-slate-400 pt-2 border-t border-slate-900">
+                  <div className="flex items-center space-x-2">
+                    <Phone className="w-3.5 h-3.5 text-blue-400" />
+                    <span>{inq.mobile}</span>
+                  </div>
+                  {inq.email && (
+                    <div className="flex items-center space-x-2 truncate">
+                      <Mail className="w-3.5 h-3.5 text-indigo-400" />
+                      <span className="truncate">{inq.email}</span>
+                    </div>
+                  )}
+                  {inq.remarks && (
+                    <p className="text-[11px] text-slate-400 italic pt-1 truncate">"{inq.remarks}"</p>
+                  )}
+                </div>
+
+                <div className="flex items-center space-x-2 pt-2">
+                  <button
+                    onClick={() => handleOpenFollowUp(inq)}
+                    className="flex-1 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 rounded-xl text-xs font-semibold transition"
+                  >
+                    Follow Up
+                  </button>
+                  {inq.status !== "ADMISSION_DONE" && (
+                    <button
+                      onClick={() => handleConvertInquiry(inq.id)}
+                      className="px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded-xl text-xs font-semibold transition"
+                    >
+                      Convert
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>

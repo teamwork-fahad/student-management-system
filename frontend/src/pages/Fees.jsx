@@ -11,6 +11,10 @@ import {
   Printer,
   TrendingUp,
   PieChart,
+  LayoutGrid,
+  List,
+  Calendar,
+  Layers,
 } from "lucide-react";
 
 export const Fees = () => {
@@ -20,6 +24,10 @@ export const Fees = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [selectedReceiptPayment, setSelectedReceiptPayment] = useState(null);
+
+  // View Modes: 'table' | 'grid'
+  const [viewMode, setViewMode] = useState("table");
+  const [monthlyViewMode, setMonthlyViewMode] = useState("grid"); // 'grid' | 'table' for monthly summary
 
   // Form state
   const [selectedStudentId, setSelectedStudentId] = useState("");
@@ -41,7 +49,7 @@ export const Fees = () => {
     try {
       const [studentsRes, historyRes] = await Promise.all([
         api.get("/students?limit=100"),
-        api.get("/fees?limit=50"),
+        api.get("/fees?limit=100"),
       ]);
 
       setStudents(studentsRes.data?.data?.students || []);
@@ -76,7 +84,6 @@ export const Fees = () => {
       const payment = response.data?.data?.payment;
       setSelectedReceiptPayment(payment);
 
-      // Reset form & reload list
       setAmount("");
       setTransactionReference("");
       setRemarks("");
@@ -102,8 +109,34 @@ export const Fees = () => {
   const totalPending = Math.max(0, totalExpected - totalCollected);
   const efficiencyRate = totalExpected > 0 ? ((totalCollected / totalExpected) * 100).toFixed(1) : 0;
 
+  // Compute Monthly Collection Summary
+  const monthlySummary = {};
+  feeHistory.forEach((p) => {
+    const d = new Date(p.paymentDate || p.createdAt);
+    const monthKey = d.toLocaleDateString("en-IN", { month: "long", year: "numeric" });
+    if (!monthlySummary[monthKey]) {
+      monthlySummary[monthKey] = {
+        monthName: monthKey,
+        totalAmount: 0,
+        receiptCount: 0,
+        cashCount: 0,
+        onlineCount: 0,
+      };
+    }
+    const amt = Number(p.amount) || 0;
+    monthlySummary[monthKey].totalAmount += amt;
+    monthlySummary[monthKey].receiptCount += 1;
+    if ((p.paymentMode || "").toUpperCase() === "CASH") {
+      monthlySummary[monthKey].cashCount += amt;
+    } else {
+      monthlySummary[monthKey].onlineCount += amt;
+    }
+  });
+
+  const monthlyList = Object.values(monthlySummary);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* Printable Receipt Modal */}
       {selectedReceiptPayment && (
         <ReceiptModal
@@ -117,7 +150,7 @@ export const Fees = () => {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-black text-white tracking-tight">Fees & Financial Revenue Analytics</h1>
-        <p className="text-xs text-slate-400">Collect tuition payments, view financial efficiency, and print receipts.</p>
+        <p className="text-xs text-slate-400">Collect tuition payments, view monthly collection trends, and print receipts.</p>
       </div>
 
       {/* REVENUE ANALYTICS SUMMARY CARDS */}
@@ -143,7 +176,109 @@ export const Fees = () => {
         </div>
       </div>
 
-      {/* TWO COLUMN GRID: COLLECT FEE FORM & HISTORY TABLE */}
+      {/* MONTHLY COLLECTION SUMMARY SECTION (WITH GRID / TABLE VIEW TOGGLE) */}
+      <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div className="flex items-center space-x-2">
+            <Calendar className="w-5 h-5 text-cyan-400" />
+            <div>
+              <h3 className="text-base font-bold text-white">Monthly Fee Revenue Summary</h3>
+              <p className="text-xs text-slate-400">Month-by-month fee collection breakdown and transaction volume</p>
+            </div>
+          </div>
+
+          {/* Grid vs Table View Toggle Switch for Monthly Summary */}
+          <div className="flex items-center space-x-1 p-1 bg-slate-950 border border-slate-800 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setMonthlyViewMode("grid")}
+              className={`p-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
+                monthlyViewMode === "grid" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
+              }`}
+              title="Grid Cards View"
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Grid View</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setMonthlyViewMode("table")}
+              className={`p-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
+                monthlyViewMode === "table" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
+              }`}
+              title="Table List View"
+            >
+              <List className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Table View</span>
+            </button>
+          </div>
+        </div>
+
+        {monthlyList.length === 0 ? (
+          <p className="text-xs text-slate-500 italic">No monthly collection records found.</p>
+        ) : monthlyViewMode === "grid" ? (
+          /* MONTHLY GRID CARDS VIEW */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {monthlyList.map((m) => (
+              <div key={m.monthName} className="p-4 bg-slate-950/70 border border-slate-800/80 rounded-2xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-cyan-300">{m.monthName}</span>
+                  <span className="px-2.5 py-0.5 bg-blue-950 text-blue-300 rounded-full text-[10px] font-bold">
+                    {m.receiptCount} Receipts
+                  </span>
+                </div>
+
+                <div className="text-xl font-extrabold text-emerald-400">
+                  ₹{m.totalAmount.toLocaleString("en-IN")}
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-[11px] pt-2 border-t border-slate-900 text-slate-400">
+                  <div>Cash: <span className="font-bold text-slate-200">₹{m.cashCount.toLocaleString("en-IN")}</span></div>
+                  <div>Online/UPI: <span className="font-bold text-slate-200">₹{m.onlineCount.toLocaleString("en-IN")}</span></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          /* MONTHLY TABLE LIST VIEW */
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+                <tr>
+                  <th className="py-3 px-4">Month & Year</th>
+                  <th className="py-3 px-4 text-center">Receipts Count</th>
+                  <th className="py-3 px-4 text-right">Cash Collection</th>
+                  <th className="py-3 px-4 text-right">Online / UPI Collection</th>
+                  <th className="py-3 px-4 text-right">Total Revenue</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                {monthlyList.map((m) => (
+                  <tr key={m.monthName} className="hover:bg-slate-800/30 transition">
+                    <td className="py-3 px-4 font-bold text-white">{m.monthName}</td>
+                    <td className="py-3 px-4 text-center">
+                      <span className="px-2.5 py-0.5 bg-blue-950 text-blue-300 rounded-full font-bold text-[10px]">
+                        {m.receiptCount} Receipts
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-right font-semibold text-slate-300">
+                      ₹{m.cashCount.toLocaleString("en-IN")}
+                    </td>
+                    <td className="py-3 px-4 text-right font-semibold text-slate-300">
+                      ₹{m.onlineCount.toLocaleString("en-IN")}
+                    </td>
+                    <td className="py-3 px-4 text-right font-extrabold text-emerald-400 text-sm">
+                      ₹{m.totalAmount.toLocaleString("en-IN")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* TWO COLUMN GRID: COLLECT FEE FORM & HISTORY */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* COLLECT FEE FORM */}
@@ -256,28 +391,57 @@ export const Fees = () => {
           </form>
         </div>
 
-        {/* FEE HISTORY TABLE */}
+        {/* FEE HISTORY SECTION WITH GRID / LIST VIEW TOGGLE */}
         <div className="lg:col-span-2 bg-slate-900/60 border border-slate-800 rounded-3xl p-6 space-y-4">
-          <div className="flex items-center space-x-2 pb-3 border-b border-slate-800">
-            <Receipt className="w-5 h-5 text-emerald-400" />
-            <h3 className="text-base font-bold text-white">Recent Fee Payment Receipts</h3>
+          <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+            <div className="flex items-center space-x-2">
+              <Receipt className="w-5 h-5 text-emerald-400" />
+              <h3 className="text-base font-bold text-white">Fee Payment Receipts</h3>
+            </div>
+
+            {/* Grid vs List View Toggle Switch */}
+            <div className="flex items-center space-x-1 p-1 bg-slate-950 border border-slate-800 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setViewMode("table")}
+                className={`p-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
+                  viewMode === "table" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
+                }`}
+                title="Table List View"
+              >
+                <List className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">List View</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("grid")}
+                className={`p-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
+                  viewMode === "grid" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
+                }`}
+                title="Grid Cards View"
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Grid View</span>
+              </button>
+            </div>
           </div>
 
           {loading ? (
-            <div className="text-center py-16 text-xs text-slate-500">Loading fee history...</div>
+            <div className="text-center py-16 text-xs text-slate-500">Loading fee receipts...</div>
           ) : feeHistory.length === 0 ? (
             <div className="text-center py-16 text-xs text-slate-500">No payment receipts recorded yet.</div>
-          ) : (
+          ) : viewMode === "table" ? (
+            /* LIST / TABLE VIEW */
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
                   <tr>
                     <th className="py-3 px-4">Receipt / Ref</th>
-                    <th className="py-3 px-4">Student</th>
+                    <th className="py-3 px-4">Student Name</th>
                     <th className="py-3 px-4">Date</th>
                     <th className="py-3 px-4">Mode</th>
                     <th className="py-3 px-4 text-right">Amount</th>
-                    <th className="py-3 px-4 text-center">Receipt</th>
+                    <th className="py-3 px-4 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60 text-slate-300">
@@ -313,6 +477,42 @@ export const Fees = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+          ) : (
+            /* GRID CARDS VIEW */
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {feeHistory.map((p) => (
+                <div key={p.id} className="p-4 bg-slate-950/80 border border-slate-800 rounded-2xl space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs font-bold text-cyan-400">
+                      {p.transactionReference || `REC-${p.id.slice(-6).toUpperCase()}`}
+                    </span>
+                    <span className="px-2 py-0.5 bg-blue-950 text-blue-300 rounded font-bold uppercase text-[10px]">
+                      {p.paymentMode || "CASH"}
+                    </span>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-bold text-white">{p.admission?.student?.fullName || "Student"}</h4>
+                    <p className="text-[11px] text-slate-400">
+                      Date: {new Date(p.paymentDate || p.createdAt).toLocaleDateString("en-IN")}
+                    </p>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-900 flex items-center justify-between">
+                    <div className="text-base font-extrabold text-emerald-400">
+                      ₹{Number(p.amount).toLocaleString("en-IN")}
+                    </div>
+                    <button
+                      onClick={() => setSelectedReceiptPayment(p)}
+                      className="px-3 py-1 bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white rounded-lg font-semibold text-[11px] flex items-center space-x-1 transition"
+                    >
+                      <Printer className="w-3.5 h-3.5" />
+                      <span>Print</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>

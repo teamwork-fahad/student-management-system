@@ -2,6 +2,8 @@ import { Router } from "express";
 import {
   login,
   registerStudent,
+  forgotPassword,
+  resetPassword,
   getStudentProfile,
   getMe,
   adminDashboard,
@@ -13,6 +15,8 @@ const router = Router();
 
 router.post("/login", login);
 router.post("/register-student", registerStudent);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
 
 // Protected Routes
 router.get("/me", authenticate, getMe);

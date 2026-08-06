@@ -18,6 +18,8 @@ import {
   Send,
   Sparkles,
   ShieldAlert,
+  LayoutGrid,
+  List,
 } from "lucide-react";
 import api from "../api/axios";
 
@@ -28,6 +30,9 @@ export const StudentDashboard = () => {
   const [studentData, setStudentData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // View Mode for fee receipts: 'table' | 'grid'
+  const [viewMode, setViewMode] = useState("table");
 
   // Selected receipt for print modal
   const [selectedPayment, setSelectedPayment] = useState(null);
@@ -310,7 +315,7 @@ export const StudentDashboard = () => {
           </div>
         </div>
 
-        {/* FEE RECEIPTS & PAYMENTS LEDGER TABLE */}
+        {/* FEE RECEIPTS & PAYMENTS LEDGER TABLE WITH VIEW MODE TOGGLE */}
         <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 space-y-6">
           <div className="flex items-center justify-between pb-4 border-b border-slate-800">
             <div className="flex items-center space-x-3">
@@ -322,13 +327,40 @@ export const StudentDashboard = () => {
                 <p className="text-xs text-slate-400">History of payments & digital receipts</p>
               </div>
             </div>
+
+            {/* Grid vs List View Toggle */}
+            <div className="flex items-center space-x-1 p-1 bg-slate-950 border border-slate-800 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setViewMode("table")}
+                className={`p-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
+                  viewMode === "table" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
+                }`}
+                title="Table List View"
+              >
+                <List className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">List View</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("grid")}
+                className={`p-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
+                  viewMode === "grid" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
+                }`}
+                title="Grid Cards View"
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Grid View</span>
+              </button>
+            </div>
           </div>
 
           {payments.length === 0 ? (
             <div className="text-center py-10 text-xs text-slate-500">
               No fee payments recorded yet.
             </div>
-          ) : (
+          ) : viewMode === "table" ? (
+            /* LIST / TABLE VIEW */
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-950/80 text-slate-400 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-800">
@@ -376,6 +408,46 @@ export const StudentDashboard = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+          ) : (
+            /* GRID CARDS VIEW */
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {payments.map((p) => (
+                <div key={p.id} className="p-4 bg-slate-950/80 border border-slate-800 rounded-2xl space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs font-bold text-cyan-400">
+                      {p.transactionReference || `REC-${p.id.slice(-6).toUpperCase()}`}
+                    </span>
+                    <span className="px-2.5 py-0.5 bg-blue-950 text-blue-300 rounded font-bold uppercase text-[10px]">
+                      {p.paymentMode || "CASH"}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-end pt-2 border-t border-slate-900">
+                    <div>
+                      <span className="text-[10px] text-slate-500 block">Date Paid</span>
+                      <span className="text-xs text-slate-300 font-semibold">
+                        {new Date(p.paymentDate || p.createdAt).toLocaleDateString("en-IN")}
+                      </span>
+                    </div>
+
+                    <div className="text-right">
+                      <span className="text-[10px] text-slate-500 block">Amount</span>
+                      <span className="text-base font-extrabold text-emerald-400">
+                        ₹{Number(p.amount).toLocaleString("en-IN")}
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setSelectedPayment(p)}
+                    className="w-full py-1.5 bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition"
+                  >
+                    <Printer className="w-3.5 h-3.5" />
+                    <span>View & Print Receipt</span>
+                  </button>
+                </div>
+              ))}
             </div>
           )}
         </div>

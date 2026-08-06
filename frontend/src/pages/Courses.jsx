@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Plus, BookOpen, Clock, CreditCard, Search, Edit, CheckCircle, XCircle, X } from "lucide-react";
+import { Plus, BookOpen, Clock, CreditCard, Search, Edit, CheckCircle, XCircle, X, LayoutGrid, List } from "lucide-react";
 import api from "../api/axios";
 
 export const Courses = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+
+  // View Mode: 'grid' | 'table'
+  const [viewMode, setViewMode] = useState("grid");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [courseName, setCourseName] = useState("");
@@ -61,7 +64,7 @@ export const Courses = () => {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -69,13 +72,41 @@ export const Courses = () => {
           <p className="text-xs text-slate-400">Manage academic programs, duration, and tuition fee structures.</p>
         </div>
 
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="px-4 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-lg flex items-center space-x-2 w-fit transition"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add New Course</span>
-        </button>
+        <div className="flex items-center space-x-3">
+          {/* View Mode Toggle Switch */}
+          <div className="flex items-center space-x-1 p-1 bg-slate-900 border border-slate-800 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setViewMode("grid")}
+              className={`p-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
+                viewMode === "grid" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
+              }`}
+              title="Grid Cards View"
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Grid View</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("table")}
+              className={`p-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
+                viewMode === "table" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
+              }`}
+              title="Table List View"
+            >
+              <List className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">List View</span>
+            </button>
+          </div>
+
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="px-4 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-lg flex items-center space-x-2 transition"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add New Course</span>
+          </button>
+        </div>
       </div>
 
       {/* Search Bar */}
@@ -90,14 +121,15 @@ export const Courses = () => {
         />
       </div>
 
-      {/* Courses Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {loading ? (
-          <div className="col-span-full text-center py-16 text-xs text-slate-500">Loading courses...</div>
-        ) : filteredCourses.length === 0 ? (
-          <div className="col-span-full text-center py-16 text-xs text-slate-500">No courses found.</div>
-        ) : (
-          filteredCourses.map((c) => (
+      {/* Content Section */}
+      {loading ? (
+        <div className="text-center py-16 text-xs text-slate-500">Loading courses...</div>
+      ) : filteredCourses.length === 0 ? (
+        <div className="text-center py-16 text-xs text-slate-500">No courses found.</div>
+      ) : viewMode === "grid" ? (
+        /* GRID CARDS VIEW */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredCourses.map((c) => (
             <div
               key={c.id}
               className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 flex flex-col justify-between hover:border-cyan-500/40 transition"
@@ -129,9 +161,43 @@ export const Courses = () => {
                 </span>
               </div>
             </div>
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      ) : (
+        /* TABLE LIST VIEW */
+        <div className="bg-slate-900/60 border border-slate-800 rounded-3xl overflow-hidden shadow-xl p-6">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+                <tr>
+                  <th className="py-3.5 px-4">Course Code</th>
+                  <th className="py-3.5 px-4">Course Name</th>
+                  <th className="py-3.5 px-4">Duration</th>
+                  <th className="py-3.5 px-4 text-right">Tuition Fees</th>
+                  <th className="py-3.5 px-4 text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                {filteredCourses.map((c) => (
+                  <tr key={c.id} className="hover:bg-slate-800/30 transition">
+                    <td className="py-3.5 px-4 font-mono font-bold text-cyan-400">{c.code}</td>
+                    <td className="py-3.5 px-4 font-bold text-white">{c.name}</td>
+                    <td className="py-3.5 px-4 text-slate-400">{c.duration} {c.durationType}</td>
+                    <td className="py-3.5 px-4 text-right font-extrabold text-emerald-400 text-sm">
+                      ₹{Number(c.fees).toLocaleString("en-IN")}
+                    </td>
+                    <td className="py-3.5 px-4 text-center">
+                      <span className="px-2.5 py-0.5 bg-emerald-950 text-emerald-400 border border-emerald-800 rounded-full text-[10px] font-bold">
+                        ACTIVE
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Add Course Modal */}
       {isModalOpen && (

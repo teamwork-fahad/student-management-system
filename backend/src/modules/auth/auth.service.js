@@ -2,6 +2,10 @@ import prisma from "../../config/prisma.js";
 import bcrypt from "bcrypt";
 import { generateToken } from "../../utils/jwt.js";
 import { createHttpError } from "../../utils/httpError.js";
+import {
+  sendAdminRegistrationNotification,
+  sendForgotPasswordEmail,
+} from "../../utils/emailService.js";
 
 export const loginService = async (identifier, password) => {
   const cleanId = String(identifier).trim();
@@ -41,7 +45,7 @@ export const loginService = async (identifier, password) => {
 
     if (unlinkedStudent) {
       throw createHttpError(
-        `Welcome student! Your profile (${unlinkedStudent.fullName} - ${unlinkedStudent.studentId}) exists in EduMaster, but you need to click 'Register' once to create your password.`,
+        `Welcome student! Your profile (${unlinkedStudent.fullName} - ${unlinkedStudent.studentId}) exists in EduMaster, but you need to click 'Register' once to set your password.`,
         400
       );
     }
@@ -92,7 +96,7 @@ export const registerStudentService = async ({
 
   if (existingUser) {
     throw createHttpError(
-      "This Mobile Number or Email is already registered in EduMaster. Please proceed to Student Login.",
+      "Email or Mobile number is already registered! Please Login to your account. If you forgot your password, click Forgot Password.",
       400
     );
   }
@@ -135,6 +139,14 @@ export const registerStudentService = async ({
           },
         },
       },
+    });
+
+    // Send Admin Email Notification for student registration
+    sendAdminRegistrationNotification({
+      fullName: newUser.name,
+      studentId: existingUnlinkedStudent.studentId,
+      mobile: cleanMobile,
+      email: cleanEmail || userEmail,
     });
 
     const token = generateToken(newUser);
@@ -243,6 +255,14 @@ export const registerStudentService = async ({
     return { newUser, student };
   });
 
+  // Trigger Instant Admin Email Notification for new student registration
+  sendAdminRegistrationNotification({
+    fullName: result.newUser.name,
+    studentId: result.student.studentId,
+    mobile: cleanMobile,
+    email: cleanEmail || userEmail,
+  });
+
   const token = generateToken(result.newUser);
   const { password: _, ...userData } = result.newUser;
 
@@ -251,6 +271,88 @@ export const registerStudentService = async ({
     token,
     message: "Registration successful! Welcome to EduMaster.",
     student: result.student,
+  };
+};
+
+export const forgotPasswordService = async (identifier) => {
+  const cleanId = String(identifier).trim();
+
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { email: { equals: cleanId, mode: "insensitive" } },
+        { student: { mobile: cleanId } },
+        { student: { studentId: { equals: cleanId, mode: "insensitive" } } },
+      ],
+    },
+  });
+
+  if (!user) {
+    throw createHttpError("No user account found with this Email, Mobile, or Student ID.", 404);
+  }
+
+  // Generate 6-digit OTP code
+  const resetOtp = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiry = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      resetToken: resetOtp,
+      resetTokenExpiry: expiry,
+    },
+  });
+
+  // Send Email if email exists
+  if (user.email && !user.email.endsWith("@student.edumaster.local")) {
+    await sendForgotPasswordEmail(user.email, user.name, resetOtp);
+  }
+
+  return {
+    message: `Password reset OTP generated successfully.`,
+    email: user.email,
+    otp: resetOtp,
+  };
+};
+
+export const resetPasswordService = async (identifier, otpCode, newPassword) => {
+  const cleanId = String(identifier).trim();
+
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { email: { equals: cleanId, mode: "insensitive" } },
+        { student: { mobile: cleanId } },
+        { student: { studentId: { equals: cleanId, mode: "insensitive" } } },
+      ],
+    },
+  });
+
+  if (!user) {
+    throw createHttpError("User account not found.", 404);
+  }
+
+  if (!user.resetToken || user.resetToken !== String(otpCode).trim()) {
+    throw createHttpError("Invalid OTP reset code. Please check and try again.", 400);
+  }
+
+  if (user.resetTokenExpiry && new Date(user.resetTokenExpiry) < new Date()) {
+    throw createHttpError("OTP reset code has expired. Please request a new one.", 400);
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      password: hashedPassword,
+      resetToken: null,
+      resetTokenExpiry: null,
+    },
+  });
+
+  return {
+    message: "Password reset successful! You can now login with your new password.",
   };
 };
 

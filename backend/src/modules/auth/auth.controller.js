@@ -2,6 +2,8 @@ import {
   loginService,
   registerStudentService,
   getStudentProfileService,
+  forgotPasswordService,
+  resetPasswordService,
 } from "./auth.service.js";
 import { loginSchema, registerStudentSchema } from "./auth.validation.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
@@ -37,6 +39,26 @@ export const registerStudent = asyncHandler(async (req, res) => {
     },
     201
   );
+});
+
+export const forgotPassword = asyncHandler(async (req, res) => {
+  const { identifier } = req.body;
+  if (!identifier) {
+    return res.status(400).json({ success: false, message: "Please provide Email, Mobile, or Student ID." });
+  }
+
+  const result = await forgotPasswordService(identifier);
+  return successResponse(res, result.message, result, 200);
+});
+
+export const resetPassword = asyncHandler(async (req, res) => {
+  const { identifier, otpCode, newPassword } = req.body;
+  if (!identifier || !otpCode || !newPassword) {
+    return res.status(400).json({ success: false, message: "Please provide identifier, OTP code, and new password." });
+  }
+
+  const result = await resetPasswordService(identifier, otpCode, newPassword);
+  return successResponse(res, result.message, result, 200);
 });
 
 export const getStudentProfile = asyncHandler(async (req, res) => {

@@ -18,6 +18,8 @@ import {
   Calendar,
   CreditCard,
   X,
+  LayoutGrid,
+  List,
 } from "lucide-react";
 
 export const Students = () => {
@@ -27,6 +29,9 @@ export const Students = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [selectedStudent, setSelectedStudent] = useState(null);
+
+  // View Mode: 'table' | 'grid'
+  const [viewMode, setViewMode] = useState("table");
 
   useEffect(() => {
     fetchStudents(1);
@@ -38,7 +43,7 @@ export const Students = () => {
       const response = await api.get("/students", {
         params: {
           page,
-          limit: 10,
+          limit: 12,
           search: searchQuery || undefined,
           status: statusFilter || undefined,
         },
@@ -59,26 +64,41 @@ export const Students = () => {
     fetchStudents(1, search);
   };
 
-  const formatCurrency = (val) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 0,
-    }).format(val || 0);
-  };
-
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-6 font-sans">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-            <Users className="w-7 h-7 text-cyan-400" />
-            Enrolled Student Directory
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <h1 className="text-2xl font-black text-white tracking-tight">Student Directory</h1>
+          <p className="text-xs text-slate-400">
             Search, filter, and inspect detailed student profiles and fee histories.
           </p>
+        </div>
+
+        {/* View Mode Toggle Switch */}
+        <div className="flex items-center space-x-1 p-1 bg-slate-900 border border-slate-800 rounded-xl w-fit">
+          <button
+            type="button"
+            onClick={() => setViewMode("table")}
+            className={`p-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
+              viewMode === "table" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
+            }`}
+            title="Table List View"
+          >
+            <List className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">List View</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("grid")}
+            className={`p-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
+              viewMode === "grid" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
+            }`}
+            title="Grid Cards View"
+          >
+            <LayoutGrid className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Grid View</span>
+          </button>
         </div>
       </div>
 
@@ -119,7 +139,7 @@ export const Students = () => {
         </div>
       </div>
 
-      {/* Table Section */}
+      {/* Content Section */}
       <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
         {loading ? (
           <LoadingSpinner label="Fetching student directory..." />
@@ -128,205 +148,252 @@ export const Students = () => {
             title="No Students Found"
             description="Try adjusting your search criteria or register a new student."
           />
-        ) : (
-          <>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-slate-300">
-                <thead className="bg-slate-950/80 text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800">
-                  <tr>
-                    <th className="p-3.5">Student ID</th>
-                    <th className="p-3.5">Student Name</th>
-                    <th className="p-3.5">Mobile</th>
-                    <th className="p-3.5">Course</th>
-                    <th className="p-3.5">Admission Date</th>
-                    <th className="p-3.5">Status</th>
-                    <th className="p-3.5 text-right">Action</th>
+        ) : viewMode === "table" ? (
+          /* TABLE LIST VIEW */
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm text-slate-300">
+              <thead className="bg-slate-950/80 text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                <tr>
+                  <th className="p-3.5">Student ID</th>
+                  <th className="p-3.5">Student Name</th>
+                  <th className="p-3.5">Mobile</th>
+                  <th className="p-3.5">Course</th>
+                  <th className="p-3.5">Admission Date</th>
+                  <th className="p-3.5">Status</th>
+                  <th className="p-3.5 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60">
+                {students.map((student) => (
+                  <tr
+                    key={student.id}
+                    className="hover:bg-slate-800/40 transition-colors cursor-pointer"
+                    onClick={() => setSelectedStudent(student)}
+                  >
+                    <td className="p-3.5 font-mono text-xs font-bold text-cyan-400">
+                      {student.studentId}
+                    </td>
+                    <td className="p-3.5 font-bold text-slate-100">
+                      {student.fullName}
+                    </td>
+                    <td className="p-3.5 text-slate-300 text-xs">{student.mobile}</td>
+                    <td className="p-3.5 text-xs text-slate-300">
+                      {student.admission?.courseNameSnapshot || "N/A"}
+                    </td>
+                    <td className="p-3.5 text-xs text-slate-400">
+                      {student.admission?.admissionDate
+                        ? new Date(student.admission.admissionDate).toLocaleDateString("en-IN")
+                        : "N/A"}
+                    </td>
+                    <td className="p-3.5">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                          student.status === "ACTIVE"
+                            ? "bg-emerald-950 text-emerald-400 border border-emerald-800/60"
+                            : "bg-slate-800 text-slate-400 border border-slate-700"
+                        }`}
+                      >
+                        {student.status}
+                      </span>
+                    </td>
+                    <td className="p-3.5 text-right">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedStudent(student);
+                        }}
+                        className="p-1.5 rounded-lg bg-slate-800 hover:bg-cyan-600 text-slate-300 hover:text-white transition-colors"
+                        title="View Full Profile"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/60">
-                  {students.map((student) => (
-                    <tr
-                      key={student.id}
-                      className="hover:bg-slate-800/40 transition-colors cursor-pointer"
-                      onClick={() => setSelectedStudent(student)}
-                    >
-                      <td className="p-3.5 font-mono text-xs font-bold text-cyan-400">
-                        {student.studentId}
-                      </td>
-                      <td className="p-3.5 font-bold text-slate-100">
-                        {student.fullName}
-                      </td>
-                      <td className="p-3.5 text-slate-300 text-xs">{student.mobile}</td>
-                      <td className="p-3.5 text-xs text-slate-300">
-                        {student.admission?.courseNameSnapshot || "N/A"}
-                      </td>
-                      <td className="p-3.5 text-xs text-slate-400">
-                        {student.admission?.admissionDate
-                          ? new Date(student.admission.admissionDate).toLocaleDateString()
-                          : "N/A"}
-                      </td>
-                      <td className="p-3.5">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                            student.status === "ACTIVE"
-                              ? "bg-emerald-950 text-emerald-400 border border-emerald-800/60"
-                              : "bg-slate-800 text-slate-400 border border-slate-700"
-                          }`}
-                        >
-                          {student.status}
-                        </span>
-                      </td>
-                      <td className="p-3.5 text-right">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedStudent(student);
-                          }}
-                          className="p-1.5 rounded-lg bg-slate-800 hover:bg-cyan-600 hover:text-white text-slate-300 transition-colors"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          /* GRID CARDS VIEW */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {students.map((student) => (
+              <div
+                key={student.id}
+                onClick={() => setSelectedStudent(student)}
+                className="p-5 bg-slate-950/80 border border-slate-800 rounded-2xl space-y-3 cursor-pointer hover:border-cyan-500/40 transition"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-xs font-bold text-cyan-400">{student.studentId}</span>
+                  <span
+                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                      student.status === "ACTIVE"
+                        ? "bg-emerald-950 text-emerald-400 border border-emerald-800/60"
+                        : "bg-slate-800 text-slate-400 border border-slate-700"
+                    }`}
+                  >
+                    {student.status}
+                  </span>
+                </div>
 
-            {/* Server-Side Pagination Controls */}
-            <div className="flex items-center justify-between pt-4 border-t border-slate-800 text-xs text-slate-400">
-              <span>
-                Showing page <strong className="text-white">{pagination.page}</strong> of{" "}
-                <strong className="text-white">{pagination.totalPages}</strong> ({pagination.total} total)
-              </span>
-              <div className="flex items-center space-x-2">
+                <div>
+                  <h4 className="text-sm font-bold text-white">{student.fullName}</h4>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    {student.admission?.courseNameSnapshot || "General Course"}
+                  </p>
+                </div>
+
+                <div className="space-y-1 text-xs text-slate-400 pt-2 border-t border-slate-900">
+                  <div className="flex items-center space-x-2">
+                    <Phone className="w-3.5 h-3.5 text-blue-400" />
+                    <span>{student.mobile}</span>
+                  </div>
+                  {student.email && (
+                    <div className="flex items-center space-x-2 truncate">
+                      <Mail className="w-3.5 h-3.5 text-indigo-400" />
+                      <span className="truncate">{student.email}</span>
+                    </div>
+                  )}
+                </div>
+
                 <button
-                  disabled={!pagination.hasPreviousPage}
-                  onClick={() => fetchStudents(pagination.page - 1)}
-                  className="px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 hover:bg-slate-800 disabled:opacity-40 transition-colors flex items-center space-x-1"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedStudent(student);
+                  }}
+                  className="w-full py-1.5 bg-slate-900 hover:bg-cyan-600 text-slate-300 hover:text-white rounded-xl text-xs font-semibold flex items-center justify-center space-x-1 transition"
                 >
-                  <ChevronLeft className="w-4 h-4" />
-                  <span>Prev</span>
-                </button>
-                <button
-                  disabled={!pagination.hasNextPage}
-                  onClick={() => fetchStudents(pagination.page + 1)}
-                  className="px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 hover:bg-slate-800 disabled:opacity-40 transition-colors flex items-center space-x-1"
-                >
-                  <span>Next</span>
-                  <ChevronRight className="w-4 h-4" />
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>View Details</span>
                 </button>
               </div>
+            ))}
+          </div>
+        )}
+
+        {/* Pagination Bar */}
+        {pagination.totalPages > 1 && (
+          <div className="flex items-center justify-between pt-4 border-t border-slate-800/80 text-xs">
+            <span className="text-slate-400">
+              Showing page <strong className="text-white">{pagination.page}</strong> of{" "}
+              <strong className="text-white">{pagination.totalPages}</strong> ({pagination.total} total)
+            </span>
+            <div className="flex gap-2">
+              <button
+                disabled={pagination.page <= 1}
+                onClick={() => fetchStudents(pagination.page - 1)}
+                className="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-slate-300 hover:text-white disabled:opacity-40 transition-colors flex items-center gap-1"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" /> Prev
+              </button>
+              <button
+                disabled={pagination.page >= pagination.totalPages}
+                onClick={() => fetchStudents(pagination.page + 1)}
+                className="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-slate-300 hover:text-white disabled:opacity-40 transition-colors flex items-center gap-1"
+              >
+                Next <ChevronRight className="w-3.5 h-3.5" />
+              </button>
             </div>
-          </>
+          </div>
         )}
       </div>
 
       {/* Student Profile Modal */}
-      <Modal
-        isOpen={!!selectedStudent}
-        onClose={() => setSelectedStudent(null)}
-        title="🎓 Student Profile Details"
-        maxWidth="max-w-3xl"
-      >
-        {selectedStudent && (
+      {selectedStudent && (
+        <Modal
+          isOpen={!!selectedStudent}
+          onClose={() => setSelectedStudent(null)}
+          title="Student Profile Overview"
+        >
           <div className="space-y-6 text-sm text-slate-200">
-            {/* Header Identity Card */}
-            <div className="p-4 rounded-2xl bg-gradient-to-r from-cyan-950/80 via-slate-900 to-slate-900 border border-cyan-800/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center space-x-4">
-                <div className="w-14 h-14 rounded-2xl bg-cyan-950 border border-cyan-500/40 flex items-center justify-center text-cyan-300 text-xl font-black">
-                  {selectedStudent.fullName.substring(0, 2).toUpperCase()}
-                </div>
-                <div>
-                  <h3 className="text-lg font-black text-white">{selectedStudent.fullName}</h3>
-                  <div className="flex items-center space-x-3 text-xs text-slate-400 mt-0.5">
-                    <span className="font-mono text-cyan-400 font-bold">{selectedStudent.studentId}</span>
-                    <span>•</span>
-                    <span>Gender: {selectedStudent.gender}</span>
-                  </div>
+            {/* Header info */}
+            <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-950 border border-slate-800">
+              <div className="p-3.5 rounded-2xl bg-cyan-950 text-cyan-400 border border-cyan-800">
+                <GraduationCap className="w-8 h-8" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white">{selectedStudent.fullName}</h3>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="font-mono text-xs text-cyan-400 font-bold">
+                    {selectedStudent.studentId}
+                  </span>
+                  <span className="text-slate-600">•</span>
+                  <span className="text-xs text-slate-400">
+                    Status: <strong className="text-emerald-400">{selectedStudent.status}</strong>
+                  </span>
                 </div>
               </div>
-              <span className="self-start sm:self-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">
-                {selectedStudent.status}
-              </span>
             </div>
 
-            {/* Grid Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Contact Info */}
-              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5">
-                <h4 className="text-xs font-bold text-cyan-400 uppercase tracking-wider mb-2">
-                  Contact Details
-                </h4>
-                <div className="flex items-center space-x-2 text-xs">
-                  <Phone className="w-4 h-4 text-slate-400" />
-                  <span>Mobile: <strong className="text-white">{selectedStudent.mobile}</strong></span>
-                </div>
-                <div className="flex items-center space-x-2 text-xs">
-                  <Mail className="w-4 h-4 text-slate-400" />
-                  <span>Email: <strong className="text-white">{selectedStudent.email || "N/A"}</strong></span>
-                </div>
-                <div className="flex items-center space-x-2 text-xs">
-                  <MapPin className="w-4 h-4 text-slate-400" />
-                  <span>Address: <strong className="text-white">{selectedStudent.address || "N/A"}, {selectedStudent.city || ""}</strong></span>
-                </div>
+            {/* Profile fields */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/60 space-y-1">
+                <span className="text-slate-500 uppercase font-semibold text-[10px]">Mobile Contact</span>
+                <p className="font-medium text-slate-200 flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-cyan-400" /> {selectedStudent.mobile}
+                </p>
               </div>
 
-              {/* Course & Admission Info */}
-              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5">
-                <h4 className="text-xs font-bold text-cyan-400 uppercase tracking-wider mb-2">
-                  Enrolled Course
-                </h4>
-                <p className="text-xs text-slate-300">
-                  Course: <strong className="text-white">{selectedStudent.admission?.courseNameSnapshot}</strong>
+              <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/60 space-y-1">
+                <span className="text-slate-500 uppercase font-semibold text-[10px]">Email Address</span>
+                <p className="font-medium text-slate-200 flex items-center gap-1.5 truncate">
+                  <Mail className="w-3.5 h-3.5 text-cyan-400" /> {selectedStudent.email || "N/A"}
                 </p>
-                <p className="text-xs text-slate-300">
-                  Admission No: <strong className="text-cyan-400 font-mono">{selectedStudent.admission?.admissionNumber}</strong>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/60 space-y-1">
+                <span className="text-slate-500 uppercase font-semibold text-[10px]">Address</span>
+                <p className="font-medium text-slate-200 flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-cyan-400" /> {selectedStudent.address || "N/A"}
                 </p>
-                <p className="text-xs text-slate-300">
-                  Academic Year: <strong className="text-white">{selectedStudent.admission?.admissionYear}</strong>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/60 space-y-1">
+                <span className="text-slate-500 uppercase font-semibold text-[10px]">Joined Date</span>
+                <p className="font-medium text-slate-200 flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-cyan-400" />
+                  {selectedStudent.joinedDate ? new Date(selectedStudent.joinedDate).toLocaleDateString() : "N/A"}
                 </p>
               </div>
             </div>
 
-            {/* Financial Ledger */}
+            {/* Admission details */}
             {selectedStudent.admission && (
               <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
-                <h4 className="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center justify-between">
-                  <span>Fee Ledger Summary</span>
-                  <CreditCard className="w-4 h-4 text-emerald-400" />
+                <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-cyan-400" /> Linked Admission Details
                 </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-                  <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
-                    <span className="text-[10px] text-slate-400 uppercase font-semibold block">Total Fees</span>
-                    <span className="text-sm font-bold text-white">
-                      {formatCurrency(selectedStudent.admission.courseFees)}
+
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <span className="text-slate-500 block">Course Name</span>
+                    <span className="font-bold text-white">
+                      {selectedStudent.admission.courseNameSnapshot || selectedStudent.admission.course?.name}
                     </span>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
-                    <span className="text-[10px] text-slate-400 uppercase font-semibold block">Discount</span>
-                    <span className="text-sm font-bold text-slate-300">
-                      {formatCurrency(selectedStudent.admission.discount)}
+                  <div>
+                    <span className="text-slate-500 block">Admission Number</span>
+                    <span className="font-mono text-cyan-400 font-bold">
+                      {selectedStudent.admission.admissionNumber}
                     </span>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
-                    <span className="text-[10px] text-slate-400 uppercase font-semibold block">Paid</span>
-                    <span className="text-sm font-bold text-emerald-400">
-                      {formatCurrency(selectedStudent.admission.paidAmount)}
+                  <div>
+                    <span className="text-slate-500 block">Total Course Fee</span>
+                    <span className="font-bold text-slate-200">
+                      ₹{Number(selectedStudent.admission.finalFees || selectedStudent.admission.courseFees).toLocaleString()}
                     </span>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
-                    <span className="text-[10px] text-slate-400 uppercase font-semibold block">Pending</span>
-                    <span className="text-sm font-bold text-amber-400">
-                      {formatCurrency(selectedStudent.admission.pendingAmount)}
+                  <div>
+                    <span className="text-slate-500 block">Pending Balance</span>
+                    <span className="font-bold text-amber-400">
+                      ₹{Number(selectedStudent.admission.pendingAmount).toLocaleString()}
                     </span>
                   </div>
                 </div>
               </div>
             )}
           </div>
-        )}
-      </Modal>
+        </Modal>
+      )}
     </div>
   );
 };
