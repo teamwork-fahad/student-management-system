@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import prisma from "../../config/prisma.js";
 import { createHttpError } from "../../utils/httpError.js";
 
@@ -559,7 +560,7 @@ export const addCourseToStudent = async (idOrStudentId, payload) => {
       data: {
         studentId: newStudentIdStr,
         admissionId: newAdmission.id,
-        userId: student.userId || null,
+        userId: null,
         fullName: student.fullName,
         fatherName: student.fatherName,
         motherName: student.motherName,
