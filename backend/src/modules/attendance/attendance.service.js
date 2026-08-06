@@ -12,8 +12,21 @@ export const markBatchAttendance = async ({ date, records, markedBy }) => {
   const attendanceDate = new Date(date);
   attendanceDate.setHours(0, 0, 0, 0);
 
+  // Filter and validate only existing student IDs in DB to prevent foreign key errors
+  const validStudents = await prisma.student.findMany({
+    where: { id: { in: records.map((r) => r.studentId) } },
+    select: { id: true },
+  });
+
+  const validStudentIds = new Set(validStudents.map((s) => s.id));
+  const validRecords = records.filter((r) => validStudentIds.has(r.studentId));
+
+  if (validRecords.length === 0) {
+    throw createHttpError("No valid student records found to mark attendance", 400);
+  }
+
   const results = await prisma.$transaction(
-    records.map((r) =>
+    validRecords.map((r) =>
       prisma.attendance.upsert({
         where: {
           studentId_date: {
