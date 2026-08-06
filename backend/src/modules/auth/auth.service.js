@@ -181,6 +181,11 @@ export const registerStudentService = async ({
     courseObj = await prisma.course.findUnique({ where: { id: courseId } });
   }
   if (!courseObj) {
+    courseObj = await prisma.course.findFirst({
+      where: { name: { contains: "General", mode: "insensitive" } },
+    });
+  }
+  if (!courseObj) {
     courseObj = await prisma.course.findFirst({ where: { isActive: true } });
   }
 
