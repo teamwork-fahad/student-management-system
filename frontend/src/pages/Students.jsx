@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import api from "../api/axios";
 import { LoadingSpinner } from "../components/common/LoadingSpinner";
 import { EmptyState } from "../components/common/EmptyState";
 import { Modal } from "../components/common/Modal";
+import { ReceiptModal } from "../components/receipts/ReceiptModal";
 import { formatDate } from "../utils/formatters";
 import {
   Users,
@@ -24,20 +25,62 @@ import {
   List,
   Save,
   AlertCircle,
+  Sparkles,
+  BookOpen,
+  Receipt,
+  CheckCircle2,
+  Clock,
+  Printer,
+  History,
+  PlusCircle,
 } from "lucide-react";
+
+export const toTitleCase = (str) => {
+  if (!str) return "";
+  return str
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
 
 export const Students = () => {
   const [students, setStudents] = useState([]);
+  const [allStudentsCache, setAllStudentsCache] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   
+  // Google-style Auto-complete Suggestions
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchContainerRef = useRef(null);
+
   // Modals state
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [fullStudentData, setFullStudentData] = useState(null);
+  const [loadingFullData, setLoadingFullData] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
+  const [collectFeeStudent, setCollectFeeStudent] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [editError, setEditError] = useState("");
+  const [feeError, setFeeError] = useState("");
+
+  // Quick Fee Collection Form state
+  const [feeForm, setFeeForm] = useState({
+    amount: "",
+    paymentMode: "CASH",
+    transactionReference: "",
+    remarks: "",
+  });
+
+  // Printable Receipt Modal State
+  const [selectedReceiptPayment, setSelectedReceiptPayment] = useState(null);
+
+  // Profile Modal Tab state: 'courses' | 'payments' | 'attendance'
+  const [activeTab, setActiveTab] = useState("courses");
 
   // Edit Form state
   const [editForm, setEditForm] = useState({
@@ -57,7 +100,49 @@ export const Students = () => {
 
   useEffect(() => {
     fetchStudents(1);
+    fetchAllStudentsForSuggestions();
   }, [statusFilter]);
+
+  // Click outside to close suggestion dropdown
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Fetch full student history when a student is selected for Profile Modal
+  useEffect(() => {
+    if (selectedStudent) {
+      fetchFullStudentHistory(selectedStudent.id);
+    } else {
+      setFullStudentData(null);
+    }
+  }, [selectedStudent]);
+
+  const fetchFullStudentHistory = async (studentId) => {
+    setLoadingFullData(true);
+    try {
+      const res = await api.get(`/students/${studentId}`);
+      setFullStudentData(res.data?.data || null);
+    } catch (err) {
+      console.error("Fetch student history error:", err);
+    } finally {
+      setLoadingFullData(false);
+    }
+  };
+
+  const fetchAllStudentsForSuggestions = async () => {
+    try {
+      const res = await api.get("/students?limit=200");
+      setAllStudentsCache(res.data?.data?.students || []);
+    } catch (err) {
+      console.error("Cache error:", err);
+    }
+  };
 
   const fetchStudents = async (page = 1, searchQuery = search) => {
     setLoading(true);
@@ -81,9 +166,80 @@ export const Students = () => {
     }
   };
 
+  const handleSearchChange = (e) => {
+    const val = e.target.value;
+    setSearch(val);
+
+    if (val.trim().length >= 2) {
+      const q = val.toLowerCase().trim();
+      const matches = allStudentsCache.filter(
+        (s) =>
+          s.fullName.toLowerCase().includes(q) ||
+          s.studentId.toLowerCase().includes(q) ||
+          (s.mobile || "").includes(q) ||
+          (s.admission?.courseNameSnapshot || "").toLowerCase().includes(q)
+      ).slice(0, 6);
+
+      setSuggestions(matches);
+      setShowSuggestions(true);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleSelectSuggestion = (s) => {
+    setSearch(s.fullName);
+    setShowSuggestions(false);
+    fetchStudents(1, s.fullName);
+  };
+
   const handleSearchSubmit = (e) => {
     e.preventDefault();
+    setShowSuggestions(false);
     fetchStudents(1, search);
+  };
+
+  const handleOpenCollectFee = (student) => {
+    setCollectFeeStudent(student);
+    setFeeError("");
+    setFeeForm({
+      amount: "",
+      paymentMode: "CASH",
+      transactionReference: "",
+      remarks: "",
+    });
+  };
+
+  const handleCollectFeeSubmit = async (e) => {
+    e.preventDefault();
+    setFeeError("");
+
+    if (!feeForm.amount || Number(feeForm.amount) <= 0) {
+      setFeeError("Please enter a valid payment amount.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const response = await api.post("/fees/collect", {
+        studentId: collectFeeStudent.id,
+        amount: Number(feeForm.amount),
+        paymentMode: feeForm.paymentMode,
+        transactionReference: feeForm.transactionReference,
+        remarks: feeForm.remarks,
+      });
+
+      const payment = response.data?.data?.payment;
+      setCollectFeeStudent(null);
+      setSelectedReceiptPayment(payment);
+      fetchStudents(pagination.page);
+    } catch (err) {
+      console.error("Collect fee error:", err);
+      setFeeError(err.response?.data?.message || "Failed to record payment.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleOpenEdit = (student) => {
@@ -91,7 +247,7 @@ export const Students = () => {
     setEditError("");
     const adm = student.admission;
     setEditForm({
-      fullName: student.fullName || "",
+      fullName: toTitleCase(student.fullName || ""),
       mobile: student.mobile || "",
       email: student.email || "",
       address: student.address || "",
@@ -114,9 +270,13 @@ export const Students = () => {
 
     setSubmitting(true);
     try {
-      await api.put(`/students/${editingStudent.id}`, editForm);
+      await api.put(`/students/${editingStudent.id}`, {
+        ...editForm,
+        fullName: toTitleCase(editForm.fullName),
+      });
       setEditingStudent(null);
       fetchStudents(pagination.page);
+      fetchAllStudentsForSuggestions();
     } catch (err) {
       setEditError(err.response?.data?.message || "Failed to update student details.");
     } finally {
@@ -126,12 +286,22 @@ export const Students = () => {
 
   return (
     <div className="space-y-6 font-sans">
+      {/* Printable Receipt Modal */}
+      {selectedReceiptPayment && (
+        <ReceiptModal
+          payment={selectedReceiptPayment}
+          student={fullStudentData || selectedStudent}
+          admission={selectedReceiptPayment.admission || selectedStudent?.admission}
+          onClose={() => setSelectedReceiptPayment(null)}
+        />
+      )}
+
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-white tracking-tight">Student Directory</h1>
           <p className="text-xs text-slate-400">
-            Search, filter, edit student profiles, update fees, and change academic status.
+            Search, filter, edit student profiles, collect tuition fees, and change academic status.
           </p>
         </div>
 
@@ -162,26 +332,61 @@ export const Students = () => {
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row gap-4 justify-between items-center">
-        <form onSubmit={handleSearchSubmit} className="flex-1 w-full flex items-center gap-2">
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by Student ID, Name, Mobile, Email..."
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-cyan-500"
-            />
-          </div>
-          <button
-            type="submit"
-            className="px-4 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs rounded-xl shadow-lg transition-colors"
-          >
-            Search
-          </button>
-        </form>
+      {/* Filter and Google-Style Search Bar with Auto-Complete Dropdown */}
+      <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row gap-4 justify-between items-center relative z-20">
+        <div ref={searchContainerRef} className="flex-1 w-full relative">
+          <form onSubmit={handleSearchSubmit} className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={search}
+                onChange={handleSearchChange}
+                onFocus={() => search.trim().length >= 2 && setShowSuggestions(true)}
+                placeholder="Type name, mobile or student ID (e.g. Krishna, 9825...)..."
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-cyan-500 font-medium"
+              />
+            </div>
+            <button
+              type="submit"
+              className="px-4 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs rounded-xl shadow-lg transition-colors"
+            >
+              Search
+            </button>
+          </form>
+
+          {/* GOOGLE-STYLE AUTO-COMPLETE SUGGESTIONS DROPDOWN */}
+          {showSuggestions && suggestions.length > 0 && (
+            <div className="absolute left-0 right-0 top-12 bg-slate-950 border border-cyan-800/80 rounded-2xl shadow-2xl overflow-hidden z-50 divide-y divide-slate-800/60">
+              <div className="px-3 py-1.5 bg-slate-900 text-[10px] uppercase font-bold text-cyan-400 flex items-center space-x-1">
+                <Sparkles className="w-3 h-3" />
+                <span>Google-style Student Suggestions</span>
+              </div>
+              {suggestions.map((s) => (
+                <div
+                  key={s.id}
+                  onClick={() => handleSelectSuggestion(s)}
+                  className="p-3 hover:bg-slate-900/80 cursor-pointer flex items-center justify-between transition"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800 flex items-center justify-center font-bold text-xs">
+                      {s.fullName[0]}
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-white">{toTitleCase(s.fullName)}</p>
+                      <p className="text-[10px] text-slate-400">
+                        Mobile: {s.mobile} • Course: {s.admission?.courseNameSnapshot || "N/A"}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="font-mono text-[10px] font-bold text-cyan-400 bg-cyan-950 px-2 py-0.5 rounded border border-cyan-800">
+                    {s.studentId}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         <div className="flex items-center gap-3 w-full md:w-auto">
           <Filter className="w-4 h-4 text-slate-400" />
@@ -210,7 +415,7 @@ export const Students = () => {
             description="Try adjusting your search criteria or register a new student."
           />
         ) : viewMode === "table" ? (
-          /* TABLE LIST VIEW */
+          /* TABLE LIST VIEW WITH QUICK COLLECT FEE BUTTON */
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-slate-300">
               <thead className="bg-slate-950/80 text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800">
@@ -218,7 +423,7 @@ export const Students = () => {
                   <th className="p-3.5">Student ID</th>
                   <th className="p-3.5">Student Name</th>
                   <th className="p-3.5">Mobile</th>
-                  <th className="p-3.5">Course</th>
+                  <th className="p-3.5">Enrolled Course(s)</th>
                   <th className="p-3.5">Status</th>
                   <th className="p-3.5 text-right">Actions</th>
                 </tr>
@@ -233,11 +438,27 @@ export const Students = () => {
                       {student.studentId}
                     </td>
                     <td className="p-3.5 font-bold text-slate-100">
-                      {student.fullName}
+                      {toTitleCase(student.fullName)}
                     </td>
                     <td className="p-3.5 text-slate-300 text-xs">{student.mobile}</td>
-                    <td className="p-3.5 text-xs text-slate-300">
-                      {student.admission?.courseNameSnapshot || "N/A"}
+                    <td className="p-3.5 text-xs">
+                      <div className="flex items-center space-x-1.5 flex-wrap gap-y-1">
+                        <span className="px-2.5 py-1 bg-cyan-950 text-cyan-300 border border-cyan-800 rounded-lg text-xs font-bold truncate max-w-[210px]" title={student.courseInfo?.primaryCourse || student.admission?.courseNameSnapshot}>
+                          {student.courseInfo?.primaryCourse || student.admission?.courseNameSnapshot || "General Course"}
+                        </span>
+                        {student.courseInfo?.extraCoursesCount > 0 && (
+                          <span
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedStudent(student);
+                            }}
+                            className="px-2 py-0.5 bg-purple-950 hover:bg-purple-900 text-purple-300 border border-purple-800 rounded-lg text-[10px] font-extrabold cursor-pointer transition shadow hover:scale-105 inline-flex items-center space-x-0.5"
+                            title="Click to view all enrolled courses"
+                          >
+                            <span>+ {student.courseInfo.extraCoursesCount} more</span>
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="p-3.5">
                       <span
@@ -256,9 +477,17 @@ export const Students = () => {
                     </td>
                     <td className="p-3.5 text-right space-x-2">
                       <button
+                        onClick={() => handleOpenCollectFee(student)}
+                        className="px-2.5 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white text-xs font-bold transition-colors inline-flex items-center space-x-1"
+                        title="Collect Fee & Issue Receipt"
+                      >
+                        <CreditCard className="w-3.5 h-3.5" />
+                        <span>Pay Fee</span>
+                      </button>
+                      <button
                         onClick={() => setSelectedStudent(student)}
                         className="p-1.5 rounded-lg bg-slate-800 hover:bg-cyan-600 text-slate-300 hover:text-white transition-colors"
-                        title="View Full Profile"
+                        title="View Full History & Details"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
@@ -301,10 +530,23 @@ export const Students = () => {
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-bold text-white">{student.fullName}</h4>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    {student.admission?.courseNameSnapshot || "General Course"}
-                  </p>
+                  <h4 className="text-sm font-bold text-white">{toTitleCase(student.fullName)}</h4>
+                  <div className="flex items-center space-x-1.5 mt-1.5 flex-wrap gap-y-1">
+                    <span className="px-2.5 py-0.5 bg-cyan-950 text-cyan-300 border border-cyan-800 rounded text-[11px] font-bold truncate max-w-[170px]">
+                      {student.courseInfo?.primaryCourse || student.admission?.courseNameSnapshot || "General Course"}
+                    </span>
+                    {student.courseInfo?.extraCoursesCount > 0 && (
+                      <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedStudent(student);
+                        }}
+                        className="px-2 py-0.5 bg-purple-950 hover:bg-purple-900 text-purple-300 border border-purple-800 rounded text-[10px] font-extrabold cursor-pointer transition shadow"
+                      >
+                        + {student.courseInfo.extraCoursesCount} more
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-1 text-xs text-slate-400 pt-2 border-t border-slate-900">
@@ -322,11 +564,18 @@ export const Students = () => {
 
                 <div className="flex items-center space-x-2 pt-1">
                   <button
+                    onClick={() => handleOpenCollectFee(student)}
+                    className="py-1.5 px-3 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-1 transition"
+                  >
+                    <CreditCard className="w-3.5 h-3.5" />
+                    <span>Pay Fee</span>
+                  </button>
+                  <button
                     onClick={() => setSelectedStudent(student)}
                     className="flex-1 py-1.5 bg-slate-900 hover:bg-cyan-600 text-slate-300 hover:text-white rounded-xl text-xs font-semibold flex items-center justify-center space-x-1 transition"
                   >
                     <Eye className="w-3.5 h-3.5" />
-                    <span>View Profile</span>
+                    <span>Profile</span>
                   </button>
                   <button
                     onClick={() => handleOpenEdit(student)}
@@ -346,7 +595,7 @@ export const Students = () => {
           <div className="flex items-center justify-between pt-4 border-t border-slate-800/80 text-xs">
             <span className="text-slate-400">
               Showing page <strong className="text-white">{pagination.page}</strong> of{" "}
-              <strong className="text-white">{pagination.totalPages}</strong> ({pagination.total} total)
+              <strong className="text-white">{pagination.totalPages}</strong> ({pagination.total} unique students)
             </span>
             <div className="flex gap-2">
               <button
@@ -368,47 +617,386 @@ export const Students = () => {
         )}
       </div>
 
-      {/* VIEW PROFILE MODAL */}
+      {/* QUICK COLLECT FEE MODAL */}
+      {collectFeeStudent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 font-sans">
+          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div>
+                <h3 className="text-base font-bold text-white">Collect Student Fee</h3>
+                <p className="text-xs text-slate-400">{toTitleCase(collectFeeStudent.fullName)} ({collectFeeStudent.studentId})</p>
+              </div>
+              <button onClick={() => setCollectFeeStudent(null)} className="text-slate-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {feeError && (
+              <div className="p-3 bg-rose-950/80 border border-rose-800 text-rose-300 rounded-xl text-xs flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                <span>{feeError}</span>
+              </div>
+            )}
+
+            <div className="p-3.5 bg-slate-950 rounded-2xl border border-slate-800 space-y-1 text-xs">
+              <div className="flex justify-between text-slate-400">
+                <span>Enrolled Course:</span>
+                <span className="font-bold text-white">
+                  {collectFeeStudent.courseInfo?.primaryCourse || collectFeeStudent.admission?.courseNameSnapshot}
+                </span>
+              </div>
+              <div className="flex justify-between text-amber-400 font-bold">
+                <span>Current Pending Balance:</span>
+                <span>₹{Number(collectFeeStudent.admission?.pendingAmount || 0).toLocaleString("en-IN")}</span>
+              </div>
+            </div>
+
+            <form onSubmit={handleCollectFeeSubmit} className="space-y-3.5 text-xs">
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">Payment Amount (₹) *</label>
+                <input
+                  type="number"
+                  required
+                  min={1}
+                  value={feeForm.amount}
+                  onChange={(e) => setFeeForm({ ...feeForm, amount: e.target.value })}
+                  placeholder="Enter amount paid"
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-emerald-500 font-bold text-base"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Payment Mode</label>
+                  <select
+                    value={feeForm.paymentMode}
+                    onChange={(e) => setFeeForm({ ...feeForm, paymentMode: e.target.value })}
+                    className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-emerald-500"
+                  >
+                    <option value="CASH">CASH</option>
+                    <option value="UPI">UPI / GPAY</option>
+                    <option value="CARD">CARD</option>
+                    <option value="BANK_TRANSFER">BANK TRANSFER</option>
+                    <option value="CHEQUE">CHEQUE</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Txn Ref / Receipt No</label>
+                  <input
+                    type="text"
+                    value={feeForm.transactionReference}
+                    onChange={(e) => setFeeForm({ ...feeForm, transactionReference: e.target.value })}
+                    placeholder="Optional ref"
+                    className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">Remarks / Note</label>
+                <input
+                  type="text"
+                  value={feeForm.remarks}
+                  onChange={(e) => setFeeForm({ ...feeForm, remarks: e.target.value })}
+                  placeholder="Installment payment note..."
+                  className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setCollectFeeStudent(null)}
+                  className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl font-semibold hover:bg-slate-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold shadow-md flex items-center space-x-1 disabled:opacity-50"
+                >
+                  <CreditCard className="w-4 h-4" />
+                  <span>{submitting ? "Recording..." : "Record & Issue Receipt"}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* COMPREHENSIVE VIEW PROFILE & HISTORY MODAL */}
       {selectedStudent && (
         <Modal
           isOpen={!!selectedStudent}
           onClose={() => setSelectedStudent(null)}
-          title="Student Profile Overview"
+          title={`Student History Overview - ${toTitleCase(selectedStudent.fullName)}`}
         >
-          <div className="space-y-6 text-sm text-slate-200 font-sans">
-            <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-slate-950 border border-slate-800">
+          <div className="space-y-5 text-sm text-slate-200 font-sans max-h-[80vh] overflow-y-auto pr-1">
+            {/* Header info */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-slate-950 border border-slate-800">
               <div className="flex items-center space-x-3">
                 <div className="p-3.5 rounded-2xl bg-cyan-950 text-cyan-400 border border-cyan-800">
                   <GraduationCap className="w-8 h-8" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-white">{selectedStudent.fullName}</h3>
+                  <h3 className="text-base font-bold text-white">{toTitleCase(selectedStudent.fullName)}</h3>
                   <div className="flex items-center gap-2 mt-1">
                     <span className="font-mono text-xs text-cyan-400 font-bold">
                       {selectedStudent.studentId}
                     </span>
                     <span className="text-slate-600">•</span>
                     <span className="text-xs text-slate-400">
-                      Status: <strong className="text-emerald-400">{selectedStudent.status}</strong>
+                      Academic Status: <strong className="text-emerald-400">{selectedStudent.status}</strong>
                     </span>
                   </div>
                 </div>
               </div>
 
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => {
+                    const s = selectedStudent;
+                    setSelectedStudent(null);
+                    handleOpenCollectFee(s);
+                  }}
+                  className="px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white rounded-xl text-xs font-bold flex items-center space-x-1 transition"
+                >
+                  <CreditCard className="w-3.5 h-3.5" />
+                  <span>Collect Fee</span>
+                </button>
+                <button
+                  onClick={() => {
+                    const s = selectedStudent;
+                    setSelectedStudent(null);
+                    handleOpenEdit(s);
+                  }}
+                  className="px-3 py-1.5 bg-amber-600/20 hover:bg-amber-600 text-amber-400 hover:text-white rounded-xl text-xs font-semibold flex items-center space-x-1 transition"
+                >
+                  <Edit className="w-3.5 h-3.5" />
+                  <span>Edit Profile</span>
+                </button>
+              </div>
+            </div>
+
+            {/* TAB CONTROLS */}
+            <div className="flex items-center space-x-2 border-b border-slate-800 pb-2 text-xs font-semibold">
               <button
-                onClick={() => {
-                  const s = selectedStudent;
-                  setSelectedStudent(null);
-                  handleOpenEdit(s);
-                }}
-                className="px-3 py-1.5 bg-amber-600/20 hover:bg-amber-600 text-amber-400 hover:text-white rounded-xl text-xs font-semibold flex items-center space-x-1 transition"
+                type="button"
+                onClick={() => setActiveTab("courses")}
+                className={`px-3.5 py-2 rounded-xl flex items-center space-x-1.5 transition ${
+                  activeTab === "courses" ? "bg-cyan-600 text-white shadow-lg" : "bg-slate-900 text-slate-400 hover:text-white"
+                }`}
               >
-                <Edit className="w-3.5 h-3.5" />
-                <span>Edit Student</span>
+                <BookOpen className="w-4 h-4" />
+                <span>Enrolled Courses ({fullStudentData?.allAdmissions?.length || 1})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab("payments")}
+                className={`px-3.5 py-2 rounded-xl flex items-center space-x-1.5 transition ${
+                  activeTab === "payments" ? "bg-emerald-600 text-white shadow-lg" : "bg-slate-900 text-slate-400 hover:text-white"
+                }`}
+              >
+                <Receipt className="w-4 h-4" />
+                <span>Payment Receipts ({fullStudentData?.allPayments?.length || 0})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab("attendance")}
+                className={`px-3.5 py-2 rounded-xl flex items-center space-x-1.5 transition ${
+                  activeTab === "attendance" ? "bg-indigo-600 text-white shadow-lg" : "bg-slate-900 text-slate-400 hover:text-white"
+                }`}
+              >
+                <Calendar className="w-4 h-4" />
+                <span>Attendance Log ({fullStudentData?.attendanceStats?.attendancePercentage || 100}%)</span>
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            {loadingFullData ? (
+              <div className="text-center py-12 text-xs text-slate-500">Loading complete student history...</div>
+            ) : (
+              <>
+                {/* TAB 1: ENROLLED COURSES TIMELINE */}
+                {activeTab === "courses" && (
+                  <div className="space-y-4">
+                    <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <BookOpen className="w-4 h-4 text-cyan-400" /> Complete Enrolled Courses Timeline
+                    </h4>
+
+                    <div className="space-y-3">
+                      {(fullStudentData?.allAdmissions || [selectedStudent.admission]).filter(Boolean).map((adm, idx) => (
+                        <div key={adm.id || idx} className="p-4 bg-slate-950 border border-slate-800 rounded-2xl space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-white text-sm">
+                              {adm.courseNameSnapshot || adm.course?.name || "General Course"}
+                            </span>
+                            <span className="font-mono text-xs font-bold text-cyan-400 bg-cyan-950/80 border border-cyan-800/80 px-2.5 py-0.5 rounded-full">
+                              {adm.admissionNumber}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-1">
+                            <div>
+                              <span className="text-slate-500 block text-[10px] uppercase">Joining Date</span>
+                              <span className="font-mono text-slate-200 font-semibold">{formatDate(adm.admissionDate)}</span>
+                            </div>
+
+                            <div>
+                              <span className="text-slate-500 block text-[10px] uppercase">Course Fees</span>
+                              <span className="font-bold text-slate-200">₹{Number(adm.finalFees || adm.courseFees).toLocaleString("en-IN")}</span>
+                            </div>
+
+                            <div>
+                              <span className="text-slate-500 block text-[10px] uppercase">Paid Fee</span>
+                              <span className="font-bold text-emerald-400">₹{Number(adm.paidAmount).toLocaleString("en-IN")}</span>
+                            </div>
+
+                            <div>
+                              <span className="text-slate-500 block text-[10px] uppercase">Pending Balance</span>
+                              <span className="font-bold text-amber-400">₹{Number(adm.pendingAmount).toLocaleString("en-IN")}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 2: COMPLETE FEE PAYMENT RECEIPTS */}
+                {activeTab === "payments" && (
+                  <div className="space-y-4">
+                    <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <Receipt className="w-4 h-4 text-emerald-400" /> Fee Payment Receipts History
+                    </h4>
+
+                    {(!fullStudentData?.allPayments || fullStudentData.allPayments.length === 0) ? (
+                      <p className="text-xs text-slate-500 py-6 text-center">No payment receipts recorded for this student.</p>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] border-b border-slate-800">
+                            <tr>
+                              <th className="py-2.5 px-3">Receipt / Ref</th>
+                              <th className="py-2.5 px-3">Course</th>
+                              <th className="py-2.5 px-3">Date</th>
+                              <th className="py-2.5 px-3">Mode</th>
+                              <th className="py-2.5 px-3 text-right">Amount</th>
+                              <th className="py-2.5 px-3 text-center">Print</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-800/60">
+                            {fullStudentData.allPayments.map((p) => (
+                              <tr key={p.id} className="hover:bg-slate-800/30">
+                                <td className="py-2.5 px-3 font-mono font-bold text-cyan-400">
+                                  {p.transactionReference || `REC-${p.id.slice(-6).toUpperCase()}`}
+                                </td>
+                                <td className="py-2.5 px-3 font-semibold text-white truncate max-w-[150px]">
+                                  {p.courseName || "Course"}
+                                </td>
+                                <td className="py-2.5 px-3 font-mono text-slate-400">
+                                  {formatDate(p.paymentDate || p.createdAt)}
+                                </td>
+                                <td className="py-2.5 px-3">
+                                  <span className="px-2 py-0.5 bg-blue-950 text-blue-300 rounded font-bold uppercase text-[10px]">
+                                    {p.paymentMode || "CASH"}
+                                  </span>
+                                </td>
+                                <td className="py-2.5 px-3 text-right font-extrabold text-emerald-400">
+                                  ₹{Number(p.amount).toLocaleString("en-IN")}
+                                </td>
+                                <td className="py-2.5 px-3 text-center">
+                                  <button
+                                    onClick={() => setSelectedReceiptPayment(p)}
+                                    className="px-2.5 py-1 bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white rounded font-semibold text-[10px] inline-flex items-center space-x-1"
+                                  >
+                                    <Printer className="w-3 h-3" />
+                                    <span>Receipt</span>
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* TAB 3: ATTENDANCE HISTORY & STATS */}
+                {activeTab === "attendance" && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-3 gap-3 p-4 bg-slate-950 border border-slate-800 rounded-2xl text-xs">
+                      <div>
+                        <span className="text-slate-500 block text-[10px] uppercase">Attendance Rate</span>
+                        <span className="text-lg font-black text-emerald-400">
+                          {fullStudentData?.attendanceStats?.attendancePercentage || 100}%
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 block text-[10px] uppercase">Present Days</span>
+                        <span className="text-lg font-black text-cyan-400">
+                          {fullStudentData?.attendanceStats?.presentCount || 0} Days
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 block text-[10px] uppercase">Absent Days</span>
+                        <span className="text-lg font-black text-rose-400">
+                          {fullStudentData?.attendanceStats?.absentCount || 0} Days
+                        </span>
+                      </div>
+                    </div>
+
+                    <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <Calendar className="w-4 h-4 text-indigo-400" /> Recent Attendance Log
+                    </h4>
+
+                    {(!fullStudentData?.attendanceStats?.recentLogs || fullStudentData.attendanceStats.recentLogs.length === 0) ? (
+                      <p className="text-xs text-slate-500 py-6 text-center">No attendance logs recorded yet.</p>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] border-b border-slate-800">
+                            <tr>
+                              <th className="py-2.5 px-3">Date</th>
+                              <th className="py-2.5 px-3">Status</th>
+                              <th className="py-2.5 px-3">Remarks</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-800/60">
+                            {fullStudentData.attendanceStats.recentLogs.map((log) => (
+                              <tr key={log.id} className="hover:bg-slate-800/30">
+                                <td className="py-2.5 px-3 font-mono text-slate-300">
+                                  {formatDate(log.date)}
+                                </td>
+                                <td className="py-2.5 px-3">
+                                  <span className={`px-2 py-0.5 rounded font-bold text-[10px] ${
+                                    log.status === "PRESENT"
+                                      ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
+                                      : "bg-rose-950 text-rose-400 border border-rose-800"
+                                  }`}>
+                                    {log.status}
+                                  </span>
+                                </td>
+                                <td className="py-2.5 px-3 text-slate-400 italic">
+                                  {log.remarks || "Regular session"}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* PERSONAL INFO CARD */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-2 border-t border-slate-800">
               <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/60 space-y-1">
                 <span className="text-slate-500 uppercase font-semibold text-[10px]">Mobile Contact</span>
                 <p className="font-medium text-slate-200 flex items-center gap-1.5">
@@ -431,48 +1019,13 @@ export const Students = () => {
               </div>
 
               <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/60 space-y-1">
-                <span className="text-slate-500 uppercase font-semibold text-[10px]">Joined Date</span>
+                <span className="text-slate-500 uppercase font-semibold text-[10px]">Registration Date</span>
                 <p className="font-medium text-slate-200 flex items-center gap-1.5 font-mono">
                   <Calendar className="w-3.5 h-3.5 text-cyan-400" />
                   {formatDate(selectedStudent.joinedDate || selectedStudent.createdAt)}
                 </p>
               </div>
             </div>
-
-            {selectedStudent.admission && (
-              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
-                <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-cyan-400" /> Linked Admission Details
-                </h4>
-
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div>
-                    <span className="text-slate-500 block">Course Name</span>
-                    <span className="font-bold text-white">
-                      {selectedStudent.admission.courseNameSnapshot || selectedStudent.admission.course?.name}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 block">Admission Number</span>
-                    <span className="font-mono text-cyan-400 font-bold">
-                      {selectedStudent.admission.admissionNumber}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 block">Total Course Fee</span>
-                    <span className="font-bold text-slate-200">
-                      ₹{Number(selectedStudent.admission.finalFees || selectedStudent.admission.courseFees).toLocaleString("en-IN")}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 block">Pending Balance</span>
-                    <span className="font-bold text-amber-400">
-                      ₹{Number(selectedStudent.admission.pendingAmount).toLocaleString("en-IN")}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </Modal>
       )}
@@ -484,7 +1037,7 @@ export const Students = () => {
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <div>
                 <h3 className="text-base font-bold text-white">Edit Student Profile & Fee Structure</h3>
-                <p className="text-xs text-slate-400">{editingStudent.fullName} ({editingStudent.studentId})</p>
+                <p className="text-xs text-slate-400">{toTitleCase(editingStudent.fullName)} ({editingStudent.studentId})</p>
               </div>
               <button onClick={() => setEditingStudent(null)} className="text-slate-400 hover:text-white">
                 <X className="w-5 h-5" />

@@ -9,9 +9,16 @@ import {
 
 const router = Router();
 
-// POST /api/v1/fees - Collect fee payment (SUPER_ADMIN, FACULTY)
+// POST /api/v1/fees & /api/v1/fees/collect - Collect fee payment (SUPER_ADMIN, FACULTY)
 router.post(
   "/",
+  authenticate,
+  authorize("SUPER_ADMIN", "FACULTY"),
+  collectFeeController
+);
+
+router.post(
+  "/collect",
   authenticate,
   authorize("SUPER_ADMIN", "FACULTY"),
   collectFeeController

@@ -40,6 +40,7 @@ export const collectFee = async (payload, collectedBy) => {
         ],
         deletedAt: null,
       },
+      orderBy: { pendingAmount: "desc" },
       include: { student: true },
     });
   }
