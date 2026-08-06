@@ -14,6 +14,7 @@ import {
   Filter,
   Save,
   Tag,
+  Zap,
 } from "lucide-react";
 import api from "../api/axios";
 
@@ -74,15 +75,59 @@ export const Courses = () => {
     }
   };
 
+  // Smart Auto-Generator for Course Code
+  const generateCourseCode = (nameStr = courseName) => {
+    const nextNum = (courses.length || 0) + 1;
+    if (!nameStr || !nameStr.trim()) {
+      return `CRS-${nextNum}`;
+    }
+
+    const cleanWords = nameStr
+      .trim()
+      .toUpperCase()
+      .replace(/[^A-Z0-9\s]/g, "")
+      .split(/\s+/)
+      .filter(Boolean);
+
+    let prefix = "CRS";
+    if (cleanWords.length === 1) {
+      prefix = `CRS-${cleanWords[0].slice(0, 6)}`;
+    } else if (cleanWords.length > 1) {
+      prefix = `CRS-${cleanWords.map((w) => w.slice(0, 3)).join("-").slice(0, 10)}`;
+    }
+
+    return `${prefix}-${nextNum}`;
+  };
+
+  const handleCourseNameChange = (e) => {
+    const nameVal = e.target.value;
+    setCourseName(nameVal);
+    // Auto-update course code in real-time
+    setCourseCode(generateCourseCode(nameVal));
+  };
+
+  const openCreateModal = () => {
+    setCourseName("");
+    setCourseCode(generateCourseCode(""));
+    setCategory("IT Course");
+    setDuration(3);
+    setDurationType("MONTHS");
+    setFees(5000);
+    setDescription("");
+    setIsModalOpen(true);
+  };
+
   const handleCreateCourse = async (e) => {
     e.preventDefault();
-    if (!courseName || !courseCode || !fees) return;
+    const finalCode = courseCode.trim() || generateCourseCode(courseName);
+
+    if (!courseName || !finalCode || !fees) return;
 
     setSubmitting(true);
     try {
       await api.post("/courses", {
         name: courseName,
-        code: courseCode,
+        code: finalCode,
         category: category || "IT Course",
         duration: Number(duration),
         durationType: durationType,
@@ -103,22 +148,22 @@ export const Courses = () => {
     }
   };
 
-  const handleOpenEdit = (course) => {
-    setEditingCourse(course);
+  const handleOpenEditModal = (c) => {
+    setEditingCourse(c);
     setEditForm({
-      name: course.name,
-      code: course.code,
-      category: course.category || "IT Course",
-      duration: course.duration,
-      durationType: course.durationType,
-      fees: course.fees,
-      description: course.description || "",
+      name: c.name,
+      code: c.code,
+      category: c.category || "IT Course",
+      duration: c.duration,
+      durationType: c.durationType,
+      fees: c.fees,
+      description: c.description || "",
     });
   };
 
   const handleUpdateCourse = async (e) => {
     e.preventDefault();
-    if (!editingCourse || !editForm.name || !editForm.code) return;
+    if (!editingCourse) return;
 
     setSubmitting(true);
     try {
@@ -209,7 +254,7 @@ export const Courses = () => {
           </div>
 
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={openCreateModal}
             className="px-4 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-lg flex items-center space-x-2 transition"
           >
             <Plus className="w-4 h-4" />
@@ -279,20 +324,27 @@ export const Courses = () => {
                         {c.category || "IT Course"}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-slate-400 font-semibold">{c.duration} {c.durationType}</td>
+                    <td className="py-3.5 px-4 text-slate-400 font-semibold">
+                      {c.duration} {c.durationType.toLowerCase()}
+                    </td>
                     <td className="py-3.5 px-4 text-right font-extrabold text-emerald-400 text-sm">
                       ₹{Number(c.fees).toLocaleString("en-IN")}
                     </td>
                     <td className="py-3.5 px-4 text-center">
-                      <span className="px-2.5 py-0.5 bg-emerald-950 text-emerald-400 border border-emerald-800 rounded-full text-[10px] font-bold">
-                        ACTIVE
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${
+                          c.isActive
+                            ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
+                            : "bg-slate-800 text-slate-400"
+                        }`}
+                      >
+                        {c.isActive ? "ACTIVE" : "INACTIVE"}
                       </span>
                     </td>
                     <td className="py-3.5 px-4 text-center">
                       <button
-                        onClick={() => handleOpenEdit(c)}
-                        className="px-3 py-1.5 bg-amber-600/20 hover:bg-amber-600 text-amber-400 hover:text-white rounded-xl text-xs font-bold inline-flex items-center space-x-1 transition"
-                        title="Edit Course Details & Fees"
+                        onClick={() => handleOpenEditModal(c)}
+                        className="px-2.5 py-1 bg-amber-600/20 hover:bg-amber-600 text-amber-300 hover:text-white rounded-lg font-semibold text-[11px] inline-flex items-center space-x-1 transition"
                       >
                         <Edit className="w-3.5 h-3.5" />
                         <span>Edit</span>
@@ -310,42 +362,42 @@ export const Courses = () => {
           {filteredCourses.map((c) => (
             <div
               key={c.id}
-              className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 flex flex-col justify-between hover:border-cyan-500/40 transition relative"
+              className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4 hover:border-cyan-500/50 transition-colors flex flex-col justify-between"
             >
               <div>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center space-x-2">
-                    <span className="px-2.5 py-0.5 bg-cyan-950 text-cyan-400 border border-cyan-800 rounded-md font-mono font-bold text-[10px]">
-                      {c.code}
-                    </span>
-                    <span className={`px-2 py-0.5 border rounded-md text-[10px] font-bold ${getCategoryBadgeClass(c.category || "IT Course")}`}>
-                      {c.category || "IT Course"}
-                    </span>
-                  </div>
-                  <span className="text-xs font-semibold text-slate-400 flex items-center space-x-1">
-                    <Clock className="w-3.5 h-3.5 text-cyan-400" />
-                    <span>{c.duration} {c.durationType}</span>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <span className="font-mono text-xs font-bold text-cyan-400 bg-cyan-950 px-2 py-0.5 rounded border border-cyan-800">
+                    {c.code}
+                  </span>
+                  <span className={`px-2 py-0.5 border rounded text-[10px] font-bold ${getCategoryBadgeClass(c.category || "IT Course")}`}>
+                    {c.category || "IT Course"}
                   </span>
                 </div>
-
-                <h3 className="text-base font-bold text-white mb-2">{c.name}</h3>
-                <p className="text-xs text-slate-400 line-clamp-2">{c.description || "Active academic program."}</p>
+                <h3 className="text-base font-bold text-white">{c.name}</h3>
+                {c.description && (
+                  <p className="text-xs text-slate-400 mt-1 line-clamp-2">{c.description}</p>
+                )}
               </div>
 
-              <div className="pt-4 mt-4 border-t border-slate-800 flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] text-slate-500 uppercase font-semibold block">Tuition Fees</span>
-                  <span className="text-lg font-extrabold text-emerald-400">
-                    ₹{Number(c.fees).toLocaleString("en-IN")}
-                  </span>
+              <div className="pt-4 border-t border-slate-800 space-y-3">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center space-x-1.5 text-slate-400">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>
+                      {c.duration} {c.durationType.toLowerCase()}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-1 text-emerald-400 font-extrabold text-sm">
+                    <span>₹{Number(c.fees).toLocaleString("en-IN")}</span>
+                  </div>
                 </div>
-                
+
                 <button
-                  onClick={() => handleOpenEdit(c)}
-                  className="px-3 py-1.5 bg-amber-600/20 hover:bg-amber-600 text-amber-400 hover:text-white rounded-xl text-xs font-bold flex items-center space-x-1 transition"
+                  onClick={() => handleOpenEditModal(c)}
+                  className="w-full py-2 bg-slate-950 hover:bg-amber-600/20 text-slate-300 hover:text-amber-300 border border-slate-800 hover:border-amber-800 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5"
                 >
                   <Edit className="w-3.5 h-3.5" />
-                  <span>Edit Course</span>
+                  <span>Edit Course Details</span>
                 </button>
               </div>
             </div>
@@ -353,7 +405,7 @@ export const Courses = () => {
         </div>
       )}
 
-      {/* CREATE NEW COURSE MODAL */}
+      {/* CREATE COURSE MODAL WITH AUTO-GENERATED CODE */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 font-sans overflow-y-auto">
           <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 my-8">
@@ -373,39 +425,47 @@ export const Courses = () => {
                   type="text"
                   required
                   value={courseName}
-                  onChange={(e) => setCourseName(e.target.value)}
-                  placeholder="e.g. Master in Web Development"
+                  onChange={handleCourseNameChange}
+                  placeholder="e.g. Master in Python & AI Development"
                   className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500 font-bold"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Course Code *</label>
-                  <input
-                    type="text"
-                    required
-                    value={courseCode}
-                    onChange={(e) => setCourseCode(e.target.value)}
-                    placeholder="e.g. CRS-B.C.A.(Sem-5)"
-                    className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500 font-mono"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Category / Department *</label>
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500 font-semibold"
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block font-semibold text-slate-300">Course Code (Auto-Generated) *</label>
+                  <button
+                    type="button"
+                    onClick={() => setCourseCode(generateCourseCode(courseName))}
+                    className="text-[10px] font-bold text-cyan-400 hover:text-cyan-300 flex items-center space-x-1"
                   >
-                    {COURSE_CATEGORIES.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
+                    <Zap className="w-3 h-3" />
+                    <span>Auto-Generate</span>
+                  </button>
                 </div>
+                <input
+                  type="text"
+                  required
+                  value={courseCode}
+                  onChange={(e) => setCourseCode(e.target.value)}
+                  placeholder="e.g. CRS-PYT-AI-69"
+                  className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-cyan-400 outline-none focus:border-cyan-500 font-mono font-bold"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">Category / Department *</label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500 font-semibold"
+                >
+                  {COURSE_CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -508,13 +568,23 @@ export const Courses = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Course Code *</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block font-semibold text-slate-300">Course Code *</label>
+                    <button
+                      type="button"
+                      onClick={() => setEditForm({ ...editForm, code: generateCourseCode(editForm.name) })}
+                      className="text-[10px] font-bold text-amber-400 hover:text-amber-300 flex items-center space-x-1"
+                    >
+                      <Zap className="w-3 h-3" />
+                      <span>Re-Generate</span>
+                    </button>
+                  </div>
                   <input
                     type="text"
                     required
                     value={editForm.code}
                     onChange={(e) => setEditForm({ ...editForm, code: e.target.value })}
-                    className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-amber-500 font-mono"
+                    className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-amber-400 outline-none focus:border-amber-500 font-mono font-bold"
                   />
                 </div>
 
@@ -580,6 +650,7 @@ export const Courses = () => {
                   rows={2}
                   value={editForm.description}
                   onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  placeholder="Course summary and subjects..."
                   className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-amber-500 resize-none"
                 />
               </div>
@@ -595,10 +666,10 @@ export const Courses = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl font-bold shadow-md flex items-center space-x-1 disabled:opacity-50"
+                  className="px-5 py-2 bg-amber-600 text-white rounded-xl font-bold hover:bg-amber-500 shadow-md flex items-center space-x-1 disabled:opacity-50"
                 >
                   <Save className="w-4 h-4" />
-                  <span>{submitting ? "Updating..." : "Save Changes"}</span>
+                  <span>{submitting ? "Updating..." : "Save Course Changes"}</span>
                 </button>
               </div>
             </form>
