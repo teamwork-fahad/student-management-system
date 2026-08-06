@@ -886,3 +886,29 @@ export const getAdmissionStatistics = async () => {
     },
   };
 };
+
+/**
+ * Update single course admission status (e.g. ACTIVE, DROPPED, COMPLETED, ON_HOLD)
+ */
+export const updateAdmissionStatusService = async (admissionId, status) => {
+  const admission = await prisma.admission.findUnique({ where: { id: admissionId } });
+  if (!admission) throw createHttpError("Admission record not found", 404);
+
+  return prisma.admission.update({
+    where: { id: admissionId },
+    data: { status },
+  });
+};
+
+/**
+ * Soft-delete a specific course admission entry
+ */
+export const deleteAdmissionService = async (admissionId) => {
+  const admission = await prisma.admission.findUnique({ where: { id: admissionId } });
+  if (!admission) throw createHttpError("Admission record not found", 404);
+
+  return prisma.admission.update({
+    where: { id: admissionId },
+    data: { deletedAt: new Date() },
+  });
+};

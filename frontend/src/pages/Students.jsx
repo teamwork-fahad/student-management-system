@@ -139,6 +139,32 @@ export const Students = () => {
     fetchAllStudentsForSuggestions();
   }, [statusFilter]);
 
+  const handleCourseStatusChange = async (admissionId, newStatus) => {
+    try {
+      await api.patch(`/admissions/${admissionId}/status`, { status: newStatus });
+      if (selectedStudent) {
+        fetchFullStudentHistory(selectedStudent.id);
+      }
+      fetchStudents(pagination.page);
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to update course status");
+    }
+  };
+
+  const handleDeleteCourseAdmission = async (admissionId, courseName) => {
+    if (!window.confirm(`Are you sure you want to delete / remove course enrollment for "${courseName}"?`)) return;
+
+    try {
+      await api.delete(`/admissions/${admissionId}`);
+      if (selectedStudent) {
+        fetchFullStudentHistory(selectedStudent.id);
+      }
+      fetchStudents(pagination.page);
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to delete course enrollment");
+    }
+  };
+
   // Click outside to close suggestion dropdown
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -1275,40 +1301,102 @@ export const Students = () => {
                     </h4>
 
                     <div className="space-y-3">
-                      {(fullStudentData?.allAdmissions || [selectedStudent.admission]).filter(Boolean).map((adm, idx) => (
-                        <div key={adm.id || idx} className="p-4 bg-slate-950 border border-slate-800 rounded-2xl space-y-3">
-                          <div className="flex items-center justify-between">
-                            <span className="font-bold text-white text-sm">
-                              {adm.courseNameSnapshot || adm.course?.name || "General Course"}
-                            </span>
-                            <span className="font-mono text-xs font-bold text-cyan-400 bg-cyan-950/80 border border-cyan-800/80 px-2.5 py-0.5 rounded-full">
-                              {adm.admissionNumber}
-                            </span>
+                      {(fullStudentData?.allAdmissions || [selectedStudent.admission]).filter(Boolean).map((adm, idx) => {
+                        const admStatus = adm.status || "ACTIVE";
+                        return (
+                          <div key={adm.id || idx} className="p-4 bg-slate-950 border border-slate-800 rounded-2xl space-y-3">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <div className="flex items-center space-x-2">
+                                <span className="font-bold text-white text-sm">
+                                  {adm.courseNameSnapshot || adm.course?.name || "General Course"}
+                                </span>
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
+                                  admStatus === "ACTIVE"
+                                    ? "bg-emerald-950 text-emerald-400 border-emerald-800"
+                                    : admStatus === "COMPLETED"
+                                    ? "bg-blue-950 text-blue-300 border-blue-800"
+                                    : admStatus === "DROPPED"
+                                    ? "bg-rose-950 text-rose-400 border-rose-800"
+                                    : "bg-amber-950 text-amber-300 border-amber-800"
+                                }`}>
+                                  {admStatus}
+                                </span>
+                              </div>
+
+                              <span className="font-mono text-xs font-bold text-cyan-400 bg-cyan-950/80 border border-cyan-800/80 px-2.5 py-0.5 rounded-full">
+                                {adm.admissionNumber}
+                              </span>
+                            </div>
+
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-1">
+                              <div>
+                                <span className="text-slate-500 block text-[10px] uppercase">Joining Date</span>
+                                <span className="font-mono text-slate-200 font-semibold">{formatDate(adm.admissionDate)}</span>
+                              </div>
+
+                              <div>
+                                <span className="text-slate-500 block text-[10px] uppercase">Course Fees</span>
+                                <span className="font-bold text-slate-200">₹{Number(adm.finalFees || adm.courseFees).toLocaleString("en-IN")}</span>
+                              </div>
+
+                              <div>
+                                <span className="text-slate-500 block text-[10px] uppercase">Paid Fee</span>
+                                <span className="font-bold text-emerald-400">₹{Number(adm.paidAmount).toLocaleString("en-IN")}</span>
+                              </div>
+
+                              <div>
+                                <span className="text-slate-500 block text-[10px] uppercase">Pending Balance</span>
+                                <span className="font-bold text-amber-400">₹{Number(adm.pendingAmount).toLocaleString("en-IN")}</span>
+                              </div>
+                            </div>
+
+                            {/* COURSE ACTION TOOLBAR: STOP/DROP, COMPLETE, DELETE */}
+                            <div className="pt-2 border-t border-slate-900 flex items-center justify-between text-xs">
+                              <span className="text-[10px] text-slate-500 font-semibold">Course Actions:</span>
+                              <div className="flex items-center space-x-2">
+                                {admStatus === "ACTIVE" ? (
+                                  <>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleCourseStatusChange(adm.id, "DROPPED")}
+                                      className="px-2.5 py-1 bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800 rounded-lg font-bold text-[11px] transition"
+                                      title="Stop or Drop this specific course"
+                                    >
+                                      🛑 Stop / Drop Course
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleCourseStatusChange(adm.id, "COMPLETED")}
+                                      className="px-2.5 py-1 bg-blue-950/80 hover:bg-blue-900 text-blue-300 border border-blue-800 rounded-lg font-bold text-[11px] transition"
+                                      title="Mark this course completed"
+                                    >
+                                      ✓ Complete
+                                    </button>
+                                  </>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleCourseStatusChange(adm.id, "ACTIVE")}
+                                    className="px-2.5 py-1 bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-800 rounded-lg font-bold text-[11px] transition"
+                                    title="Re-activate this course"
+                                  >
+                                    ▶ Re-Activate Course
+                                  </button>
+                                )}
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteCourseAdmission(adm.id, adm.courseNameSnapshot || adm.course?.name || "Course")}
+                                  className="px-2 py-1 bg-slate-900 hover:bg-red-950 text-slate-400 hover:text-red-400 border border-slate-800 hover:border-red-800 rounded-lg text-[11px] transition font-bold"
+                                  title="Delete this course enrollment record"
+                                >
+                                  🗑️ Delete
+                                </button>
+                              </div>
+                            </div>
                           </div>
-
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-1">
-                            <div>
-                              <span className="text-slate-500 block text-[10px] uppercase">Joining Date</span>
-                              <span className="font-mono text-slate-200 font-semibold">{formatDate(adm.admissionDate)}</span>
-                            </div>
-
-                            <div>
-                              <span className="text-slate-500 block text-[10px] uppercase">Course Fees</span>
-                              <span className="font-bold text-slate-200">₹{Number(adm.finalFees || adm.courseFees).toLocaleString("en-IN")}</span>
-                            </div>
-
-                            <div>
-                              <span className="text-slate-500 block text-[10px] uppercase">Paid Fee</span>
-                              <span className="font-bold text-emerald-400">₹{Number(adm.paidAmount).toLocaleString("en-IN")}</span>
-                            </div>
-
-                            <div>
-                              <span className="text-slate-500 block text-[10px] uppercase">Pending Balance</span>
-                              <span className="font-bold text-amber-400">₹{Number(adm.pendingAmount).toLocaleString("en-IN")}</span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}

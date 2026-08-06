@@ -8,6 +8,8 @@ import {
   getAdmissionStatisticsController,
   searchAdmissionsController,
   updateAdmissionController,
+  updateAdmissionStatusController,
+  deleteAdmissionController,
 } from "./admission.controller.js";
 
 const router = Router();
@@ -58,6 +60,22 @@ router.put(
   authenticate,
   authorize("SUPER_ADMIN"),
   updateAdmissionController
+);
+
+// PATCH /api/v1/admissions/:id/status - Change status of a specific course (SUPER_ADMIN, FACULTY)
+router.patch(
+  "/:id/status",
+  authenticate,
+  authorize("SUPER_ADMIN", "FACULTY"),
+  updateAdmissionStatusController
+);
+
+// DELETE /api/v1/admissions/:id - Delete a specific course enrollment (SUPER_ADMIN)
+router.delete(
+  "/:id",
+  authenticate,
+  authorize("SUPER_ADMIN"),
+  deleteAdmissionController
 );
 
 export default router;
