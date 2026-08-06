@@ -33,6 +33,7 @@ import {
   Printer,
   History,
   PlusCircle,
+  SlidersHorizontal,
 } from "lucide-react";
 
 export const toTitleCase = (str) => {
@@ -100,6 +101,22 @@ export const Students = () => {
 
   // View Mode: 'table' | 'grid'
   const [viewMode, setViewMode] = useState("table");
+
+  // Dynamic Visible Columns Customizer state
+  const [showColumnCustomizer, setShowColumnCustomizer] = useState(false);
+  const columnCustomizerRef = useRef(null);
+  const [columns, setColumns] = useState({
+    studentId: true,
+    fullName: true,
+    mobile: true,
+    course: true,
+    totalFees: true,
+    paidAmount: true,
+    pendingAmount: true,
+    joiningDate: true,
+    guardian: false,
+    status: true,
+  });
 
   // Add Course Modal State
   const [addCourseStudent, setAddCourseStudent] = useState(null);
@@ -518,7 +535,7 @@ export const Students = () => {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-cyan-500"
+            className="px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-cyan-500 font-semibold"
           >
             <option value="">All Statuses</option>
             <option value="ACTIVE">ACTIVE</option>
@@ -527,6 +544,136 @@ export const Students = () => {
             <option value="DROPPED">DROPPED</option>
             <option value="TRANSFERRED">TRANSFERRED</option>
           </select>
+
+          {/* DYNAMIC COLUMN / FIELD CUSTOMIZER POPOVER */}
+          <div ref={columnCustomizerRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setShowColumnCustomizer(!showColumnCustomizer)}
+              className={`px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition ${
+                showColumnCustomizer ? "border-cyan-500 text-cyan-400 bg-cyan-950/40" : "text-slate-300 hover:text-white"
+              }`}
+              title="Customize Display Columns & Fields"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Show Fields ({Object.values(columns).filter(Boolean).length})</span>
+            </button>
+
+            {showColumnCustomizer && (
+              <div className="absolute right-0 top-12 w-64 bg-slate-950 border border-cyan-800/80 rounded-2xl shadow-2xl p-4 z-50 space-y-3 font-sans text-xs">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                  <span className="font-bold text-cyan-400 uppercase text-[10px] tracking-wider">
+                    Display Columns / Fields
+                  </span>
+                  <button onClick={() => setShowColumnCustomizer(false)} className="text-slate-400 hover:text-white">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                  <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={columns.studentId}
+                      onChange={(e) => setColumns({ ...columns, studentId: e.target.checked })}
+                      className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
+                    />
+                    <span className="text-slate-200 font-bold">Student ID</span>
+                  </label>
+
+                  <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={columns.fullName}
+                      onChange={(e) => setColumns({ ...columns, fullName: e.target.checked })}
+                      className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
+                    />
+                    <span className="text-slate-200 font-bold">Student Name</span>
+                  </label>
+
+                  <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={columns.mobile}
+                      onChange={(e) => setColumns({ ...columns, mobile: e.target.checked })}
+                      className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
+                    />
+                    <span className="text-slate-200 font-bold">Mobile Number</span>
+                  </label>
+
+                  <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={columns.course}
+                      onChange={(e) => setColumns({ ...columns, course: e.target.checked })}
+                      className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
+                    />
+                    <span className="text-slate-200 font-bold">Enrolled Course(s)</span>
+                  </label>
+
+                  <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={columns.totalFees}
+                      onChange={(e) => setColumns({ ...columns, totalFees: e.target.checked })}
+                      className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
+                    />
+                    <span className="text-slate-200 font-bold">Total Course Fees (₹)</span>
+                  </label>
+
+                  <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={columns.paidAmount}
+                      onChange={(e) => setColumns({ ...columns, paidAmount: e.target.checked })}
+                      className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
+                    />
+                    <span className="text-emerald-400 font-bold">Paid Fees Amount (₹)</span>
+                  </label>
+
+                  <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={columns.pendingAmount}
+                      onChange={(e) => setColumns({ ...columns, pendingAmount: e.target.checked })}
+                      className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
+                    />
+                    <span className="text-amber-400 font-bold">Pending Dues Balance (₹)</span>
+                  </label>
+
+                  <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={columns.joiningDate}
+                      onChange={(e) => setColumns({ ...columns, joiningDate: e.target.checked })}
+                      className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
+                    />
+                    <span className="text-slate-200 font-bold">Joined / Admission Date</span>
+                  </label>
+
+                  <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={columns.guardian}
+                      onChange={(e) => setColumns({ ...columns, guardian: e.target.checked })}
+                      className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
+                    />
+                    <span className="text-slate-200 font-bold">Guardian Contact</span>
+                  </label>
+
+                  <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={columns.status}
+                      onChange={(e) => setColumns({ ...columns, status: e.target.checked })}
+                      className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
+                    />
+                    <span className="text-slate-200 font-bold">Academic Status</span>
+                  </label>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -608,71 +755,130 @@ export const Students = () => {
                       className="w-4 h-4 rounded border-slate-700 bg-slate-950 text-cyan-600 focus:ring-cyan-500 cursor-pointer"
                     />
                   </th>
-                  <th className="p-3.5">Student ID</th>
-                  <th className="p-3.5">Student Name</th>
-                  <th className="p-3.5">Mobile</th>
-                  <th className="p-3.5">Enrolled Course(s)</th>
-                  <th className="p-3.5">Status</th>
+                  {columns.studentId && <th className="p-3.5">Student ID</th>}
+                  {columns.fullName && <th className="p-3.5">Student Name</th>}
+                  {columns.mobile && <th className="p-3.5">Mobile</th>}
+                  {columns.course && <th className="p-3.5">Enrolled Course(s)</th>}
+                  {columns.totalFees && <th className="p-3.5 text-right">Total Fees</th>}
+                  {columns.paidAmount && <th className="p-3.5 text-right">Paid Fees</th>}
+                  {columns.pendingAmount && <th className="p-3.5 text-right">Pending Dues</th>}
+                  {columns.joiningDate && <th className="p-3.5">Joined Date</th>}
+                  {columns.guardian && <th className="p-3.5">Guardian Contact</th>}
+                  {columns.status && <th className="p-3.5">Status</th>}
                   <th className="p-3.5 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
-                {students.map((student) => (
-                  <tr
-                    key={student.id}
-                    className={`hover:bg-slate-800/40 transition-colors ${
-                      selectedStudentIds.includes(student.id) ? "bg-cyan-950/30" : ""
-                    }`}
-                  >
-                    <td className="p-3.5 text-center">
-                      <input
-                        type="checkbox"
-                        checked={selectedStudentIds.includes(student.id)}
-                        onChange={() => handleToggleSelect(student.id)}
-                        className="w-4 h-4 rounded border-slate-700 bg-slate-950 text-cyan-600 focus:ring-cyan-500 cursor-pointer"
-                      />
-                    </td>
-                    <td className="p-3.5 font-mono text-xs font-bold text-cyan-400">
-                      {student.studentId}
-                    </td>
-                    <td className="p-3.5 font-bold text-slate-100">
-                      {toTitleCase(student.fullName)}
-                    </td>
-                    <td className="p-3.5 text-slate-300 text-xs">{student.mobile}</td>
-                    <td className="p-3.5 text-xs">
-                      <div className="flex items-center space-x-1.5 flex-wrap gap-y-1">
-                        <span className="px-2.5 py-1 bg-cyan-950 text-cyan-300 border border-cyan-800 rounded-lg text-xs font-bold truncate max-w-[210px]" title={student.courseInfo?.primaryCourse || student.admission?.courseNameSnapshot}>
-                          {student.courseInfo?.primaryCourse || student.admission?.courseNameSnapshot || "General Course"}
-                        </span>
-                        {student.courseInfo?.extraCoursesCount > 0 && (
+                {students.map((student) => {
+                  const totalFees = Number(student.admission?.finalFees || student.admission?.courseFees || 0);
+                  const paidAmount = Number(student.admission?.paidAmount || 0);
+                  const pendingAmount = Number(student.admission?.pendingAmount || 0);
+
+                  return (
+                    <tr
+                      key={student.id}
+                      className={`hover:bg-slate-800/40 transition-colors ${
+                        selectedStudentIds.includes(student.id) ? "bg-cyan-950/30" : ""
+                      }`}
+                    >
+                      <td className="p-3.5 text-center">
+                        <input
+                          type="checkbox"
+                          checked={selectedStudentIds.includes(student.id)}
+                          onChange={() => handleToggleSelect(student.id)}
+                          className="w-4 h-4 rounded border-slate-700 bg-slate-950 text-cyan-600 focus:ring-cyan-500 cursor-pointer"
+                        />
+                      </td>
+
+                      {columns.studentId && (
+                        <td className="p-3.5 font-mono text-xs font-bold text-cyan-400">
+                          {student.studentId}
+                        </td>
+                      )}
+
+                      {columns.fullName && (
+                        <td className="p-3.5 font-bold text-slate-100">
+                          {toTitleCase(student.fullName)}
+                        </td>
+                      )}
+
+                      {columns.mobile && (
+                        <td className="p-3.5 text-slate-300 text-xs">{student.mobile}</td>
+                      )}
+
+                      {columns.course && (
+                        <td className="p-3.5 text-xs">
+                          <div className="flex items-center space-x-1.5 flex-wrap gap-y-1">
+                            <span
+                              className="px-2.5 py-1 bg-cyan-950 text-cyan-300 border border-cyan-800 rounded-lg text-xs font-bold truncate max-w-[210px]"
+                              title={student.courseInfo?.primaryCourse || student.admission?.courseNameSnapshot}
+                            >
+                              {student.courseInfo?.primaryCourse || student.admission?.courseNameSnapshot || "General Course"}
+                            </span>
+                            {student.courseInfo?.extraCoursesCount > 0 && (
+                              <span
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedStudent(student);
+                                }}
+                                className="px-2 py-0.5 bg-purple-950 hover:bg-purple-900 text-purple-300 border border-purple-800 rounded-lg text-[10px] font-extrabold cursor-pointer transition shadow hover:scale-105 inline-flex items-center space-x-0.5"
+                                title="Click to view all enrolled courses"
+                              >
+                                <span>+ {student.courseInfo.extraCoursesCount} more</span>
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                      )}
+
+                      {columns.totalFees && (
+                        <td className="p-3.5 text-right font-extrabold text-white text-xs">
+                          ₹{totalFees.toLocaleString("en-IN")}
+                        </td>
+                      )}
+
+                      {columns.paidAmount && (
+                        <td className="p-3.5 text-right font-extrabold text-emerald-400 text-xs">
+                          ₹{paidAmount.toLocaleString("en-IN")}
+                        </td>
+                      )}
+
+                      {columns.pendingAmount && (
+                        <td className="p-3.5 text-right font-extrabold text-amber-400 text-xs">
+                          ₹{pendingAmount.toLocaleString("en-IN")}
+                        </td>
+                      )}
+
+                      {columns.joiningDate && (
+                        <td className="p-3.5 font-mono text-slate-400 text-xs">
+                          {formatDate(student.joinedDate || student.createdAt)}
+                        </td>
+                      )}
+
+                      {columns.guardian && (
+                        <td className="p-3.5 text-slate-300 text-xs">
+                          {student.admission?.guardianName || "N/A"}{" "}
+                          {student.admission?.guardianMobile && `(${student.admission.guardianMobile})`}
+                        </td>
+                      )}
+
+                      {columns.status && (
+                        <td className="p-3.5">
                           <span
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedStudent(student);
-                            }}
-                            className="px-2 py-0.5 bg-purple-950 hover:bg-purple-900 text-purple-300 border border-purple-800 rounded-lg text-[10px] font-extrabold cursor-pointer transition shadow hover:scale-105 inline-flex items-center space-x-0.5"
-                            title="Click to view all enrolled courses"
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                              student.status === "ACTIVE"
+                                ? "bg-emerald-950 text-emerald-400 border border-emerald-800/60"
+                                : student.status === "COMPLETED"
+                                ? "bg-blue-950 text-blue-300 border border-blue-800/60"
+                                : student.status === "DROPPED"
+                                ? "bg-rose-950 text-rose-400 border border-rose-800/60"
+                                : "bg-slate-800 text-slate-400 border border-slate-700"
+                            }`}
                           >
-                            <span>+ {student.courseInfo.extraCoursesCount} more</span>
+                            {student.status}
                           </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="p-3.5">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                          student.status === "ACTIVE"
-                            ? "bg-emerald-950 text-emerald-400 border border-emerald-800/60"
-                            : student.status === "COMPLETED"
-                            ? "bg-blue-950 text-blue-300 border border-blue-800/60"
-                            : student.status === "DROPPED"
-                            ? "bg-rose-950 text-rose-400 border border-rose-800/60"
-                            : "bg-slate-800 text-slate-400 border border-slate-700"
-                        }`}
-                      >
-                        {student.status}
-                      </span>
-                    </td>
+                        </td>
+                      )}
                     <td className="p-3.5 text-right space-x-2">
                       <button
                         onClick={() => handleOpenCollectFee(student)}
@@ -705,7 +911,8 @@ export const Students = () => {
                       </button>
                     </td>
                   </tr>
-                ))}
+                );
+              })}
               </tbody>
             </table>
           </div>

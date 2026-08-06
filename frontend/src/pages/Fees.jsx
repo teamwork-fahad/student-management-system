@@ -20,6 +20,8 @@ import {
   Layers,
   Eye,
   X,
+  BarChart3,
+  DollarSign,
 } from "lucide-react";
 
 export const Fees = () => {
@@ -30,12 +32,17 @@ export const Fees = () => {
   const [error, setError] = useState("");
   const [selectedReceiptPayment, setSelectedReceiptPayment] = useState(null);
 
-  // View Modes: default to 'table' for both!
-  const [viewMode, setViewMode] = useState("table");
-  const [monthlyViewMode, setMonthlyViewMode] = useState("table"); // Default TABLE view for Monthly Summary
+  // Analytics Switcher Tab: 'yearly' | 'monthly'
+  const [analyticsTab, setAnalyticsTab] = useState("yearly");
 
-  // Selected Month modal for detailed month breakdown
+  // View Modes: default to 'table' for all sections!
+  const [viewMode, setViewMode] = useState("table");
+  const [yearlyViewMode, setYearlyViewMode] = useState("table");
+  const [monthlyViewMode, setMonthlyViewMode] = useState("table");
+
+  // Selected Month & Year modal state
   const [selectedMonthData, setSelectedMonthData] = useState(null);
+  const [selectedYearData, setSelectedYearData] = useState(null);
 
   // Form state
   const [selectedStudentId, setSelectedStudentId] = useState("");
@@ -108,7 +115,7 @@ export const Fees = () => {
     }
   };
 
-  // Calculate analytics
+  // Overall Revenue Metrics
   const totalExpected = students.reduce(
     (acc, s) => acc + Number(s.admission?.finalFees || s.admission?.courseFees || 0),
     0
@@ -120,7 +127,69 @@ export const Fees = () => {
   const totalPending = Math.max(0, totalExpected - totalCollected);
   const efficiencyRate = totalExpected > 0 ? ((totalCollected / totalExpected) * 100).toFixed(1) : 0;
 
-  // Compute Monthly Collection Summary
+  // 1. COMPUTE YEARLY FINANCIAL SUMMARY (YEAR-WISE ANALYSIS)
+  const yearlySummary = {};
+  feeHistory.forEach((p) => {
+    const d = new Date(p.paymentDate || p.createdAt);
+    const yearKey = d.getFullYear().toString();
+
+    if (!yearlySummary[yearKey]) {
+      yearlySummary[yearKey] = {
+        year: yearKey,
+        totalAmount: 0,
+        receiptCount: 0,
+        cashCount: 0,
+        onlineCount: 0,
+        payments: [],
+        monthsMap: {},
+      };
+    }
+
+    const amt = Number(p.amount) || 0;
+    yearlySummary[yearKey].totalAmount += amt;
+    yearlySummary[yearKey].receiptCount += 1;
+    yearlySummary[yearKey].payments.push(p);
+
+    const monthName = d.toLocaleDateString("en-IN", { month: "long" });
+    if (!yearlySummary[yearKey].monthsMap[monthName]) {
+      yearlySummary[yearKey].monthsMap[monthName] = {
+        monthName,
+        totalAmount: 0,
+        receiptCount: 0,
+        cashCount: 0,
+        onlineCount: 0,
+        payments: [],
+      };
+    }
+    yearlySummary[yearKey].monthsMap[monthName].totalAmount += amt;
+    yearlySummary[yearKey].monthsMap[monthName].receiptCount += 1;
+    yearlySummary[yearKey].monthsMap[monthName].payments.push(p);
+
+    if ((p.paymentMode || "").toUpperCase() === "CASH") {
+      yearlySummary[yearKey].cashCount += amt;
+      yearlySummary[yearKey].monthsMap[monthName].cashCount += amt;
+    } else {
+      yearlySummary[yearKey].onlineCount += amt;
+      yearlySummary[yearKey].monthsMap[monthName].onlineCount += amt;
+    }
+  });
+
+  const yearlyList = Object.values(yearlySummary).sort((a, b) => Number(b.year) - Number(a.year));
+
+  // Compute Year-over-Year (YoY) Growth for each year
+  yearlyList.forEach((y, idx) => {
+    const prevYearObj = yearlyList[idx + 1];
+    const prevYearTotal = prevYearObj?.totalAmount || 0;
+    const diff = y.totalAmount - prevYearTotal;
+    const yoy = prevYearTotal > 0
+      ? ((diff / prevYearTotal) * 100).toFixed(1)
+      : (y.totalAmount > 0 ? 100 : 0);
+    y.yoyGrowth = yoy;
+    y.revenueDiff = diff;
+    y.monthlyAvg = (y.totalAmount / 12).toFixed(0);
+  });
+
+  // 2. COMPUTE MONTHLY COLLECTION SUMMARY
   const monthlySummary = {};
   feeHistory.forEach((p) => {
     const d = new Date(p.paymentDate || p.createdAt);
@@ -149,8 +218,6 @@ export const Fees = () => {
   });
 
   const monthlyList = Object.values(monthlySummary);
-
-  // Calculate Month-over-Month (MoM) Difference & Percentage Change
   const currentMonthObj = monthlyList[0];
   const prevMonthObj = monthlyList[1];
 
@@ -176,10 +243,10 @@ export const Fees = () => {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-black text-white tracking-tight">Fees & Financial Revenue Analytics</h1>
-        <p className="text-xs text-slate-400">Collect tuition payments, view monthly collection trends, and print receipts.</p>
+        <p className="text-xs text-slate-400">Collect tuition payments, analyze year-wise & monthly revenue trends, and issue receipts.</p>
       </div>
 
-      {/* REVENUE ANALYTICS SUMMARY CARDS WITH MOM TREND BADGE */}
+      {/* REVENUE ANALYTICS SUMMARY CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl">
           <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Total Expected Revenue</span>
@@ -215,140 +282,310 @@ export const Fees = () => {
         </div>
       </div>
 
-      {/* MONTHLY COLLECTION SUMMARY SECTION (BY DEFAULT TABLE VIEW) */}
-      <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+      {/* FINANCIAL REVENUE ANALYTICS SECTION (YEARLY VS MONTHLY SWITCHER) */}
+      <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-slate-800">
           <div className="flex items-center space-x-3">
-            <Calendar className="w-5 h-5 text-cyan-400" />
+            <BarChart3 className="w-6 h-6 text-cyan-400 shrink-0" />
             <div>
-              <div className="flex items-center space-x-2">
-                <h3 className="text-base font-bold text-white">Monthly Fee Revenue Summary</h3>
-                {revenueDiff >= 0 ? (
-                  <span className="px-2.5 py-0.5 bg-emerald-950/80 text-emerald-400 border border-emerald-800/80 rounded-full font-bold text-xs inline-flex items-center space-x-1">
-                    <TrendingUp className="w-3.5 h-3.5" />
-                    <span>▲ +₹{revenueDiff.toLocaleString("en-IN")} (+{percentageChange}% vs prev month)</span>
-                  </span>
-                ) : (
-                  <span className="px-2.5 py-0.5 bg-rose-950/80 text-rose-400 border border-rose-800/80 rounded-full font-bold text-xs inline-flex items-center space-x-1">
-                    <TrendingDown className="w-3.5 h-3.5" />
-                    <span>▼ -₹{Math.abs(revenueDiff).toLocaleString("en-IN")} ({percentageChange}% vs prev month)</span>
-                  </span>
-                )}
-              </div>
-              <p className="text-xs text-slate-400 mt-0.5">Click on any month to view detailed payment receipts for that month.</p>
+              <h3 className="text-base font-bold text-white">Financial Revenue Analysis & Trends</h3>
+              <p className="text-xs text-slate-400">Compare year-over-year annual collection performance and monthly breakdowns.</p>
             </div>
           </div>
 
-          {/* Grid vs Table View Toggle Switch for Monthly Summary */}
+          {/* Analytics Mode Switcher: Yearly vs Monthly */}
           <div className="flex items-center space-x-1 p-1 bg-slate-950 border border-slate-800 rounded-xl">
             <button
               type="button"
-              onClick={() => setMonthlyViewMode("table")}
-              className={`p-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
-                monthlyViewMode === "table" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
+              onClick={() => setAnalyticsTab("yearly")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5 transition ${
+                analyticsTab === "yearly" ? "bg-cyan-600 text-white shadow-lg" : "text-slate-400 hover:text-white"
               }`}
-              title="Table View (Default)"
             >
-              <List className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Table View</span>
+              <Calendar className="w-3.5 h-3.5" />
+              <span>Year-Wise Analysis</span>
             </button>
             <button
               type="button"
-              onClick={() => setMonthlyViewMode("grid")}
-              className={`p-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
-                monthlyViewMode === "grid" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
+              onClick={() => setAnalyticsTab("monthly")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center space-x-1.5 transition ${
+                analyticsTab === "monthly" ? "bg-cyan-600 text-white shadow-lg" : "text-slate-400 hover:text-white"
               }`}
-              title="Grid Cards View"
             >
-              <LayoutGrid className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Grid View</span>
+              <Layers className="w-3.5 h-3.5" />
+              <span>Monthly Summary</span>
             </button>
           </div>
         </div>
 
-        {monthlyList.length === 0 ? (
-          <p className="text-xs text-slate-500 italic">No monthly collection records found.</p>
-        ) : monthlyViewMode === "table" ? (
-          /* MONTHLY TABLE LIST VIEW (DEFAULT) */
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
-                <tr>
-                  <th className="py-3.5 px-4">Month & Year</th>
-                  <th className="py-3.5 px-4 text-center">Receipts Count</th>
-                  <th className="py-3.5 px-4 text-right">Cash Collection</th>
-                  <th className="py-3.5 px-4 text-right">Online / UPI Collection</th>
-                  <th className="py-3.5 px-4 text-right">Total Revenue</th>
-                  <th className="py-3.5 px-4 text-center">Details</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60 text-slate-300">
+        {/* 1. YEAR-WISE FINANCIAL ANALYSIS TAB */}
+        {analyticsTab === "yearly" && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                Annual Financial Performance & YoY Growth
+              </span>
+
+              <div className="flex items-center space-x-1 p-1 bg-slate-950 border border-slate-800 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setYearlyViewMode("table")}
+                  className={`p-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
+                    yearlyViewMode === "table" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
+                  }`}
+                  title="Table View (Default)"
+                >
+                  <List className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Table View</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setYearlyViewMode("grid")}
+                  className={`p-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
+                    yearlyViewMode === "grid" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
+                  }`}
+                  title="Grid View"
+                >
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Grid View</span>
+                </button>
+              </div>
+            </div>
+
+            {yearlyList.length === 0 ? (
+              <p className="text-xs text-slate-500 italic">No yearly collection data available yet.</p>
+            ) : yearlyViewMode === "table" ? (
+              /* YEARLY TABLE LIST VIEW */
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+                    <tr>
+                      <th className="py-3.5 px-4">Financial Year</th>
+                      <th className="py-3.5 px-4 text-center">Receipts Issued</th>
+                      <th className="py-3.5 px-4 text-right">Cash Volume</th>
+                      <th className="py-3.5 px-4 text-right">Digital / Online Volume</th>
+                      <th className="py-3.5 px-4 text-right">Total Annual Revenue</th>
+                      <th className="py-3.5 px-4 text-center">YoY Growth</th>
+                      <th className="py-3.5 px-4 text-right">Monthly Avg</th>
+                      <th className="py-3.5 px-4 text-center">Details</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                    {yearlyList.map((y) => (
+                      <tr
+                        key={y.year}
+                        onClick={() => setSelectedYearData(y)}
+                        className="hover:bg-slate-800/40 transition cursor-pointer"
+                      >
+                        <td className="py-3.5 px-4 font-extrabold text-white text-sm">
+                          Year {y.year}
+                        </td>
+                        <td className="py-3.5 px-4 text-center">
+                          <span className="px-2.5 py-0.5 bg-blue-950 text-blue-300 border border-blue-800 rounded-full font-bold text-[10px]">
+                            {y.receiptCount} Receipts
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-right font-semibold text-slate-300">
+                          ₹{y.cashCount.toLocaleString("en-IN")}
+                        </td>
+                        <td className="py-3.5 px-4 text-right font-semibold text-slate-300">
+                          ₹{y.onlineCount.toLocaleString("en-IN")}
+                        </td>
+                        <td className="py-3.5 px-4 text-right font-extrabold text-emerald-400 text-sm">
+                          ₹{y.totalAmount.toLocaleString("en-IN")}
+                        </td>
+                        <td className="py-3.5 px-4 text-center">
+                          {Number(y.yoyGrowth) >= 0 ? (
+                            <span className="px-2.5 py-0.5 bg-emerald-950 text-emerald-400 border border-emerald-800 rounded-full font-bold text-[10px] inline-flex items-center">
+                              <TrendingUp className="w-3 h-3 mr-1" />
+                              <span>+{y.yoyGrowth}%</span>
+                            </span>
+                          ) : (
+                            <span className="px-2.5 py-0.5 bg-rose-950 text-rose-400 border border-rose-800 rounded-full font-bold text-[10px] inline-flex items-center">
+                              <TrendingDown className="w-3 h-3 mr-1" />
+                              <span>{y.yoyGrowth}%</span>
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-4 text-right font-bold text-cyan-400">
+                          ₹{Number(y.monthlyAvg).toLocaleString("en-IN")}/mo
+                        </td>
+                        <td className="py-3.5 px-4 text-center">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedYearData(y);
+                            }}
+                            className="px-2.5 py-1 bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white rounded-lg font-semibold text-[11px] inline-flex items-center space-x-1 transition"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>View Year</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              /* YEARLY GRID CARDS VIEW */
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {yearlyList.map((y) => (
+                  <div
+                    key={y.year}
+                    onClick={() => setSelectedYearData(y)}
+                    className="p-5 bg-slate-950/70 border border-slate-800/80 rounded-2xl space-y-3 cursor-pointer hover:border-cyan-500/40 transition"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-extrabold text-cyan-400">Year {y.year}</span>
+                      {Number(y.yoyGrowth) >= 0 ? (
+                        <span className="px-2 py-0.5 bg-emerald-950 text-emerald-400 border border-emerald-800 rounded-full font-bold text-[10px] inline-flex items-center">
+                          <TrendingUp className="w-3 h-3 mr-1" />
+                          <span>+{y.yoyGrowth}% YoY</span>
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 bg-rose-950 text-rose-400 border border-rose-800 rounded-full font-bold text-[10px] inline-flex items-center">
+                          <TrendingDown className="w-3 h-3 mr-1" />
+                          <span>{y.yoyGrowth}% YoY</span>
+                        </span>
+                      )}
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] text-slate-500 uppercase font-semibold block">Total Annual Revenue</span>
+                      <span className="text-2xl font-extrabold text-emerald-400">₹{y.totalAmount.toLocaleString("en-IN")}</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-[11px] pt-3 border-t border-slate-900 text-slate-400">
+                      <div>Cash: <span className="font-bold text-slate-200">₹{y.cashCount.toLocaleString("en-IN")}</span></div>
+                      <div>Digital: <span className="font-bold text-slate-200">₹{y.onlineCount.toLocaleString("en-IN")}</span></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 2. MONTHLY REVENUE SUMMARY TAB */}
+        {analyticsTab === "monthly" && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                Monthly Breakdown ({monthlyList.length} Months Recorded)
+              </span>
+
+              <div className="flex items-center space-x-1 p-1 bg-slate-950 border border-slate-800 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setMonthlyViewMode("table")}
+                  className={`p-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
+                    monthlyViewMode === "table" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
+                  }`}
+                  title="Table View (Default)"
+                >
+                  <List className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Table View</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMonthlyViewMode("grid")}
+                  className={`p-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
+                    monthlyViewMode === "grid" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
+                  }`}
+                  title="Grid Cards View"
+                >
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Grid View</span>
+                </button>
+              </div>
+            </div>
+
+            {monthlyList.length === 0 ? (
+              <p className="text-xs text-slate-500 italic">No monthly collection records found.</p>
+            ) : monthlyViewMode === "table" ? (
+              /* MONTHLY TABLE LIST VIEW (DEFAULT) */
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+                    <tr>
+                      <th className="py-3.5 px-4">Month & Year</th>
+                      <th className="py-3.5 px-4 text-center">Receipts Count</th>
+                      <th className="py-3.5 px-4 text-right">Cash Collection</th>
+                      <th className="py-3.5 px-4 text-right">Online / UPI Collection</th>
+                      <th className="py-3.5 px-4 text-right">Total Revenue</th>
+                      <th className="py-3.5 px-4 text-center">Details</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                    {monthlyList.map((m) => (
+                      <tr
+                        key={m.monthName}
+                        onClick={() => setSelectedMonthData(m)}
+                        className="hover:bg-slate-800/40 transition cursor-pointer"
+                      >
+                        <td className="py-3.5 px-4 font-bold text-white text-sm">
+                          {m.monthName}
+                        </td>
+                        <td className="py-3.5 px-4 text-center">
+                          <span className="px-2.5 py-0.5 bg-blue-950 text-blue-300 border border-blue-800 rounded-full font-bold text-[10px]">
+                            {m.receiptCount} Receipts
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-right font-semibold text-slate-300">
+                          ₹{m.cashCount.toLocaleString("en-IN")}
+                        </td>
+                        <td className="py-3.5 px-4 text-right font-semibold text-slate-300">
+                          ₹{m.onlineCount.toLocaleString("en-IN")}
+                        </td>
+                        <td className="py-3.5 px-4 text-right font-extrabold text-emerald-400 text-sm">
+                          ₹{m.totalAmount.toLocaleString("en-IN")}
+                        </td>
+                        <td className="py-3.5 px-4 text-center">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedMonthData(m);
+                            }}
+                            className="px-2.5 py-1 bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white rounded-lg font-semibold text-[11px] inline-flex items-center space-x-1 transition"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>View Month</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              /* MONTHLY GRID CARDS VIEW */
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {monthlyList.map((m) => (
-                  <tr
+                  <div
                     key={m.monthName}
                     onClick={() => setSelectedMonthData(m)}
-                    className="hover:bg-slate-800/40 transition cursor-pointer"
+                    className="p-4 bg-slate-950/70 border border-slate-800/80 rounded-2xl space-y-3 cursor-pointer hover:border-cyan-500/40 transition"
                   >
-                    <td className="py-3.5 px-4 font-bold text-white text-sm">
-                      {m.monthName}
-                    </td>
-                    <td className="py-3.5 px-4 text-center">
-                      <span className="px-2.5 py-0.5 bg-blue-950 text-blue-300 border border-blue-800 rounded-full font-bold text-[10px]">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-cyan-300">{m.monthName}</span>
+                      <span className="px-2.5 py-0.5 bg-blue-950 text-blue-300 rounded-full text-[10px] font-bold">
                         {m.receiptCount} Receipts
                       </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-semibold text-slate-300">
-                      ₹{m.cashCount.toLocaleString("en-IN")}
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-semibold text-slate-300">
-                      ₹{m.onlineCount.toLocaleString("en-IN")}
-                    </td>
-                    <td className="py-3.5 px-4 text-right font-extrabold text-emerald-400 text-sm">
+                    </div>
+
+                    <div className="text-xl font-extrabold text-emerald-400">
                       ₹{m.totalAmount.toLocaleString("en-IN")}
-                    </td>
-                    <td className="py-3.5 px-4 text-center">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedMonthData(m);
-                        }}
-                        className="px-2.5 py-1 bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white rounded-lg font-semibold text-[11px] inline-flex items-center space-x-1 transition"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>View Month</span>
-                      </button>
-                    </td>
-                  </tr>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-[11px] pt-2 border-t border-slate-900 text-slate-400">
+                      <div>Cash: <span className="font-bold text-slate-200">₹{m.cashCount.toLocaleString("en-IN")}</span></div>
+                      <div>Online: <span className="font-bold text-slate-200">₹{m.onlineCount.toLocaleString("en-IN")}</span></div>
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          /* MONTHLY GRID CARDS VIEW */
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {monthlyList.map((m) => (
-              <div
-                key={m.monthName}
-                onClick={() => setSelectedMonthData(m)}
-                className="p-4 bg-slate-950/70 border border-slate-800/80 rounded-2xl space-y-3 cursor-pointer hover:border-cyan-500/40 transition"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-cyan-300">{m.monthName}</span>
-                  <span className="px-2.5 py-0.5 bg-blue-950 text-blue-300 rounded-full text-[10px] font-bold">
-                    {m.receiptCount} Receipts
-                  </span>
-                </div>
-
-                <div className="text-xl font-extrabold text-emerald-400">
-                  ₹{m.totalAmount.toLocaleString("en-IN")}
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 text-[11px] pt-2 border-t border-slate-900 text-slate-400">
-                  <div>Cash: <span className="font-bold text-slate-200">₹{m.cashCount.toLocaleString("en-IN")}</span></div>
-                  <div>Online: <span className="font-bold text-slate-200">₹{m.onlineCount.toLocaleString("en-IN")}</span></div>
-                </div>
               </div>
-            ))}
+            )}
           </div>
         )}
       </div>
@@ -607,6 +844,49 @@ export const Fees = () => {
         </div>
 
       </div>
+
+      {/* SELECTED YEAR DETAILED BREAKDOWN MODAL */}
+      {selectedYearData && (
+        <Modal
+          isOpen={!!selectedYearData}
+          onClose={() => setSelectedYearData(null)}
+          title={`Year ${selectedYearData.year} - Financial & Revenue Breakdown`}
+        >
+          <div className="space-y-4 text-xs font-sans text-slate-200">
+            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 grid grid-cols-4 gap-3">
+              <div>
+                <span className="text-slate-400 block text-[10px] uppercase">Annual Revenue</span>
+                <span className="text-base font-extrabold text-emerald-400">₹{selectedYearData.totalAmount.toLocaleString("en-IN")}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[10px] uppercase">Receipts Issued</span>
+                <span className="text-base font-extrabold text-cyan-400">{selectedYearData.receiptCount} Receipts</span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[10px] uppercase">Cash Collection</span>
+                <span className="text-xs font-bold text-slate-200">₹{selectedYearData.cashCount.toLocaleString("en-IN")}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[10px] uppercase">Digital / Online</span>
+                <span className="text-xs font-bold text-slate-200">₹{selectedYearData.onlineCount.toLocaleString("en-IN")}</span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="font-bold text-slate-300 uppercase tracking-wider text-[10px]">Monthly Collections in {selectedYearData.year}</h4>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {Object.values(selectedYearData.monthsMap).map((mObj) => (
+                  <div key={mObj.monthName} className="p-3 bg-slate-950 rounded-xl border border-slate-800/80">
+                    <span className="text-[10px] font-bold text-cyan-400 block">{mObj.monthName}</span>
+                    <span className="text-sm font-extrabold text-emerald-400">₹{mObj.totalAmount.toLocaleString("en-IN")}</span>
+                    <span className="text-[10px] text-slate-500 block mt-0.5">{mObj.receiptCount} receipts</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
 
       {/* SELECTED MONTH DETAILED BREAKDOWN MODAL */}
       {selectedMonthData && (

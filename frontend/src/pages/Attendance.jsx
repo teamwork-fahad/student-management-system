@@ -9,6 +9,8 @@ import {
   Search,
   Filter,
   AlertCircle,
+  RotateCcw,
+  Zap,
 } from "lucide-react";
 import api from "../api/axios";
 
@@ -20,7 +22,7 @@ export const Attendance = () => {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
 
-  // Map of studentId -> attendance status ('PRESENT' | 'ABSENT' | 'LATE')
+  // Map of studentId -> attendance status ('PRESENT' | 'ABSENT' | 'LATE' | 'UNMARKED')
   const [attendanceState, setAttendanceState] = useState({});
 
   useEffect(() => {
@@ -37,7 +39,7 @@ export const Attendance = () => {
 
       const state = {};
       list.forEach((s) => {
-        state[s.studentId] = s.status === "UNMARKED" ? "PRESENT" : s.status;
+        state[s.studentId] = s.status || "UNMARKED";
       });
       setAttendanceState(state);
     } catch (err) {
@@ -56,37 +58,78 @@ export const Attendance = () => {
     }
   };
 
-  const handleStatusChange = (studentId, status) => {
-    setAttendanceState((prev) => ({
-      ...prev,
+  // Instant save on individual button click
+  const handleStatusChange = async (studentId, status) => {
+    const updatedState = {
+      ...attendanceState,
       [studentId]: status,
-    }));
-  };
+    };
+    setAttendanceState(updatedState);
 
-  const handleMarkAll = (status) => {
-    const next = {};
-    students.forEach((s) => {
-      next[s.studentId] = status;
-    });
-    setAttendanceState(next);
-  };
-
-  const handleSaveAttendance = async () => {
-    setSaving(true);
-    setMsg("");
+    // Auto-save to database immediately
     try {
-      const records = Object.entries(attendanceState).map(([studentId, status]) => ({
-        studentId,
-        status,
-      }));
+      await api.post("/attendance", {
+        date,
+        records: [{ studentId, status }],
+      });
+      setMsg(`Saved ${status} for student.`);
+      fetchStats();
+      setTimeout(() => setMsg(""), 2000);
+    } catch (err) {
+      console.error("Auto save error:", err);
+      setMsg("Failed to auto-save status.");
+    }
+  };
 
+  const handleMarkAll = async (status) => {
+    const nextState = {};
+    const records = students.map((s) => {
+      nextState[s.studentId] = status;
+      return { studentId: s.studentId, status };
+    });
+    setAttendanceState(nextState);
+
+    setSaving(true);
+    try {
       await api.post("/attendance", {
         date,
         records,
       });
-
-      setMsg("Daily attendance saved successfully!");
+      setMsg(`Marked all students as ${status} and saved!`);
       fetchStats();
+      setTimeout(() => setMsg(""), 3000);
+    } catch (err) {
+      console.error("Batch mark error:", err);
+      setMsg("Failed to save batch attendance.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveAttendance = async () => {
+    const markedRecords = Object.entries(attendanceState)
+      .filter(([_, status]) => status && status !== "UNMARKED")
+      .map(([studentId, status]) => ({
+        studentId,
+        status,
+      }));
+
+    if (markedRecords.length === 0) {
+      setMsg("Please mark attendance for at least one student before saving.");
+      return;
+    }
+
+    setSaving(true);
+    setMsg("");
+    try {
+      await api.post("/attendance", {
+        date,
+        records: markedRecords,
+      });
+
+      setMsg(`Daily attendance saved successfully in Database! (${markedRecords.length} students)`);
+      fetchStats();
+      fetchAttendance();
       setTimeout(() => setMsg(""), 3000);
     } catch (err) {
       setMsg(err.response?.data?.message || "Failed to save attendance");
@@ -95,13 +138,17 @@ export const Attendance = () => {
     }
   };
 
+  const markedCount = Object.values(attendanceState).filter((s) => s && s !== "UNMARKED").length;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-white tracking-tight">Daily Student Attendance</h1>
-          <p className="text-xs text-slate-400">Mark daily attendance for enrolled students and track statistics.</p>
+          <p className="text-xs text-slate-400">
+            Attendance changes auto-save instantly to database ⚡. Refresh anytime!
+          </p>
         </div>
 
         <div className="flex items-center space-x-3">
@@ -111,24 +158,29 @@ export const Attendance = () => {
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="bg-transparent text-xs font-semibold text-white outline-none"
+              className="bg-transparent text-xs font-semibold text-white outline-none cursor-pointer [color-scheme:dark]"
             />
           </div>
 
           <button
             onClick={handleSaveAttendance}
-            disabled={saving || loading}
+            disabled={saving || loading || students.length === 0}
             className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl shadow-lg flex items-center space-x-2 transition disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
-            <span>{saving ? "Saving..." : "Save Attendance"}</span>
+            <span>{saving ? "Saving..." : "Save Sheet"}</span>
           </button>
         </div>
       </div>
 
       {msg && (
-        <div className="p-3.5 bg-emerald-950/80 border border-emerald-800 text-emerald-300 rounded-2xl text-xs font-semibold">
-          {msg}
+        <div className={`p-3.5 border rounded-2xl text-xs font-semibold flex items-center space-x-2 ${
+          msg.includes("successfully") || msg.includes("Saved") || msg.includes("Marked all")
+            ? "bg-emerald-950/80 border-emerald-800 text-emerald-300"
+            : "bg-amber-950/80 border-amber-800 text-amber-300"
+        }`}>
+          <Zap className="w-4 h-4 text-cyan-400 shrink-0 animate-pulse" />
+          <span>{msg}</span>
         </div>
       )}
 
@@ -158,20 +210,33 @@ export const Attendance = () => {
       )}
 
       {/* Mark All Quick Actions */}
-      <div className="flex items-center justify-between bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
-        <span className="text-xs font-bold text-slate-300">Mark All Batch As:</span>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
+        <div className="flex items-center space-x-2">
+          <span className="text-xs font-bold text-slate-300">Quick 1-Click Batch Actions:</span>
+          <span className="text-[10px] px-2 py-0.5 bg-slate-800 text-slate-400 rounded-full font-bold">
+            {markedCount}/{students.length} Marked
+          </span>
+        </div>
+
         <div className="flex items-center space-x-2">
           <button
             onClick={() => handleMarkAll("PRESENT")}
             className="px-3 py-1.5 bg-emerald-950 text-emerald-300 border border-emerald-800 hover:bg-emerald-900 rounded-lg text-xs font-bold transition"
           >
-            All Present
+            ✓ Mark All Present
           </button>
           <button
             onClick={() => handleMarkAll("ABSENT")}
             className="px-3 py-1.5 bg-rose-950 text-rose-300 border border-rose-800 hover:bg-rose-900 rounded-lg text-xs font-bold transition"
           >
-            All Absent
+            ✗ Mark All Absent
+          </button>
+          <button
+            onClick={() => handleMarkAll("UNMARKED")}
+            className="px-2.5 py-1.5 bg-slate-950 text-slate-400 border border-slate-800 hover:text-white rounded-lg text-xs font-semibold transition"
+            title="Reset to Unmarked"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
@@ -190,17 +255,38 @@ export const Attendance = () => {
                   <th className="py-3.5 px-4">Student ID</th>
                   <th className="py-3.5 px-4">Student Name</th>
                   <th className="py-3.5 px-4">Course Name</th>
-                  <th className="py-3.5 px-4 text-center">Mark Status</th>
+                  <th className="py-3.5 px-4 text-center">Current Status</th>
+                  <th className="py-3.5 px-4 text-center">Mark Attendance</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 text-slate-300">
                 {students.map((s) => {
-                  const currentStatus = attendanceState[s.studentId] || "PRESENT";
+                  const currentStatus = attendanceState[s.studentId] || "UNMARKED";
+
                   return (
                     <tr key={s.studentId} className="hover:bg-slate-800/30 transition">
                       <td className="py-3.5 px-4 font-mono font-bold text-cyan-400">{s.displayId}</td>
                       <td className="py-3.5 px-4 font-bold text-white">{s.fullName}</td>
                       <td className="py-3.5 px-4 text-slate-400">{s.courseName}</td>
+                      <td className="py-3.5 px-4 text-center">
+                        {currentStatus === "PRESENT" ? (
+                          <span className="px-2.5 py-0.5 bg-emerald-950 text-emerald-400 border border-emerald-800 rounded-full font-bold text-[10px]">
+                            PRESENT
+                          </span>
+                        ) : currentStatus === "ABSENT" ? (
+                          <span className="px-2.5 py-0.5 bg-rose-950 text-rose-400 border border-rose-800 rounded-full font-bold text-[10px]">
+                            ABSENT
+                          </span>
+                        ) : currentStatus === "LATE" ? (
+                          <span className="px-2.5 py-0.5 bg-amber-950 text-amber-400 border border-amber-800 rounded-full font-bold text-[10px]">
+                            LATE
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-0.5 bg-slate-950 text-slate-500 border border-slate-800 rounded-full font-bold text-[10px]">
+                            UNMARKED
+                          </span>
+                        )}
+                      </td>
                       <td className="py-3.5 px-4">
                         <div className="flex items-center justify-center space-x-2">
                           <button
