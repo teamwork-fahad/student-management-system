@@ -11,6 +11,7 @@ import {
   getInquiryById,
   softDeleteInquiry,
   updateInquiry,
+  createPublicInquiry,
 } from "./inquiry.service.js";
 import {
   addFollowUpSchema,
@@ -92,3 +93,15 @@ export const convertInquiryController = asyncHandler(async (req, res) => {
     200
   );
 });
+
+export const createPublicInquiryController = asyncHandler(async (req, res) => {
+  const inquiry = await createPublicInquiry(req.body);
+
+  return successResponse(
+    res,
+    "Thank you! Your inquiry has been submitted successfully. Our team will contact you soon.",
+    inquiry,
+    201
+  );
+});
+

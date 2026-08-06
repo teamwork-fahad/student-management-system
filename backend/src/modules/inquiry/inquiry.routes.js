@@ -12,9 +12,13 @@ import {
   getFollowUpHistoryController,
   getInquiryByIdController,
   updateInquiryController,
+  createPublicInquiryController,
 } from "./inquiry.controller.js";
 
 const router = Router();
+
+// Public Inquiry endpoint (no authentication required)
+router.post("/public", createPublicInquiryController);
 
 // Lead Sources routes (placed before parametric routes)
 router.get(

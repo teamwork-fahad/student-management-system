@@ -339,3 +339,38 @@ export const convertInquiry = async (id) => {
     inquiry: updatedInquiry,
   };
 };
+
+export const createPublicInquiry = async (data) => {
+  const { fullName, mobile, email, courseId, remarks } = data;
+
+  let adminUser = await prisma.user.findFirst({ where: { role: "SUPER_ADMIN" } });
+  let leadSource = await prisma.leadSource.findFirst();
+  let course = courseId ? await prisma.course.findUnique({ where: { id: courseId } }) : await prisma.course.findFirst();
+
+  if (!course) {
+    throw createHttpError("No active course found for inquiry", 400);
+  }
+
+  const nextInquiryNumber = await getNextInquiryNumber(prisma);
+  const now = new Date();
+
+  return prisma.inquiry.create({
+    data: {
+      inquiryNumber: nextInquiryNumber,
+      fullName: String(fullName).trim(),
+      mobile: String(mobile).trim(),
+      whatsapp: String(mobile).trim(),
+      gender: "Male",
+      email: email ? String(email).trim() : null,
+      remarks: remarks ? String(remarks).trim() : "Public website inquiry",
+      expectedFees: course.fees,
+      inquiryDate: now,
+      nextFollowUpDate: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000),
+      status: "NEW",
+      courseId: course.id,
+      leadSourceId: leadSource ? leadSource.id : "default_ls",
+      assignedToId: adminUser ? adminUser.id : "admin",
+    },
+  });
+};
+

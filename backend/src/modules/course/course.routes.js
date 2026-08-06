@@ -11,6 +11,9 @@ import {
 
 const router = Router();
 
+// Public course listing endpoint (no authentication required)
+router.get("/public", getAllCoursesController);
+
 router.post(
   "/",
   authenticate,

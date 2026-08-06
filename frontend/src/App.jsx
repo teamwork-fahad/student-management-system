@@ -2,23 +2,30 @@ import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { AppLayout } from "./components/layout/AppLayout";
-import { Login } from "./pages/Login";
+import { LandingPage } from "./pages/LandingPage";
+import { StudentDashboard } from "./pages/StudentDashboard";
 import { Dashboard } from "./pages/Dashboard";
 import { Admissions } from "./pages/Admissions";
 import { Students } from "./pages/Students";
 import { Fees } from "./pages/Fees";
 
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+const AdminProtectedRoute = ({ children }) => {
+  const { isAuthenticated, user } = useAuth();
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
+  }
+  if (user?.role === "STUDENT") {
+    return <Navigate to="/student/dashboard" replace />;
   }
   return children;
 };
 
-const PublicOnlyRoute = ({ children }) => {
-  const { isAuthenticated } = useAuth();
-  if (isAuthenticated) {
+const StudentProtectedRoute = ({ children }) => {
+  const { isAuthenticated, user } = useAuth();
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+  if (user?.role !== "STUDENT") {
     return <Navigate to="/dashboard" replace />;
   }
   return children;
@@ -29,34 +36,37 @@ export const App = () => {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Public Login Route */}
+          {/* Public Landing Page at root http://localhost:5173/ */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<LandingPage />} />
+
+          {/* Student Portal Protected Route */}
           <Route
-            path="/login"
+            path="/student/dashboard"
             element={
-              <PublicOnlyRoute>
-                <Login />
-              </PublicOnlyRoute>
+              <StudentProtectedRoute>
+                <StudentDashboard />
+              </StudentProtectedRoute>
             }
           />
 
-          {/* Protected Admin ERP Layout Routes */}
+          {/* Admin ERP Layout Routes */}
           <Route
-            path="/"
+            path="/dashboard"
             element={
-              <ProtectedRoute>
+              <AdminProtectedRoute>
                 <AppLayout />
-              </ProtectedRoute>
+              </AdminProtectedRoute>
             }
           >
-            <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="dashboard" element={<Dashboard />} />
+            <Route index element={<Dashboard />} />
             <Route path="admissions" element={<Admissions />} />
             <Route path="students" element={<Students />} />
             <Route path="fees" element={<Fees />} />
           </Route>
 
-          {/* Catch-all redirect */}
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          {/* Fallback redirect */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
