@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import api from "../api/axios";
+import { formatDate } from "../utils/formatters";
 import {
   Wallet,
   PlusCircle,
@@ -249,7 +250,7 @@ export const Expenses = () => {
                 {filteredExpenses.map((exp) => (
                   <tr key={exp.id} className="hover:bg-slate-800/30 transition">
                     <td className="py-3.5 px-4 text-slate-400 font-mono">
-                      {new Date(exp.expenseDate).toLocaleDateString("en-IN")}
+                      {formatDate(exp.expenseDate)}
                     </td>
                     <td className="py-3.5 px-4 font-bold text-white">
                       {exp.title}
@@ -300,8 +301,8 @@ export const Expenses = () => {
 
                 <div>
                   <h4 className="text-sm font-bold text-white">{exp.title}</h4>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
-                    Date: {new Date(exp.expenseDate).toLocaleDateString("en-IN")}
+                  <p className="text-[11px] text-slate-400 font-mono mt-0.5">
+                    Date: {formatDate(exp.expenseDate)}
                   </p>
                 </div>
 

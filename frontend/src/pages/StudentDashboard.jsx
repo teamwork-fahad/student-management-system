@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { ReceiptModal } from "../components/receipts/ReceiptModal";
+import { formatDate } from "../utils/formatters";
 import {
   GraduationCap,
   CreditCard,
@@ -379,12 +380,8 @@ export const StudentDashboard = () => {
                       <td className="py-3.5 px-4 font-mono font-bold text-white">
                         {p.transactionReference || `REC-${p.id.slice(-6).toUpperCase()}`}
                       </td>
-                      <td className="py-3.5 px-4">
-                        {new Date(p.paymentDate || p.createdAt).toLocaleDateString("en-IN", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
+                      <td className="py-3.5 px-4 font-mono text-slate-400">
+                        {formatDate(p.paymentDate || p.createdAt)}
                       </td>
                       <td className="py-3.5 px-4">
                         <span className="px-2.5 py-1 bg-blue-950 text-blue-300 rounded-md font-bold uppercase text-[10px]">

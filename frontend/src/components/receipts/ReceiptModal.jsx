@@ -1,5 +1,6 @@
 import React from "react";
 import { X, Printer, CheckCircle2, ShieldCheck } from "lucide-react";
+import { formatDate } from "../../utils/formatters";
 
 export const ReceiptModal = ({ payment, student, admission, onClose }) => {
   if (!payment) return null;
@@ -8,11 +9,7 @@ export const ReceiptModal = ({ payment, student, admission, onClose }) => {
     window.print();
   };
 
-  const formattedDate = new Date(payment.paymentDate || payment.createdAt).toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+  const formattedDate = formatDate(payment.paymentDate || payment.createdAt);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 print:p-0 print:bg-white print:static print:inset-auto">
@@ -50,108 +47,63 @@ export const ReceiptModal = ({ payment, student, admission, onClose }) => {
             </div>
             <div className="text-right">
               <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Date</span>
-              <p className="text-sm font-semibold text-slate-800">{formattedDate}</p>
-            </div>
-            <div className="flex items-center space-x-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-3 py-1 rounded-full text-xs font-semibold">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Paid</span>
+              <p className="font-mono text-sm font-bold text-slate-900">{formattedDate}</p>
             </div>
           </div>
 
-          {/* Student & Admission Info */}
-          <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl text-xs font-medium border border-slate-100">
+          {/* Student & Course Details */}
+          <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100 text-xs">
             <div>
-              <span className="text-slate-400 block mb-0.5">Student Name</span>
-              <span className="text-slate-900 font-bold text-sm block">{student?.fullName || "Student"}</span>
-              <span className="text-slate-500">ID: {student?.studentId || "N/A"}</span>
+              <span className="text-slate-400 uppercase font-semibold text-[10px] block">Student Name</span>
+              <p className="font-bold text-slate-900 text-sm">{student?.fullName || admission?.student?.fullName || "Student Name"}</p>
             </div>
             <div>
-              <span className="text-slate-400 block mb-0.5">Course / Batch</span>
-              <span className="text-slate-900 font-bold text-sm block">
-                {admission?.courseNameSnapshot || admission?.course?.name || "Enrolled Course"}
-              </span>
-              <span className="text-slate-500">Adm No: {admission?.admissionNumber || "N/A"}</span>
+              <span className="text-slate-400 uppercase font-semibold text-[10px] block">Student ID</span>
+              <p className="font-mono font-bold text-slate-900">{student?.studentId || "N/A"}</p>
+            </div>
+            <div>
+              <span className="text-slate-400 uppercase font-semibold text-[10px] block">Course Name</span>
+              <p className="font-semibold text-slate-800">{admission?.courseNameSnapshot || "Course"}</p>
+            </div>
+            <div>
+              <span className="text-slate-400 uppercase font-semibold text-[10px] block">Payment Mode</span>
+              <p className="font-bold text-blue-700 uppercase">{payment.paymentMode || "CASH"}</p>
             </div>
           </div>
 
-          {/* Payment Details Table */}
-          <div className="border border-slate-200 rounded-xl overflow-hidden">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-100 text-slate-600 font-semibold border-b border-slate-200">
-                <tr>
-                  <th className="py-2.5 px-4">Description</th>
-                  <th className="py-2.5 px-4 text-center">Payment Mode</th>
-                  <th className="py-2.5 px-4 text-right">Amount Paid</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                <tr>
-                  <td className="py-3 px-4">
-                    <span className="font-semibold text-slate-900">Tuition Fee Installment</span>
-                    {payment.remarks && <p className="text-[11px] text-slate-500">{payment.remarks}</p>}
-                  </td>
-                  <td className="py-3 px-4 text-center">
-                    <span className="inline-block px-2.5 py-0.5 bg-blue-50 text-blue-700 rounded-md font-bold uppercase text-[10px]">
-                      {payment.paymentMode || "CASH"}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-right font-bold text-sm text-slate-900">
-                    ₹{Number(payment.amount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          {/* Payment Breakdown Box */}
+          <div className="p-5 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl border border-emerald-100 flex items-center justify-between">
+            <div>
+              <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider block">Amount Paid Today</span>
+              <span className="text-3xl font-black text-emerald-700">₹{Number(payment.amount).toLocaleString("en-IN")}</span>
+            </div>
+            <div className="px-3 py-1 bg-emerald-600 text-white rounded-full font-bold text-xs flex items-center space-x-1">
+              <CheckCircle2 className="w-4 h-4" />
+              <span>PAID & VERIFIED</span>
+            </div>
           </div>
 
-          {/* Fees Balance Summary */}
-          {admission && (
-            <div className="bg-blue-50/60 border border-blue-100 p-4 rounded-xl space-y-2 text-xs">
-              <div className="flex justify-between text-slate-600">
-                <span>Total Course Fees:</span>
-                <span className="font-semibold text-slate-900">
-                  ₹{Number(admission.finalFees || admission.courseFees).toLocaleString("en-IN")}
-                </span>
-              </div>
-              <div className="flex justify-between text-emerald-700">
-                <span>Total Amount Paid:</span>
-                <span className="font-bold">
-                  ₹{Number(admission.paidAmount).toLocaleString("en-IN")}
-                </span>
-              </div>
-              <div className="flex justify-between pt-1 border-t border-blue-200 text-slate-900 font-bold text-sm">
-                <span>Remaining Pending Balance:</span>
-                <span className={Number(admission.pendingAmount) > 0 ? "text-amber-600" : "text-emerald-600"}>
-                  ₹{Number(admission.pendingAmount).toLocaleString("en-IN")}
-                </span>
-              </div>
+          {payment.remarks && (
+            <div className="text-xs text-slate-500 bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <strong className="text-slate-700">Remarks:</strong> {payment.remarks}
             </div>
           )}
 
-          {/* Stamp / Verification footer */}
-          <div className="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-100">
-            <div className="flex items-center space-x-1">
-              <ShieldCheck className="w-4 h-4 text-blue-600" />
-              <span>Computer Generated Official Digital Receipt</span>
+          {/* Footer Signature Box */}
+          <div className="pt-6 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+            <div>
+              <p className="font-medium text-slate-500">Authorized Signature</p>
+              <p className="text-[10px] mt-0.5">EduMaster Accounts Office</p>
             </div>
-            <span>EduMaster Management System</span>
-          </div>
-        </div>
 
-        {/* Footer Actions */}
-        <div className="bg-slate-50 p-4 border-t border-slate-200 flex justify-end space-x-3 print:hidden">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 transition"
-          >
-            Close
-          </button>
-          <button
-            onClick={handlePrint}
-            className="px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center space-x-2 shadow-md transition"
-          >
-            <Printer className="w-3.5 h-3.5" />
-            <span>Print Receipt</span>
-          </button>
+            <button
+              onClick={handlePrint}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-lg flex items-center space-x-2 transition print:hidden"
+            >
+              <Printer className="w-4 h-4" />
+              <span>Print Official Receipt</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

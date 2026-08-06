@@ -3,6 +3,7 @@ import api from "../api/axios";
 import { LoadingSpinner } from "../components/common/LoadingSpinner";
 import { EmptyState } from "../components/common/EmptyState";
 import { Modal } from "../components/common/Modal";
+import { formatDate } from "../utils/formatters";
 import {
   Users,
   Search,
@@ -374,7 +375,7 @@ export const Students = () => {
           onClose={() => setSelectedStudent(null)}
           title="Student Profile Overview"
         >
-          <div className="space-y-6 text-sm text-slate-200">
+          <div className="space-y-6 text-sm text-slate-200 font-sans">
             <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-slate-950 border border-slate-800">
               <div className="flex items-center space-x-3">
                 <div className="p-3.5 rounded-2xl bg-cyan-950 text-cyan-400 border border-cyan-800">
@@ -431,9 +432,9 @@ export const Students = () => {
 
               <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/60 space-y-1">
                 <span className="text-slate-500 uppercase font-semibold text-[10px]">Joined Date</span>
-                <p className="font-medium text-slate-200 flex items-center gap-1.5">
+                <p className="font-medium text-slate-200 flex items-center gap-1.5 font-mono">
                   <Calendar className="w-3.5 h-3.5 text-cyan-400" />
-                  {selectedStudent.joinedDate ? new Date(selectedStudent.joinedDate).toLocaleDateString() : "N/A"}
+                  {formatDate(selectedStudent.joinedDate || selectedStudent.createdAt)}
                 </p>
               </div>
             </div>
@@ -460,13 +461,13 @@ export const Students = () => {
                   <div>
                     <span className="text-slate-500 block">Total Course Fee</span>
                     <span className="font-bold text-slate-200">
-                      ₹{Number(selectedStudent.admission.finalFees || selectedStudent.admission.courseFees).toLocaleString()}
+                      ₹{Number(selectedStudent.admission.finalFees || selectedStudent.admission.courseFees).toLocaleString("en-IN")}
                     </span>
                   </div>
                   <div>
                     <span className="text-slate-500 block">Pending Balance</span>
                     <span className="font-bold text-amber-400">
-                      ₹{Number(selectedStudent.admission.pendingAmount).toLocaleString()}
+                      ₹{Number(selectedStudent.admission.pendingAmount).toLocaleString("en-IN")}
                     </span>
                   </div>
                 </div>

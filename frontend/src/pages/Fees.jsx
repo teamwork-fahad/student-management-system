@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import api from "../api/axios";
 import { ReceiptModal } from "../components/receipts/ReceiptModal";
+import { Modal } from "../components/common/Modal";
+import { formatDate } from "../utils/formatters";
 import {
   CreditCard,
   CheckCircle2,
@@ -10,11 +12,14 @@ import {
   PlusCircle,
   Printer,
   TrendingUp,
+  TrendingDown,
   PieChart,
   LayoutGrid,
   List,
   Calendar,
   Layers,
+  Eye,
+  X,
 } from "lucide-react";
 
 export const Fees = () => {
@@ -25,9 +30,12 @@ export const Fees = () => {
   const [error, setError] = useState("");
   const [selectedReceiptPayment, setSelectedReceiptPayment] = useState(null);
 
-  // View Modes: 'table' | 'grid'
+  // View Modes: default to 'table' for both!
   const [viewMode, setViewMode] = useState("table");
-  const [monthlyViewMode, setMonthlyViewMode] = useState("grid"); // 'grid' | 'table' for monthly summary
+  const [monthlyViewMode, setMonthlyViewMode] = useState("table"); // Default TABLE view for Monthly Summary
+
+  // Selected Month modal for detailed month breakdown
+  const [selectedMonthData, setSelectedMonthData] = useState(null);
 
   // Form state
   const [selectedStudentId, setSelectedStudentId] = useState("");
@@ -117,15 +125,19 @@ export const Fees = () => {
     if (!monthlySummary[monthKey]) {
       monthlySummary[monthKey] = {
         monthName: monthKey,
+        monthDate: d,
         totalAmount: 0,
         receiptCount: 0,
         cashCount: 0,
         onlineCount: 0,
+        payments: [],
       };
     }
     const amt = Number(p.amount) || 0;
     monthlySummary[monthKey].totalAmount += amt;
     monthlySummary[monthKey].receiptCount += 1;
+    monthlySummary[monthKey].payments.push(p);
+
     if ((p.paymentMode || "").toUpperCase() === "CASH") {
       monthlySummary[monthKey].cashCount += amt;
     } else {
@@ -134,6 +146,17 @@ export const Fees = () => {
   });
 
   const monthlyList = Object.values(monthlySummary);
+
+  // Calculate Month-over-Month (MoM) Difference & Percentage Change
+  const currentMonthObj = monthlyList[0];
+  const prevMonthObj = monthlyList[1];
+
+  const currentRevenue = currentMonthObj?.totalAmount || 0;
+  const prevRevenue = prevMonthObj?.totalAmount || 0;
+  const revenueDiff = currentRevenue - prevRevenue;
+  const percentageChange = prevRevenue > 0
+    ? ((revenueDiff / prevRevenue) * 100).toFixed(1)
+    : (currentRevenue > 0 ? 100 : 0);
 
   return (
     <div className="space-y-6 font-sans">
@@ -153,15 +176,28 @@ export const Fees = () => {
         <p className="text-xs text-slate-400">Collect tuition payments, view monthly collection trends, and print receipts.</p>
       </div>
 
-      {/* REVENUE ANALYTICS SUMMARY CARDS */}
+      {/* REVENUE ANALYTICS SUMMARY CARDS WITH MOM TREND BADGE */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl">
           <span className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Total Expected Revenue</span>
           <span className="text-xl font-extrabold text-white">₹{totalExpected.toLocaleString("en-IN")}</span>
         </div>
 
-        <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl">
-          <span className="text-[10px] uppercase font-bold text-emerald-400 block mb-1">Total Collected</span>
+        <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] uppercase font-bold text-emerald-400 block">Total Collected</span>
+            {revenueDiff >= 0 ? (
+              <span className="px-2 py-0.5 bg-emerald-950 text-emerald-400 border border-emerald-800 rounded-full font-bold text-[10px] inline-flex items-center space-x-0.5" title="MoM Growth">
+                <TrendingUp className="w-3 h-3 mr-0.5" />
+                <span>+₹{revenueDiff.toLocaleString("en-IN")} (+{percentageChange}%)</span>
+              </span>
+            ) : (
+              <span className="px-2 py-0.5 bg-rose-950 text-rose-400 border border-rose-800 rounded-full font-bold text-[10px] inline-flex items-center space-x-0.5" title="MoM Decrease">
+                <TrendingDown className="w-3 h-3 mr-0.5" />
+                <span>-₹{Math.abs(revenueDiff).toLocaleString("en-IN")} ({percentageChange}%)</span>
+              </span>
+            )}
+          </div>
           <span className="text-xl font-extrabold text-emerald-400">₹{totalCollected.toLocaleString("en-IN")}</span>
         </div>
 
@@ -176,19 +212,43 @@ export const Fees = () => {
         </div>
       </div>
 
-      {/* MONTHLY COLLECTION SUMMARY SECTION (WITH GRID / TABLE VIEW TOGGLE) */}
+      {/* MONTHLY COLLECTION SUMMARY SECTION (BY DEFAULT TABLE VIEW) */}
       <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
             <Calendar className="w-5 h-5 text-cyan-400" />
             <div>
-              <h3 className="text-base font-bold text-white">Monthly Fee Revenue Summary</h3>
-              <p className="text-xs text-slate-400">Month-by-month fee collection breakdown and transaction volume</p>
+              <div className="flex items-center space-x-2">
+                <h3 className="text-base font-bold text-white">Monthly Fee Revenue Summary</h3>
+                {revenueDiff >= 0 ? (
+                  <span className="px-2.5 py-0.5 bg-emerald-950/80 text-emerald-400 border border-emerald-800/80 rounded-full font-bold text-xs inline-flex items-center space-x-1">
+                    <TrendingUp className="w-3.5 h-3.5" />
+                    <span>▲ +₹{revenueDiff.toLocaleString("en-IN")} (+{percentageChange}% vs prev month)</span>
+                  </span>
+                ) : (
+                  <span className="px-2.5 py-0.5 bg-rose-950/80 text-rose-400 border border-rose-800/80 rounded-full font-bold text-xs inline-flex items-center space-x-1">
+                    <TrendingDown className="w-3.5 h-3.5" />
+                    <span>▼ -₹{Math.abs(revenueDiff).toLocaleString("en-IN")} ({percentageChange}% vs prev month)</span>
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">Click on any month to view detailed payment receipts for that month.</p>
             </div>
           </div>
 
           {/* Grid vs Table View Toggle Switch for Monthly Summary */}
           <div className="flex items-center space-x-1 p-1 bg-slate-950 border border-slate-800 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setMonthlyViewMode("table")}
+              className={`p-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
+                monthlyViewMode === "table" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
+              }`}
+              title="Table View (Default)"
+            >
+              <List className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Table View</span>
+            </button>
             <button
               type="button"
               onClick={() => setMonthlyViewMode("grid")}
@@ -200,27 +260,75 @@ export const Fees = () => {
               <LayoutGrid className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Grid View</span>
             </button>
-            <button
-              type="button"
-              onClick={() => setMonthlyViewMode("table")}
-              className={`p-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
-                monthlyViewMode === "table" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
-              }`}
-              title="Table List View"
-            >
-              <List className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Table View</span>
-            </button>
           </div>
         </div>
 
         {monthlyList.length === 0 ? (
           <p className="text-xs text-slate-500 italic">No monthly collection records found.</p>
-        ) : monthlyViewMode === "grid" ? (
+        ) : monthlyViewMode === "table" ? (
+          /* MONTHLY TABLE LIST VIEW (DEFAULT) */
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+                <tr>
+                  <th className="py-3.5 px-4">Month & Year</th>
+                  <th className="py-3.5 px-4 text-center">Receipts Count</th>
+                  <th className="py-3.5 px-4 text-right">Cash Collection</th>
+                  <th className="py-3.5 px-4 text-right">Online / UPI Collection</th>
+                  <th className="py-3.5 px-4 text-right">Total Revenue</th>
+                  <th className="py-3.5 px-4 text-center">Details</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                {monthlyList.map((m) => (
+                  <tr
+                    key={m.monthName}
+                    onClick={() => setSelectedMonthData(m)}
+                    className="hover:bg-slate-800/40 transition cursor-pointer"
+                  >
+                    <td className="py-3.5 px-4 font-bold text-white text-sm">
+                      {m.monthName}
+                    </td>
+                    <td className="py-3.5 px-4 text-center">
+                      <span className="px-2.5 py-0.5 bg-blue-950 text-blue-300 border border-blue-800 rounded-full font-bold text-[10px]">
+                        {m.receiptCount} Receipts
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 text-right font-semibold text-slate-300">
+                      ₹{m.cashCount.toLocaleString("en-IN")}
+                    </td>
+                    <td className="py-3.5 px-4 text-right font-semibold text-slate-300">
+                      ₹{m.onlineCount.toLocaleString("en-IN")}
+                    </td>
+                    <td className="py-3.5 px-4 text-right font-extrabold text-emerald-400 text-sm">
+                      ₹{m.totalAmount.toLocaleString("en-IN")}
+                    </td>
+                    <td className="py-3.5 px-4 text-center">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedMonthData(m);
+                        }}
+                        className="px-2.5 py-1 bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white rounded-lg font-semibold text-[11px] inline-flex items-center space-x-1 transition"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>View Month</span>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
           /* MONTHLY GRID CARDS VIEW */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {monthlyList.map((m) => (
-              <div key={m.monthName} className="p-4 bg-slate-950/70 border border-slate-800/80 rounded-2xl space-y-3">
+              <div
+                key={m.monthName}
+                onClick={() => setSelectedMonthData(m)}
+                className="p-4 bg-slate-950/70 border border-slate-800/80 rounded-2xl space-y-3 cursor-pointer hover:border-cyan-500/40 transition"
+              >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-cyan-300">{m.monthName}</span>
                   <span className="px-2.5 py-0.5 bg-blue-950 text-blue-300 rounded-full text-[10px] font-bold">
@@ -234,46 +342,10 @@ export const Fees = () => {
 
                 <div className="grid grid-cols-2 gap-2 text-[11px] pt-2 border-t border-slate-900 text-slate-400">
                   <div>Cash: <span className="font-bold text-slate-200">₹{m.cashCount.toLocaleString("en-IN")}</span></div>
-                  <div>Online/UPI: <span className="font-bold text-slate-200">₹{m.onlineCount.toLocaleString("en-IN")}</span></div>
+                  <div>Online: <span className="font-bold text-slate-200">₹{m.onlineCount.toLocaleString("en-IN")}</span></div>
                 </div>
               </div>
             ))}
-          </div>
-        ) : (
-          /* MONTHLY TABLE LIST VIEW */
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
-                <tr>
-                  <th className="py-3 px-4">Month & Year</th>
-                  <th className="py-3 px-4 text-center">Receipts Count</th>
-                  <th className="py-3 px-4 text-right">Cash Collection</th>
-                  <th className="py-3 px-4 text-right">Online / UPI Collection</th>
-                  <th className="py-3 px-4 text-right">Total Revenue</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60 text-slate-300">
-                {monthlyList.map((m) => (
-                  <tr key={m.monthName} className="hover:bg-slate-800/30 transition">
-                    <td className="py-3 px-4 font-bold text-white">{m.monthName}</td>
-                    <td className="py-3 px-4 text-center">
-                      <span className="px-2.5 py-0.5 bg-blue-950 text-blue-300 rounded-full font-bold text-[10px]">
-                        {m.receiptCount} Receipts
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-right font-semibold text-slate-300">
-                      ₹{m.cashCount.toLocaleString("en-IN")}
-                    </td>
-                    <td className="py-3 px-4 text-right font-semibold text-slate-300">
-                      ₹{m.onlineCount.toLocaleString("en-IN")}
-                    </td>
-                    <td className="py-3 px-4 text-right font-extrabold text-emerald-400 text-sm">
-                      ₹{m.totalAmount.toLocaleString("en-IN")}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         )}
       </div>
@@ -396,7 +468,7 @@ export const Fees = () => {
           <div className="flex items-center justify-between pb-3 border-b border-slate-800">
             <div className="flex items-center space-x-2">
               <Receipt className="w-5 h-5 text-emerald-400" />
-              <h3 className="text-base font-bold text-white">Fee Payment Receipts</h3>
+              <h3 className="text-base font-bold text-white">Fee Payment Receipts History</h3>
             </div>
 
             {/* Grid vs List View Toggle Switch */}
@@ -453,8 +525,8 @@ export const Fees = () => {
                       <td className="py-3 px-4 font-bold text-white">
                         {p.admission?.student?.fullName || "Student"}
                       </td>
-                      <td className="py-3 px-4 text-slate-400">
-                        {new Date(p.paymentDate || p.createdAt).toLocaleDateString("en-IN")}
+                      <td className="py-3 px-4 text-slate-400 font-mono">
+                        {formatDate(p.paymentDate || p.createdAt)}
                       </td>
                       <td className="py-3 px-4">
                         <span className="px-2 py-0.5 bg-blue-950 text-blue-300 rounded font-bold uppercase text-[10px]">
@@ -494,8 +566,8 @@ export const Fees = () => {
 
                   <div>
                     <h4 className="text-sm font-bold text-white">{p.admission?.student?.fullName || "Student"}</h4>
-                    <p className="text-[11px] text-slate-400">
-                      Date: {new Date(p.paymentDate || p.createdAt).toLocaleDateString("en-IN")}
+                    <p className="text-[11px] text-slate-400 font-mono">
+                      Date: {formatDate(p.paymentDate || p.createdAt)}
                     </p>
                   </div>
 
@@ -518,6 +590,82 @@ export const Fees = () => {
         </div>
 
       </div>
+
+      {/* SELECTED MONTH DETAILED BREAKDOWN MODAL */}
+      {selectedMonthData && (
+        <Modal
+          isOpen={!!selectedMonthData}
+          onClose={() => setSelectedMonthData(null)}
+          title={`${selectedMonthData.monthName} - Fee Collection Breakdown`}
+        >
+          <div className="space-y-4 text-xs font-sans text-slate-200">
+            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 grid grid-cols-3 gap-3">
+              <div>
+                <span className="text-slate-400 block text-[10px] uppercase">Total Revenue</span>
+                <span className="text-base font-extrabold text-emerald-400">₹{selectedMonthData.totalAmount.toLocaleString("en-IN")}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[10px] uppercase">Receipts Count</span>
+                <span className="text-base font-extrabold text-cyan-400">{selectedMonthData.receiptCount} Receipts</span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[10px] uppercase">Cash vs Online</span>
+                <span className="text-xs font-bold text-slate-200">Cash: ₹{selectedMonthData.cashCount.toLocaleString("en-IN")}</span>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto max-h-80">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] border-b border-slate-800 sticky top-0">
+                  <tr>
+                    <th className="py-2.5 px-3">Receipt Ref</th>
+                    <th className="py-2.5 px-3">Student Name</th>
+                    <th className="py-2.5 px-3">Date</th>
+                    <th className="py-2.5 px-3">Mode</th>
+                    <th className="py-2.5 px-3 text-right">Amount</th>
+                    <th className="py-2.5 px-3 text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60">
+                  {selectedMonthData.payments.map((p) => (
+                    <tr key={p.id} className="hover:bg-slate-800/30">
+                      <td className="py-2.5 px-3 font-mono font-bold text-cyan-400">
+                        {p.transactionReference || `REC-${p.id.slice(-6).toUpperCase()}`}
+                      </td>
+                      <td className="py-2.5 px-3 font-bold text-white">
+                        {p.admission?.student?.fullName || "Student"}
+                      </td>
+                      <td className="py-2.5 px-3 font-mono text-slate-400">
+                        {formatDate(p.paymentDate || p.createdAt)}
+                      </td>
+                      <td className="py-2.5 px-3">
+                        <span className="px-2 py-0.5 bg-blue-950 text-blue-300 rounded font-bold uppercase text-[10px]">
+                          {p.paymentMode || "CASH"}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-3 text-right font-extrabold text-emerald-400">
+                        ₹{Number(p.amount).toLocaleString("en-IN")}
+                      </td>
+                      <td className="py-2.5 px-3 text-center">
+                        <button
+                          onClick={() => {
+                            const rec = p;
+                            setSelectedMonthData(null);
+                            setSelectedReceiptPayment(rec);
+                          }}
+                          className="px-2 py-1 bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white rounded font-semibold text-[10px]"
+                        >
+                          Print
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };
