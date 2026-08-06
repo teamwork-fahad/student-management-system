@@ -523,35 +523,62 @@ export const Students = () => {
             </button>
           </form>
 
-          {/* GOOGLE-STYLE AUTO-COMPLETE SUGGESTIONS DROPDOWN */}
+          {/* AUTO-COMPLETE SUGGESTIONS DROPDOWN */}
           {showSuggestions && suggestions.length > 0 && (
             <div className="absolute left-0 right-0 top-12 bg-slate-950 border border-cyan-800/80 rounded-2xl shadow-2xl overflow-hidden z-50 divide-y divide-slate-800/60">
-              <div className="px-3 py-1.5 bg-slate-900 text-[10px] uppercase font-bold text-cyan-400 flex items-center space-x-1">
-                <Sparkles className="w-3 h-3" />
-                <span>Google-style Student Suggestions</span>
+              <div className="px-3.5 py-2 bg-slate-900 text-[10px] uppercase font-bold text-slate-400 flex items-center justify-between">
+                <span className="flex items-center space-x-1.5">
+                  <Search className="w-3 h-3 text-cyan-400" />
+                  <span>Matching Student Results</span>
+                </span>
+                <span className="text-slate-500 font-normal">Click student to view profile</span>
               </div>
-              {suggestions.map((s) => (
-                <div
-                  key={s.id}
-                  onClick={() => handleSelectSuggestion(s)}
-                  className="p-3 hover:bg-slate-900/80 cursor-pointer flex items-center justify-between transition"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800 flex items-center justify-center font-bold text-xs">
-                      {s.fullName[0]}
+              {suggestions.map((s) => {
+                const st = s.status || "ACTIVE";
+                return (
+                  <div
+                    key={s.id}
+                    onClick={() => handleSelectSuggestion(s)}
+                    className="p-3 hover:bg-slate-900/80 cursor-pointer flex items-center justify-between transition"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800 flex items-center justify-center font-bold text-xs shrink-0">
+                        {s.fullName[0]}
+                      </div>
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <p className="text-xs font-bold text-white">{toTitleCase(s.fullName)}</p>
+                          <span
+                            className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold border ${
+                              st === "ACTIVE"
+                                ? "bg-emerald-950 text-emerald-400 border-emerald-800"
+                                : st === "ON_HOLD"
+                                ? "bg-amber-950 text-amber-300 border-amber-800"
+                                : st === "COMPLETED"
+                                ? "bg-blue-950 text-blue-300 border-blue-800"
+                                : "bg-rose-950 text-rose-400 border-rose-800"
+                            }`}
+                          >
+                            {st === "ACTIVE"
+                              ? "🟢 ACTIVE"
+                              : st === "ON_HOLD"
+                              ? "🟡 ON HOLD"
+                              : st === "COMPLETED"
+                              ? "🔵 COMPLETED"
+                              : "🔴 INACTIVE"}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-slate-400">
+                          Mobile: {s.mobile} • Course: {s.admission?.courseNameSnapshot || "N/A"}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs font-bold text-white">{toTitleCase(s.fullName)}</p>
-                      <p className="text-[10px] text-slate-400">
-                        Mobile: {s.mobile} • Course: {s.admission?.courseNameSnapshot || "N/A"}
-                      </p>
-                    </div>
+                    <span className="font-mono text-[10px] font-bold text-cyan-400 bg-cyan-950 px-2 py-0.5 rounded border border-cyan-800 shrink-0">
+                      {s.studentId}
+                    </span>
                   </div>
-                  <span className="font-mono text-[10px] font-bold text-cyan-400 bg-cyan-950 px-2 py-0.5 rounded border border-cyan-800">
-                    {s.studentId}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
