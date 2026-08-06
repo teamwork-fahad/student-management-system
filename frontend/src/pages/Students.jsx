@@ -53,6 +53,9 @@ export const Students = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   
+  // Bulk selection state
+  const [selectedStudentIds, setSelectedStudentIds] = useState([]);
+
   // Google-style Auto-complete Suggestions
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -97,6 +100,22 @@ export const Students = () => {
 
   // View Mode: 'table' | 'grid'
   const [viewMode, setViewMode] = useState("table");
+
+  // Add Course Modal State
+  const [addCourseStudent, setAddCourseStudent] = useState(null);
+  const [coursesList, setCoursesList] = useState([]);
+  const [addCourseError, setAddCourseError] = useState("");
+  const [addCourseForm, setAddCourseForm] = useState({
+    courseId: "",
+    courseFees: "",
+    discount: "0",
+    finalFees: "",
+    paymentAmount: "0",
+    paymentMode: "CASH",
+    paymentDate: new Date().toISOString().split("T")[0],
+    transactionReference: "",
+    remarks: "",
+  });
 
   useEffect(() => {
     fetchStudents(1);
@@ -206,6 +225,7 @@ export const Students = () => {
     setFeeForm({
       amount: "",
       paymentMode: "CASH",
+      paymentDate: new Date().toISOString().split("T")[0],
       transactionReference: "",
       remarks: "",
     });
@@ -226,6 +246,7 @@ export const Students = () => {
         studentId: collectFeeStudent.id,
         amount: Number(feeForm.amount),
         paymentMode: feeForm.paymentMode,
+        paymentDate: feeForm.paymentDate || undefined,
         transactionReference: feeForm.transactionReference,
         remarks: feeForm.remarks,
       });
@@ -279,6 +300,110 @@ export const Students = () => {
       fetchAllStudentsForSuggestions();
     } catch (err) {
       setEditError(err.response?.data?.message || "Failed to update student details.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedStudentIds(students.map((s) => s.id));
+    } else {
+      setSelectedStudentIds([]);
+    }
+  };
+
+  const handleToggleSelect = (id) => {
+    setSelectedStudentIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkStatusUpdate = async (status) => {
+    if (selectedStudentIds.length === 0) return;
+    setSubmitting(true);
+    try {
+      await api.patch("/students/bulk-status", {
+        studentIds: selectedStudentIds,
+        status,
+      });
+      setSelectedStudentIds([]);
+      fetchStudents(pagination.page);
+      fetchAllStudentsForSuggestions();
+    } catch (err) {
+      console.error("Bulk status error:", err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleOpenAddCourse = async (student) => {
+    setAddCourseStudent(student);
+    setAddCourseError("");
+    setAddCourseForm({
+      courseId: "",
+      courseFees: "",
+      discount: "0",
+      finalFees: "",
+      paymentAmount: "0",
+      paymentMode: "CASH",
+      paymentDate: new Date().toISOString().split("T")[0],
+      transactionReference: "",
+      remarks: "",
+    });
+    try {
+      const res = await api.get("/courses");
+      setCoursesList(res.data?.data || []);
+    } catch (err) {
+      console.error("Fetch courses error:", err);
+    }
+  };
+
+  const handleSelectAddCourse = (courseId) => {
+    const c = coursesList.find((item) => item.id === courseId);
+    if (c) {
+      const fees = Number(c.fees || 0);
+      const disc = Number(addCourseForm.discount || 0);
+      setAddCourseForm({
+        ...addCourseForm,
+        courseId,
+        courseFees: fees,
+        finalFees: Math.max(0, fees - disc),
+      });
+    } else {
+      setAddCourseForm({
+        ...addCourseForm,
+        courseId,
+      });
+    }
+  };
+
+  const handleAddCourseSubmit = async (e) => {
+    e.preventDefault();
+    setAddCourseError("");
+
+    if (!addCourseForm.courseId) {
+      setAddCourseError("Please select a course to enroll.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await api.post(`/students/${addCourseStudent.id}/courses`, {
+        ...addCourseForm,
+        courseFees: Number(addCourseForm.courseFees),
+        discount: Number(addCourseForm.discount),
+        paymentAmount: Number(addCourseForm.paymentAmount),
+      });
+      setAddCourseStudent(null);
+      fetchStudents(pagination.page);
+      fetchAllStudentsForSuggestions();
+      if (selectedStudent && selectedStudent.id === addCourseStudent.id) {
+        fetchFullStudentHistory(selectedStudent.id);
+      }
+    } catch (err) {
+      console.error("Add course error:", err);
+      setAddCourseError(err.response?.data?.message || "Failed to add new course.");
     } finally {
       setSubmitting(false);
     }
@@ -405,6 +530,61 @@ export const Students = () => {
         </div>
       </div>
 
+      {/* FLOATING BULK ACTIONS BAR */}
+      {selectedStudentIds.length > 0 && (
+        <div className="p-4 bg-gradient-to-r from-slate-900 via-cyan-950 to-slate-900 border border-cyan-700/80 rounded-2xl shadow-2xl flex flex-wrap items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2">
+          <div className="flex items-center space-x-2">
+            <span className="w-7 h-7 rounded-full bg-cyan-600 text-white font-black text-xs flex items-center justify-center">
+              {selectedStudentIds.length}
+            </span>
+            <span className="text-xs font-bold text-white tracking-wide">Student(s) Selected</span>
+          </div>
+
+          <div className="flex items-center flex-wrap gap-2 text-xs font-semibold">
+            <button
+              onClick={() => handleBulkStatusUpdate("ACTIVE")}
+              disabled={submitting}
+              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-lg font-bold flex items-center space-x-1.5 transition disabled:opacity-50"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Activate Selected ({selectedStudentIds.length})</span>
+            </button>
+
+            <button
+              onClick={() => handleBulkStatusUpdate("ON_HOLD")}
+              disabled={submitting}
+              className="px-3 py-1.5 bg-amber-950/80 hover:bg-amber-600 text-amber-300 hover:text-white border border-amber-800 rounded-xl transition disabled:opacity-50"
+            >
+              Mark On Hold
+            </button>
+
+            <button
+              onClick={() => handleBulkStatusUpdate("COMPLETED")}
+              disabled={submitting}
+              className="px-3 py-1.5 bg-blue-950/80 hover:bg-blue-600 text-blue-300 hover:text-white border border-blue-800 rounded-xl transition disabled:opacity-50"
+            >
+              Mark Completed
+            </button>
+
+            <button
+              onClick={() => handleBulkStatusUpdate("DROPPED")}
+              disabled={submitting}
+              className="px-3 py-1.5 bg-rose-950/80 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-800 rounded-xl transition disabled:opacity-50"
+            >
+              Mark Dropped
+            </button>
+
+            <button
+              onClick={() => setSelectedStudentIds([])}
+              className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition ml-2"
+              title="Deselect All"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Content Section */}
       <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
         {loading ? (
@@ -420,6 +600,14 @@ export const Students = () => {
             <table className="w-full text-left text-sm text-slate-300">
               <thead className="bg-slate-950/80 text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800">
                 <tr>
+                  <th className="p-3.5 w-10 text-center">
+                    <input
+                      type="checkbox"
+                      checked={students.length > 0 && selectedStudentIds.length === students.length}
+                      onChange={handleSelectAll}
+                      className="w-4 h-4 rounded border-slate-700 bg-slate-950 text-cyan-600 focus:ring-cyan-500 cursor-pointer"
+                    />
+                  </th>
                   <th className="p-3.5">Student ID</th>
                   <th className="p-3.5">Student Name</th>
                   <th className="p-3.5">Mobile</th>
@@ -432,8 +620,18 @@ export const Students = () => {
                 {students.map((student) => (
                   <tr
                     key={student.id}
-                    className="hover:bg-slate-800/40 transition-colors"
+                    className={`hover:bg-slate-800/40 transition-colors ${
+                      selectedStudentIds.includes(student.id) ? "bg-cyan-950/30" : ""
+                    }`}
                   >
+                    <td className="p-3.5 text-center">
+                      <input
+                        type="checkbox"
+                        checked={selectedStudentIds.includes(student.id)}
+                        onChange={() => handleToggleSelect(student.id)}
+                        className="w-4 h-4 rounded border-slate-700 bg-slate-950 text-cyan-600 focus:ring-cyan-500 cursor-pointer"
+                      />
+                    </td>
                     <td className="p-3.5 font-mono text-xs font-bold text-cyan-400">
                       {student.studentId}
                     </td>
@@ -485,6 +683,13 @@ export const Students = () => {
                         <span>Pay Fee</span>
                       </button>
                       <button
+                        onClick={() => handleOpenAddCourse(student)}
+                        className="p-1.5 rounded-lg bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white transition-colors"
+                        title="Enroll in New Course & Set Fees"
+                      >
+                        <BookOpen className="w-4 h-4" />
+                      </button>
+                      <button
                         onClick={() => setSelectedStudent(student)}
                         className="p-1.5 rounded-lg bg-slate-800 hover:bg-cyan-600 text-slate-300 hover:text-white transition-colors"
                         title="View Full History & Details"
@@ -510,10 +715,20 @@ export const Students = () => {
             {students.map((student) => (
               <div
                 key={student.id}
-                className="p-5 bg-slate-950/80 border border-slate-800 rounded-2xl space-y-3 hover:border-cyan-500/40 transition"
+                className={`p-5 bg-slate-950/80 border rounded-2xl space-y-3 hover:border-cyan-500/40 transition relative ${
+                  selectedStudentIds.includes(student.id) ? "border-cyan-500 bg-cyan-950/20" : "border-slate-800"
+                }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-bold text-cyan-400">{student.studentId}</span>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={selectedStudentIds.includes(student.id)}
+                      onChange={() => handleToggleSelect(student.id)}
+                      className="w-4 h-4 rounded border-slate-700 bg-slate-950 text-cyan-600 focus:ring-cyan-500 cursor-pointer"
+                    />
+                    <span className="font-mono text-xs font-bold text-cyan-400">{student.studentId}</span>
+                  </div>
                   <span
                     className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                       student.status === "ACTIVE"
@@ -652,17 +867,31 @@ export const Students = () => {
             </div>
 
             <form onSubmit={handleCollectFeeSubmit} className="space-y-3.5 text-xs">
-              <div>
-                <label className="block font-semibold text-slate-300 mb-1">Payment Amount (₹) *</label>
-                <input
-                  type="number"
-                  required
-                  min={1}
-                  value={feeForm.amount}
-                  onChange={(e) => setFeeForm({ ...feeForm, amount: e.target.value })}
-                  placeholder="Enter amount paid"
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-emerald-500 font-bold text-base"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Payment Amount (₹) *</label>
+                  <input
+                    type="number"
+                    required
+                    min={1}
+                    value={feeForm.amount}
+                    onChange={(e) => setFeeForm({ ...feeForm, amount: e.target.value })}
+                    placeholder="Enter amount paid"
+                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-emerald-500 font-bold text-base"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Payment Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={feeForm.paymentDate || ""}
+                    onChange={(e) => setFeeForm({ ...feeForm, paymentDate: e.target.value })}
+                    onClick={(e) => e.target.showPicker?.()}
+                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-emerald-500 cursor-pointer [color-scheme:dark]"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -755,6 +984,17 @@ export const Students = () => {
               </div>
 
               <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => {
+                    const s = selectedStudent;
+                    handleOpenAddCourse(s);
+                  }}
+                  className="px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white rounded-xl text-xs font-bold flex items-center space-x-1 transition"
+                  title="Enroll in another course"
+                >
+                  <PlusCircle className="w-3.5 h-3.5" />
+                  <span>+ Add Course</span>
+                </button>
                 <button
                   onClick={() => {
                     const s = selectedStudent;
@@ -1193,6 +1433,193 @@ export const Students = () => {
                 >
                   <Save className="w-3.5 h-3.5" />
                   <span>{submitting ? "Saving..." : "Save Changes"}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ENROLL NEW COURSE & FEES MODAL */}
+      {addCourseStudent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto font-sans">
+          <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 my-8">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 text-indigo-400" /> Enroll in New Course
+                </h3>
+                <p className="text-xs text-slate-400">{toTitleCase(addCourseStudent.fullName)} ({addCourseStudent.studentId})</p>
+              </div>
+              <button onClick={() => setAddCourseStudent(null)} className="text-slate-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {addCourseError && (
+              <div className="p-3 bg-rose-950/80 border border-rose-800 text-rose-300 rounded-xl text-xs flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                <span>{addCourseError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleAddCourseSubmit} className="space-y-3.5 text-xs">
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">Select New Course *</label>
+                <select
+                  required
+                  value={addCourseForm.courseId}
+                  onChange={(e) => handleSelectAddCourse(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-indigo-500 font-bold"
+                >
+                  <option value="">Choose Course...</option>
+                  {coursesList.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} ({c.code}) - Fee: ₹{Number(c.fees).toLocaleString("en-IN")}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="p-3.5 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
+                <span className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider block">
+                  Course Fees Breakdown
+                </span>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="block text-[10px] text-slate-400 mb-1">Course Fee (₹)</label>
+                    <input
+                      type="number"
+                      required
+                      value={addCourseForm.courseFees}
+                      onChange={(e) => {
+                        const cf = Number(e.target.value);
+                        const disc = Number(addCourseForm.discount);
+                        setAddCourseForm({
+                          ...addCourseForm,
+                          courseFees: e.target.value,
+                          finalFees: Math.max(0, cf - disc),
+                        });
+                      }}
+                      className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 font-bold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] text-slate-400 mb-1">Discount (₹)</label>
+                    <input
+                      type="number"
+                      value={addCourseForm.discount}
+                      onChange={(e) => {
+                        const disc = Number(e.target.value);
+                        const cf = Number(addCourseForm.courseFees);
+                        setAddCourseForm({
+                          ...addCourseForm,
+                          discount: e.target.value,
+                          finalFees: Math.max(0, cf - disc),
+                        });
+                      }}
+                      className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-emerald-400 font-bold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] text-slate-400 mb-1">Net Final Fee (₹)</label>
+                    <input
+                      type="number"
+                      value={addCourseForm.finalFees}
+                      onChange={(e) => setAddCourseForm({ ...addCourseForm, finalFees: e.target.value })}
+                      className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-cyan-400 font-bold"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-3.5 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
+                <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider block">
+                  Initial Down Payment (Optional)
+                </span>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] text-slate-400 mb-1">Down Payment (₹)</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={addCourseForm.paymentAmount}
+                      onChange={(e) => setAddCourseForm({ ...addCourseForm, paymentAmount: e.target.value })}
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-emerald-400 font-bold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] text-slate-400 mb-1">Payment Date</label>
+                    <input
+                      type="date"
+                      value={addCourseForm.paymentDate}
+                      onChange={(e) => setAddCourseForm({ ...addCourseForm, paymentDate: e.target.value })}
+                      onClick={(e) => e.target.showPicker?.()}
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 font-medium cursor-pointer [color-scheme:dark]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] text-slate-400 mb-1">Payment Mode</label>
+                    <select
+                      value={addCourseForm.paymentMode}
+                      onChange={(e) => setAddCourseForm({ ...addCourseForm, paymentMode: e.target.value })}
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-100"
+                    >
+                      <option value="CASH">CASH</option>
+                      <option value="UPI">UPI / GPAY</option>
+                      <option value="CARD">CARD</option>
+                      <option value="BANK_TRANSFER">BANK TRANSFER</option>
+                      <option value="CHEQUE">CHEQUE</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] text-slate-400 mb-1">Txn Ref / Receipt No</label>
+                    <input
+                      type="text"
+                      value={addCourseForm.transactionReference}
+                      onChange={(e) => setAddCourseForm({ ...addCourseForm, transactionReference: e.target.value })}
+                      placeholder="Optional ref"
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-100"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">Remarks / Note</label>
+                <input
+                  type="text"
+                  value={addCourseForm.remarks}
+                  onChange={(e) => setAddCourseForm({ ...addCourseForm, remarks: e.target.value })}
+                  placeholder="Note for second course admission..."
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setAddCourseStudent(null)}
+                  className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl font-semibold hover:bg-slate-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold shadow-md flex items-center space-x-1.5 disabled:opacity-50"
+                >
+                  <PlusCircle className="w-4 h-4" />
+                  <span>{submitting ? "Enrolling..." : "Enroll & Save Course Fees"}</span>
                 </button>
               </div>
             </form>

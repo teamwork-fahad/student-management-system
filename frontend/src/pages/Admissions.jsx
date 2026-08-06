@@ -45,6 +45,7 @@ export const Admissions = () => {
     referredBy: "",
     remarks: "",
     paymentAmount: "0",
+    paymentDate: new Date().toISOString().split("T")[0],
     paymentMode: "CASH",
     transactionReference: "",
     paymentRemarks: "",
@@ -149,6 +150,7 @@ export const Admissions = () => {
                 {
                   amount: Number(formData.paymentAmount),
                   paymentMode: formData.paymentMode,
+                  paymentDate: formData.paymentDate || undefined,
                   transactionReference: formData.transactionReference || undefined,
                   remarks: formData.paymentRemarks || "Admission Down Payment",
                 },
@@ -473,7 +475,7 @@ export const Admissions = () => {
             <CreditCard className="w-4 h-4 text-emerald-400" /> 4. Fees Discount & Down Payment
           </h3>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1">Fee Discount (₹)</label>
               <input
@@ -495,6 +497,18 @@ export const Admissions = () => {
                 onChange={handleInputChange}
                 min="0"
                 className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:border-cyan-500 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">Payment Date</label>
+              <input
+                type="date"
+                name="paymentDate"
+                value={formData.paymentDate}
+                onChange={handleInputChange}
+                onClick={(e) => e.target.showPicker?.()}
+                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:border-cyan-500 focus:outline-none cursor-pointer [color-scheme:dark]"
               />
             </div>
 

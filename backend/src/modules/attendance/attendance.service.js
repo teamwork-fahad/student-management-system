@@ -49,6 +49,7 @@ export const getAttendanceByDate = async (dateStr, courseId) => {
 
   const where = {
     deletedAt: null,
+    status: "ACTIVE",
   };
 
   if (courseId) {

@@ -178,6 +178,16 @@ export const getAllStudents = async (queryParams = {}) => {
   });
 
   const uniqueStudents = deduplicateStudents(rawStudents);
+
+  // By default (when no status filter is applied), sort so ACTIVE students come first
+  if (!status) {
+    uniqueStudents.sort((a, b) => {
+      if (a.status === "ACTIVE" && b.status !== "ACTIVE") return -1;
+      if (a.status !== "ACTIVE" && b.status === "ACTIVE") return 1;
+      return 0;
+    });
+  }
+
   const total = uniqueStudents.length;
   const totalPages = Math.ceil(total / limitNum) || 1;
 
@@ -369,4 +379,235 @@ export const updateStudentFullService = async (idOrStudentId, updateData) => {
   }
 
   return getStudentById(student.id);
+};
+
+/**
+ * Bulk update status for multiple students at once.
+ */
+export const bulkUpdateStudentStatus = async (studentIds = [], newStatus) => {
+  if (!Array.isArray(studentIds) || studentIds.length === 0) {
+    throw createHttpError("No student IDs provided for bulk update", 400);
+  }
+
+  if (!newStatus) {
+    throw createHttpError("Status is required for bulk update", 400);
+  }
+
+  // Update Student records
+  await prisma.student.updateMany({
+    where: {
+      id: { in: studentIds },
+    },
+    data: {
+      status: newStatus,
+    },
+  });
+
+  // Find corresponding admission records to update
+  const students = await prisma.student.findMany({
+    where: { id: { in: studentIds } },
+    select: { admissionId: true },
+  });
+
+  const admissionIds = students.map((s) => s.admissionId).filter(Boolean);
+
+  if (admissionIds.length > 0) {
+    let admStatus = newStatus;
+    if (newStatus === "COMPLETED") admStatus = "COMPLETED";
+    if (newStatus === "DROPPED" || newStatus === "CANCELLED") admStatus = "CANCELLED";
+    if (newStatus === "ACTIVE") admStatus = "ACTIVE";
+
+    await prisma.admission.updateMany({
+      where: { id: { in: admissionIds } },
+      data: { status: admStatus },
+    });
+  }
+
+  return { updatedCount: studentIds.length, status: newStatus };
+};
+
+/**
+ * Enroll an existing student into a new course.
+ */
+export const addCourseToStudent = async (idOrStudentId, payload) => {
+  const student = await prisma.student.findFirst({
+    where: {
+      OR: [{ id: idOrStudentId }, { studentId: idOrStudentId }],
+      deletedAt: null,
+    },
+    include: { admission: true, user: true },
+  });
+
+  if (!student) {
+    throw createHttpError("Student record not found", 404);
+  }
+
+  const {
+    courseId,
+    courseFees,
+    discount = 0,
+    paymentAmount = 0,
+    paymentMode = "CASH",
+    paymentDate,
+    transactionReference,
+    remarks,
+    admittedBy,
+  } = payload;
+
+  if (!courseId) {
+    throw createHttpError("Course ID is required", 400);
+  }
+
+  const course = await prisma.course.findUnique({
+    where: { id: courseId },
+  });
+
+  if (!course) {
+    throw createHttpError("Selected course not found", 404);
+  }
+
+  return prisma.$transaction(async (tx) => {
+    // 1. Generate Inquiry Number
+    const seqInquiry = await tx.sequence.findFirst({ where: { name: "INQUIRY" } });
+    let inquiryNumber = `INQ-${new Date().getFullYear()}-9999`;
+    if (seqInquiry) {
+      const up = await tx.sequence.update({
+        where: { id: seqInquiry.id },
+        data: { currentValue: { increment: 1 } },
+      });
+      inquiryNumber = `INQ-${new Date().getFullYear()}-${String(up.currentValue).padStart(4, "0")}`;
+    }
+
+    const leadSource = await tx.leadSource.findFirst();
+    const superUser = await tx.user.findFirst();
+
+    // Create Inquiry linked to new course
+    const newInquiry = await tx.inquiry.create({
+      data: {
+        inquiryNumber,
+        fullName: student.fullName,
+        mobile: student.mobile,
+        gender: student.gender || "Female",
+        email: student.email,
+        expectedFees: new Prisma.Decimal(course.fees),
+        nextFollowUpDate: new Date(),
+        status: "ADMISSION_DONE",
+        courseId: course.id,
+        leadSourceId: leadSource?.id || "",
+        assignedToId: admittedBy || superUser?.id || "",
+      },
+    });
+
+    // 2. Generate Admission Number & Student ID
+    const seqAdm = await tx.sequence.findFirst({ where: { name: "ADMISSION" } });
+    let admissionNumber = `ADM-${new Date().getFullYear()}-0001`;
+    if (seqAdm) {
+      const upAdm = await tx.sequence.update({
+        where: { id: seqAdm.id },
+        data: { currentValue: { increment: 1 } },
+      });
+      admissionNumber = `ADM-${new Date().getFullYear()}-${String(upAdm.currentValue).padStart(4, "0")}`;
+    }
+
+    const seqStd = await tx.sequence.findFirst({ where: { name: "STUDENT" } });
+    const yearShort = String(new Date().getFullYear()).slice(-2);
+    let newStudentIdStr = `STD${yearShort}0001`;
+    if (seqStd) {
+      const upStd = await tx.sequence.update({
+        where: { id: seqStd.id },
+        data: { currentValue: { increment: 1 } },
+      });
+      newStudentIdStr = `STD${yearShort}${String(upStd.currentValue).padStart(4, "0")}`;
+    }
+
+    const numericCourseFees = Number(courseFees !== undefined ? courseFees : course.fees);
+    const numericDiscount = Number(discount || 0);
+    const numericFinalFees = Math.max(0, numericCourseFees - numericDiscount);
+    const numericPaid = Number(paymentAmount || 0);
+    const numericPending = Math.max(0, numericFinalFees - numericPaid);
+
+    const currentYear = new Date().getFullYear();
+    const defaultAdmissionYear = `${currentYear}-${String(currentYear + 1).slice(-2)}`;
+
+    // 3. Create Admission Record
+    const newAdmission = await tx.admission.create({
+      data: {
+        admissionNumber,
+        inquiryId: newInquiry.id,
+        courseId: course.id,
+        courseNameSnapshot: course.name,
+        courseFeesSnapshot: new Prisma.Decimal(course.fees),
+        admissionDate: paymentDate ? new Date(paymentDate) : new Date(),
+        admissionYear: defaultAdmissionYear,
+        courseFees: new Prisma.Decimal(numericCourseFees),
+        discount: new Prisma.Decimal(numericDiscount),
+        finalFees: new Prisma.Decimal(numericFinalFees),
+        paidAmount: new Prisma.Decimal(numericPaid),
+        pendingAmount: new Prisma.Decimal(numericPending),
+        remarks: remarks || `Additional Course: ${course.name}`,
+        studentCategory: student.admission?.studentCategory || "COLLEGE",
+        guardianName: student.admission?.guardianName || student.fullName,
+        guardianMobile: student.admission?.guardianMobile || student.mobile,
+        guardianRelation: student.admission?.guardianRelation || "FATHER",
+        admittedBy: admittedBy || "SUPER_ADMIN",
+        status: "ACTIVE",
+      },
+    });
+
+    // 4. Create new Student profile row (linked to new admission)
+    const newStudent = await tx.student.create({
+      data: {
+        studentId: newStudentIdStr,
+        admissionId: newAdmission.id,
+        userId: student.userId || null,
+        fullName: student.fullName,
+        fatherName: student.fatherName,
+        motherName: student.motherName,
+        gender: student.gender,
+        dob: student.dob,
+        mobile: student.mobile,
+        whatsapp: student.whatsapp,
+        email: student.email,
+        address: student.address,
+        area: student.area,
+        city: student.city,
+        state: student.state,
+        pincode: student.pincode,
+        joinedDate: paymentDate ? new Date(paymentDate) : new Date(),
+        status: "ACTIVE",
+      },
+    });
+
+    // Link admission -> studentId
+    await tx.admission.update({
+      where: { id: newAdmission.id },
+      data: { studentId: newStudent.id },
+    });
+
+    // 5. Create payment record if paymentAmount > 0
+    if (numericPaid > 0) {
+      const seqRec = await tx.sequence.findFirst({ where: { name: "RECEIPT" } });
+      let receiptNumber = null;
+      if (seqRec) {
+        const upRec = await tx.sequence.update({
+          where: { id: seqRec.id },
+          data: { currentValue: { increment: 1 } },
+        });
+        receiptNumber = `REC-${new Date().getFullYear()}-${String(upRec.currentValue).padStart(4, "0")}`;
+      }
+
+      await tx.admissionPayment.create({
+        data: {
+          admissionId: newAdmission.id,
+          amount: new Prisma.Decimal(numericPaid),
+          paymentMode: paymentMode || "CASH",
+          transactionReference: transactionReference || receiptNumber || null,
+          paymentDate: paymentDate ? new Date(paymentDate) : new Date(),
+          remarks: remarks || `Down Payment for ${course.name}`,
+        },
+      });
+    }
+
+    return getStudentById(student.id);
+  });
 };

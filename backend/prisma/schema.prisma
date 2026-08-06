@@ -99,6 +99,7 @@ model Course {
   id           String       @id @default(cuid())
   name         String
   code         String       @unique
+  category     String?      @default("IT Course")
   description  String?
   duration     Int
   durationType DurationType

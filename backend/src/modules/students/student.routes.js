@@ -5,6 +5,8 @@ import {
   getAllStudentsController,
   getStudentByIdController,
   updateStudentController,
+  bulkUpdateStudentStatusController,
+  addCourseToStudentController,
 } from "./student.controller.js";
 
 const router = Router();
@@ -15,6 +17,22 @@ router.get(
   authenticate,
   authorize("SUPER_ADMIN", "FACULTY"),
   getAllStudentsController
+);
+
+// PATCH /api/v1/students/bulk-status - Bulk Update Students Status (SUPER_ADMIN, FACULTY)
+router.patch(
+  "/bulk-status",
+  authenticate,
+  authorize("SUPER_ADMIN", "FACULTY"),
+  bulkUpdateStudentStatusController
+);
+
+// POST /api/v1/students/:id/courses - Enroll existing student into a new course (SUPER_ADMIN, FACULTY)
+router.post(
+  "/:id/courses",
+  authenticate,
+  authorize("SUPER_ADMIN", "FACULTY"),
+  addCourseToStudentController
 );
 
 // GET /api/v1/students/:id - Get Student Profile (SUPER_ADMIN, FACULTY)

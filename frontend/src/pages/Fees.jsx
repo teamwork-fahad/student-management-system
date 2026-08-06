@@ -41,6 +41,7 @@ export const Fees = () => {
   const [selectedStudentId, setSelectedStudentId] = useState("");
   const [amount, setAmount] = useState("");
   const [paymentMode, setPaymentMode] = useState("CASH");
+  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split("T")[0]);
   const [transactionReference, setTransactionReference] = useState("");
   const [remarks, setRemarks] = useState("");
 
@@ -85,6 +86,7 @@ export const Fees = () => {
         studentId: selectedStudentId,
         amount: Number(amount),
         paymentMode,
+        paymentDate: paymentDate || undefined,
         transactionReference,
         remarks,
       });
@@ -96,6 +98,7 @@ export const Fees = () => {
       setTransactionReference("");
       setRemarks("");
       setSelectedStudentId("");
+      setPaymentDate(new Date().toISOString().split("T")[0]);
       fetchInitialData();
     } catch (err) {
       console.error("Fee collection error:", err);
@@ -400,17 +403,31 @@ export const Fees = () => {
               </div>
             )}
 
-            <div>
-              <label className="block font-semibold text-slate-300 mb-1">Payment Amount (₹) *</label>
-              <input
-                type="number"
-                required
-                min={1}
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="Enter amount paid"
-                className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500 font-bold text-sm"
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">Payment Amount (₹) *</label>
+                <input
+                  type="number"
+                  required
+                  min={1}
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="Enter amount paid"
+                  className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500 font-bold text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">Payment Date *</label>
+                <input
+                  type="date"
+                  required
+                  value={paymentDate}
+                  onChange={(e) => setPaymentDate(e.target.value)}
+                  onClick={(e) => e.target.showPicker?.()}
+                  className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500 cursor-pointer [color-scheme:dark]"
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">

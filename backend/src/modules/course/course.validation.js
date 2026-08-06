@@ -17,8 +17,8 @@ export const createCourseSchema = z.object({
   code: z
     .string()
     .trim()
-    .min(1, "Code is required")
-    .regex(/^[A-Z0-9_-]+$/, "Code must be uppercase"),
+    .min(1, "Code is required"),
+  category: z.string().trim().optional(),
   description: z.string().trim().optional(),
   duration: z.coerce
     .number()
