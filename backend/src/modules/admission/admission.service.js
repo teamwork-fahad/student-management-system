@@ -907,8 +907,22 @@ export const deleteAdmissionService = async (admissionId) => {
   const admission = await prisma.admission.findUnique({ where: { id: admissionId } });
   if (!admission) throw createHttpError("Admission record not found", 404);
 
-  return prisma.admission.update({
+  // Soft-delete admission
+  const updatedAdm = await prisma.admission.update({
     where: { id: admissionId },
-    data: { deletedAt: new Date() },
+    data: { deletedAt: new Date(), status: "CANCELLED" },
   });
+
+  // Also soft-delete linked student records
+  await prisma.student.updateMany({
+    where: {
+      OR: [
+        { admissionId: admissionId },
+        { id: admission.studentId || "" },
+      ],
+    },
+    data: { deletedAt: new Date(), status: "DROPPED" },
+  });
+
+  return updatedAdm;
 };

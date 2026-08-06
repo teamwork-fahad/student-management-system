@@ -256,6 +256,9 @@ export const getStudentById = async (idOrStudentId) => {
         { fullName: { equals: student.fullName, mode: "insensitive" } },
       ],
       deletedAt: null,
+      admission: {
+        deletedAt: null,
+      },
     },
     include: {
       admission: {
@@ -268,7 +271,9 @@ export const getStudentById = async (idOrStudentId) => {
   });
 
   const allStudentIds = allMatching.map((s) => s.id);
-  const allAdmissions = allMatching.map((s) => s.admission).filter(Boolean);
+  const allAdmissions = allMatching
+    .map((s) => s.admission)
+    .filter((adm) => adm && adm.deletedAt === null);
 
   // Fetch Attendance Records
   const attendanceRecords = await prisma.attendance.findMany({
