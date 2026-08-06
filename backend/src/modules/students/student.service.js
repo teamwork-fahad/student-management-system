@@ -473,19 +473,36 @@ export const addCourseToStudent = async (idOrStudentId, payload) => {
   }
 
   return prisma.$transaction(async (tx) => {
-    // 1. Generate Inquiry Number
-    const seqInquiry = await tx.sequence.findFirst({ where: { name: "INQUIRY" } });
-    let inquiryNumber = `INQ-${new Date().getFullYear()}-9999`;
-    if (seqInquiry) {
-      const up = await tx.sequence.update({
-        where: { id: seqInquiry.id },
-        data: { currentValue: { increment: 1 } },
-      });
-      inquiryNumber = `INQ-${new Date().getFullYear()}-${String(up.currentValue).padStart(4, "0")}`;
+    // 1. Generate Unique Inquiry Number
+    let seqInquiry = await tx.sequence.findFirst({ where: { name: "INQUIRY" } });
+    let inqVal = (seqInquiry?.currentValue || 100) + 1;
+    let inquiryNumber = "";
+    while (true) {
+      const candidate = `INQ-${new Date().getFullYear()}-${String(inqVal).padStart(4, "0")}`;
+      const exists = await tx.inquiry.findUnique({ where: { inquiryNumber: candidate } });
+      if (!exists) {
+        inquiryNumber = candidate;
+        if (seqInquiry) {
+          await tx.sequence.update({ where: { id: seqInquiry.id }, data: { currentValue: inqVal } });
+        } else {
+          seqInquiry = await tx.sequence.create({ data: { name: "INQUIRY", currentValue: inqVal } });
+        }
+        break;
+      }
+      inqVal++;
     }
 
-    const leadSource = await tx.leadSource.findFirst();
-    const superUser = await tx.user.findFirst();
+    let leadSource = await tx.leadSource.findFirst();
+    if (!leadSource) {
+      leadSource = await tx.leadSource.create({
+        data: { name: "Direct Admission", description: "Default lead source" },
+      });
+    }
+
+    let superUser = await tx.user.findFirst({ where: { role: "SUPER_ADMIN" } });
+    if (!superUser) {
+      superUser = await tx.user.findFirst();
+    }
 
     // Create Inquiry linked to new course
     const newInquiry = await tx.inquiry.create({
@@ -499,31 +516,48 @@ export const addCourseToStudent = async (idOrStudentId, payload) => {
         nextFollowUpDate: new Date(),
         status: "ADMISSION_DONE",
         courseId: course.id,
-        leadSourceId: leadSource?.id || "",
+        leadSourceId: leadSource.id,
         assignedToId: admittedBy || superUser?.id || "",
       },
     });
 
-    // 2. Generate Admission Number & Student ID
-    const seqAdm = await tx.sequence.findFirst({ where: { name: "ADMISSION" } });
-    let admissionNumber = `ADM-${new Date().getFullYear()}-0001`;
-    if (seqAdm) {
-      const upAdm = await tx.sequence.update({
-        where: { id: seqAdm.id },
-        data: { currentValue: { increment: 1 } },
-      });
-      admissionNumber = `ADM-${new Date().getFullYear()}-${String(upAdm.currentValue).padStart(4, "0")}`;
+    // 2. Generate Unique Admission Number
+    let seqAdm = await tx.sequence.findFirst({ where: { name: "ADMISSION" } });
+    let admVal = (seqAdm?.currentValue || 100) + 1;
+    let admissionNumber = "";
+    while (true) {
+      const candidate = `ADM-${new Date().getFullYear()}-${String(admVal).padStart(4, "0")}`;
+      const exists = await tx.admission.findUnique({ where: { admissionNumber: candidate } });
+      if (!exists) {
+        admissionNumber = candidate;
+        if (seqAdm) {
+          await tx.sequence.update({ where: { id: seqAdm.id }, data: { currentValue: admVal } });
+        } else {
+          seqAdm = await tx.sequence.create({ data: { name: "ADMISSION", currentValue: admVal } });
+        }
+        break;
+      }
+      admVal++;
     }
 
-    const seqStd = await tx.sequence.findFirst({ where: { name: "STUDENT" } });
+    // 3. Generate Unique Student ID String
+    let seqStd = await tx.sequence.findFirst({ where: { name: "STUDENT" } });
+    let stdVal = (seqStd?.currentValue || 100) + 1;
     const yearShort = String(new Date().getFullYear()).slice(-2);
-    let newStudentIdStr = `STD${yearShort}0001`;
-    if (seqStd) {
-      const upStd = await tx.sequence.update({
-        where: { id: seqStd.id },
-        data: { currentValue: { increment: 1 } },
-      });
-      newStudentIdStr = `STD${yearShort}${String(upStd.currentValue).padStart(4, "0")}`;
+    let newStudentIdStr = "";
+    while (true) {
+      const candidate = `STD${yearShort}${String(stdVal).padStart(4, "0")}`;
+      const exists = await tx.student.findFirst({ where: { studentId: candidate } });
+      if (!exists) {
+        newStudentIdStr = candidate;
+        if (seqStd) {
+          await tx.sequence.update({ where: { id: seqStd.id }, data: { currentValue: stdVal } });
+        } else {
+          seqStd = await tx.sequence.create({ data: { name: "STUDENT", currentValue: stdVal } });
+        }
+        break;
+      }
+      stdVal++;
     }
 
     const numericCourseFees = Number(courseFees !== undefined ? courseFees : course.fees);

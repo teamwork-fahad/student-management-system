@@ -913,13 +913,10 @@ export const deleteAdmissionService = async (admissionId) => {
     data: { deletedAt: new Date(), status: "CANCELLED" },
   });
 
-  // Also soft-delete linked student records
+  // Soft-delete only secondary student records specifically tied to this admission
   await prisma.student.updateMany({
     where: {
-      OR: [
-        { admissionId: admissionId },
-        { id: admission.studentId || "" },
-      ],
+      admissionId: admissionId,
     },
     data: { deletedAt: new Date(), status: "DROPPED" },
   });
