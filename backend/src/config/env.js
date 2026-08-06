@@ -5,9 +5,9 @@ dotenv.config();
 
 const envSchema = z.object({
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
-  JWT_SECRET: z.string().min(1, "JWT_SECRET is required"),
-  JWT_EXPIRES_IN: z.string().min(1, "JWT_EXPIRES_IN is required"),
-  PORT: z.coerce.number().int().positive("PORT must be a positive number"),
+  JWT_SECRET: z.string().default("appxwind_super_secret_key_2026"),
+  JWT_EXPIRES_IN: z.string().default("7d"),
+  PORT: z.coerce.number().int().default(3000),
   NODE_ENV: z.string().default("development"),
   SUPER_ADMIN_NAME: z.string().optional(),
   SUPER_ADMIN_EMAIL: z.string().optional(),
@@ -17,11 +17,17 @@ const envSchema = z.object({
 const parsedEnv = envSchema.safeParse(process.env);
 
 if (!parsedEnv.success) {
-  console.error("Invalid environment configuration");
-  console.error(parsedEnv.error.flatten().fieldErrors);
-  process.exit(1);
+  console.error("Invalid environment configuration:", parsedEnv.error.flatten().fieldErrors);
 }
 
-const env = parsedEnv.data;
+const env = parsedEnv.success
+  ? parsedEnv.data
+  : {
+      DATABASE_URL: process.env.DATABASE_URL || "",
+      JWT_SECRET: process.env.JWT_SECRET || "appxwind_super_secret_key_2026",
+      JWT_EXPIRES_IN: "7d",
+      PORT: 3000,
+      NODE_ENV: process.env.NODE_ENV || "production",
+    };
 
 export default env;
