@@ -206,6 +206,7 @@ export const registerStudentService = async ({
         email: cleanEmail,
         remarks: "Online self-registration via EduMaster Portal",
         expectedFees: courseObj ? courseObj.fees : 5000,
+        nextFollowUpDate: new Date(),
         status: "ADMISSION_DONE",
         courseId: courseObj ? courseObj.id : (await tx.course.findFirst()).id,
         leadSourceId: defaultLs,
