@@ -15,6 +15,7 @@ import {
   MessageSquare,
   BookOpen,
   CalendarCheck,
+  Wallet,
 } from "lucide-react";
 
 export const AppLayout = () => {
@@ -30,7 +31,8 @@ export const AppLayout = () => {
     { name: "Students", href: "/dashboard/students", icon: Users },
     { name: "Courses", href: "/dashboard/courses", icon: BookOpen },
     { name: "Attendance", href: "/dashboard/attendance", icon: CalendarCheck },
-    { name: "Fees & Analytics", href: "/dashboard/fees", icon: CreditCard },
+    { name: "Fees & Revenue", href: "/dashboard/fees", icon: CreditCard },
+    { name: "Expenses ERP", href: "/dashboard/expenses", icon: Wallet },
   ];
 
   const handleLogout = () => {

@@ -11,6 +11,7 @@ import { Students } from "./pages/Students";
 import { Courses } from "./pages/Courses";
 import { Attendance } from "./pages/Attendance";
 import { Fees } from "./pages/Fees";
+import { Expenses } from "./pages/Expenses";
 
 const AdminProtectedRoute = ({ children }) => {
   const { isAuthenticated, user } = useAuth();
@@ -69,6 +70,7 @@ export const App = () => {
             <Route path="courses" element={<Courses />} />
             <Route path="attendance" element={<Attendance />} />
             <Route path="fees" element={<Fees />} />
+            <Route path="expenses" element={<Expenses />} />
           </Route>
 
           {/* Fallback redirect */}

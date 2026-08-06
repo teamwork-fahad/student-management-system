@@ -3,7 +3,7 @@ import { successResponse } from "../../utils/response.js";
 import {
   getAllStudents,
   getStudentById,
-  updateStudentProfile,
+  updateStudentFullService,
 } from "./student.service.js";
 
 export const getAllStudentsController = asyncHandler(async (req, res) => {
@@ -28,12 +28,12 @@ export const getStudentByIdController = asyncHandler(async (req, res) => {
   );
 });
 
-export const updateStudentProfileController = asyncHandler(async (req, res) => {
-  const updatedStudent = await updateStudentProfile(req.params.id, req.body);
+export const updateStudentController = asyncHandler(async (req, res) => {
+  const updatedStudent = await updateStudentFullService(req.params.id, req.body);
 
   return successResponse(
     res,
-    "Student profile updated successfully",
+    "Student details, status, and fee structure updated successfully",
     updatedStudent,
     200
   );

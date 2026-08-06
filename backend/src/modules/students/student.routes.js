@@ -4,7 +4,7 @@ import { authorize } from "../../middlewares/role.middleware.js";
 import {
   getAllStudentsController,
   getStudentByIdController,
-  updateStudentProfileController,
+  updateStudentController,
 } from "./student.controller.js";
 
 const router = Router();
@@ -25,12 +25,19 @@ router.get(
   getStudentByIdController
 );
 
-// PUT /api/v1/students/:id - Update Student Profile (SUPER_ADMIN, FACULTY)
+// PUT & PATCH /api/v1/students/:id - Update Student Profile, Status & Fees (SUPER_ADMIN, FACULTY)
 router.put(
   "/:id",
   authenticate,
   authorize("SUPER_ADMIN", "FACULTY"),
-  updateStudentProfileController
+  updateStudentController
+);
+
+router.patch(
+  "/:id",
+  authenticate,
+  authorize("SUPER_ADMIN", "FACULTY"),
+  updateStudentController
 );
 
 export default router;

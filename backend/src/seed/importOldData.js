@@ -7,13 +7,27 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Path to SQL dump file in workspace root
-const dumpPath = path.resolve(__dirname, '../../../u123011961_appxwind.sql');
+const dumpPath = 'd:/student-management-system/u123011961_appxwind.sql';
+
+const TABLE_COLUMNS_MAP = {
+  tbl_course_info: ['course_id', 'course_code', 'course_full_name', 'department_id'],
+  tbl_subcourse: ['nm_scid', 'nm_cid', 'sz_scname', 'sz_fullname', 'sz_logo', 'sz_duration', 'nm_fees', 'nm_eid', 'sz_code', 'is_pinned', 'is_quiz_enabled'],
+  tbl_student_inquiries: ['inquiry_id', 'student_name', 'phone', 'email', 'gender', 'course_interested', 'inquiry_source', 'message', 'inquiry_date', 'status'],
+  tbl_student_info: ['student_id', 'student_name', 'email', 'mobile', 'password', 'gender', 'area_id', 'address', 'doj', 'dob', 'form_no', 'photo', 'status', 'qr_token', 'login_pin', 'login_status'],
+  tbl_student_wise_course_info: ['swcid', 'student_id', 'course_id', 'start_date', 'expected_end_date', 'actual_end_date', 'total_fees', 'discount', 'fees_remark', 'course_remark', 'is_active', 'student_status', 'drop_reason', 'drop_date', 'nm_faculty_id', 'faculty_id'],
+  tbl_fees_info: ['fees_id', 'swcid', 'fees_date', 'amount', 'fees_type', 'fees_remark'],
+  tbl_expense_category: ['id', 'category_name', 'type', 'description', 'status'],
+  tbl_expenses: ['id', 'expense_date', 'category_id', 'amount', 'payment_method', 'paid_by', 'description', 'receipt_image'],
+  expenses_entries: ['id', 'name', 'amount', 'type', 'date', 'note', 'created_at']
+};
 
 function parseInserts(sqlText, tableName) {
-  const pattern = new RegExp(`INSERT INTO \`${tableName}\` \\(([^\\)]+)\\) VALUES\\s*([\\s\\S]*?);`, 'g');
   const rows = [];
+  
+  // Format 1: INSERT INTO `table` (`c1`, `c2`) VALUES (...)
+  const patternWithCols = new RegExp(`INSERT INTO \`${tableName}\` \\(([^\\)]+)\\) VALUES\\s*([\\s\\S]*?);`, 'g');
   let match;
-  while ((match = pattern.exec(sqlText)) !== null) {
+  while ((match = patternWithCols.exec(sqlText)) !== null) {
     const cols = match[1].split(',').map(c => c.trim().replace(/`/g, ''));
     const rawValues = match[2];
     const tuples = parseTuples(rawValues);
@@ -25,6 +39,24 @@ function parseInserts(sqlText, tableName) {
       rows.push(obj);
     });
   }
+
+  // Format 2: INSERT INTO `table` VALUES (...)
+  if (rows.length === 0) {
+    const patternNoCols = new RegExp(`INSERT INTO \`${tableName}\` VALUES\\s*([\\s\\S]*?);`, 'g');
+    const cols = TABLE_COLUMNS_MAP[tableName] || [];
+    while ((match = patternNoCols.exec(sqlText)) !== null) {
+      const rawValues = match[1];
+      const tuples = parseTuples(rawValues);
+      tuples.forEach(tuple => {
+        const obj = {};
+        cols.forEach((col, idx) => {
+          obj[col] = tuple[idx];
+        });
+        rows.push(obj);
+      });
+    }
+  }
+
   return rows;
 }
 
@@ -332,9 +364,17 @@ async function migrateData() {
     let inquiryId = inquiryMap[swcid];
     if (!inquiryId) {
       const defaultLs = Object.values(leadSourceMap)[0] || (await prisma.leadSource.findFirst()).id;
-      const inq = await prisma.inquiry.create({
-        data: {
-          inquiryNumber: `INQ-ADM-${String(swcid).padStart(3, '0')}`,
+      const inqNum = `INQ-ADM-${String(swcid).padStart(3, '0')}`;
+      const inq = await prisma.inquiry.upsert({
+        where: { inquiryNumber: inqNum },
+        update: {
+          fullName: studentName,
+          mobile: mobile,
+          email: email,
+          expectedFees: finalFees,
+        },
+        create: {
+          inquiryNumber: inqNum,
           fullName: studentName,
           mobile: mobile,
           whatsapp: mobile,
@@ -380,7 +420,7 @@ async function migrateData() {
         finalFees: finalFees,
         paidAmount: paidAmount,
         pendingAmount: pendingAmount,
-        remarks: adm.fees_remark || adm.course_remark || null,
+        remarks: (adm.fees_remark || adm.course_remark) ? String(adm.fees_remark || adm.course_remark) : null,
         studentCategory: 'OTHER',
         guardianName: 'Not Provided',
         guardianMobile: mobile,
@@ -453,7 +493,86 @@ async function migrateData() {
   console.log(`✅ Admissions & Students imported: ${importedAdmissionsCount}`);
   console.log(`✅ Fee Payment Receipts imported: ${importedPaymentsCount}`);
 
-  // 5. Update Sequence Counters
+  // 5. Import Expense Categories and Expense Entries
+  const rawCategories = parseInserts(sqlText, 'tbl_expense_category');
+  const rawExpenses = parseInserts(sqlText, 'tbl_expenses');
+  const rawExpensesEntries = parseInserts(sqlText, 'expenses_entries');
+
+  const catMap = {};
+  for (const cat of rawCategories) {
+    if (!cat.category_name) continue;
+    const dbCat = await prisma.expenseCategory.upsert({
+      where: { name: String(cat.category_name).trim() },
+      update: {},
+      create: {
+        name: String(cat.category_name).trim(),
+        description: cat.description ? String(cat.description) : null,
+      },
+    });
+    catMap[cat.id] = dbCat.id;
+  }
+
+  let expenseCount = 0;
+  for (const exp of rawExpenses) {
+    const amt = Number(exp.amount) || 0;
+    if (amt <= 0) continue;
+    const catId = catMap[exp.category_id] || null;
+    const expDate = exp.expense_date ? parseDate(exp.expense_date) : new Date();
+
+    const existingExp = await prisma.expense.findFirst({
+      where: {
+        title: exp.description ? String(exp.description) : 'General Expense',
+        amount: amt,
+        expenseDate: expDate,
+      },
+    });
+
+    if (!existingExp) {
+      await prisma.expense.create({
+        data: {
+          title: exp.description ? String(exp.description) : 'General Expense',
+          amount: amt,
+          expenseDate: expDate,
+          paymentMode: mapPaymentMode(exp.payment_method),
+          categoryId: catId,
+          paidTo: exp.paid_by ? String(exp.paid_by) : null,
+          remarks: exp.description ? String(exp.description) : null,
+        },
+      });
+      expenseCount++;
+    }
+  }
+
+  for (const ee of rawExpensesEntries) {
+    const amt = Number(ee.amount) || 0;
+    if (amt <= 0) continue;
+    const expDate = ee.date ? parseDate(ee.date) : new Date();
+
+    const existingExp = await prisma.expense.findFirst({
+      where: {
+        title: ee.name ? String(ee.name) : 'Expense Entry',
+        amount: amt,
+        expenseDate: expDate,
+      },
+    });
+
+    if (!existingExp) {
+      await prisma.expense.create({
+        data: {
+          title: ee.name ? String(ee.name) : 'Expense Entry',
+          amount: amt,
+          expenseDate: expDate,
+          paymentMode: 'CASH',
+          remarks: ee.note ? String(ee.note) : null,
+        },
+      });
+      expenseCount++;
+    }
+  }
+
+  console.log(`✅ Expense categories and ${expenseCount} expense records imported.`);
+
+  // 6. Update Sequence Counters
   const maxSwcid = Math.max(...rawAdmissions.map(a => Number(a.swcid) || 0), 100);
   const maxFeesId = Math.max(...rawFees.map(f => Number(f.fees_id) || 0), 100);
 

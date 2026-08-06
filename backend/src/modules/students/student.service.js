@@ -58,13 +58,21 @@ export const getAllStudents = async (queryParams = {}) => {
     prisma.student.count({ where }),
     prisma.student.findMany({
       where,
+      skip,
+      take: limitNum,
+      orderBy,
       include: {
         admission: {
           include: {
-            course: true,
+            course: {
+              select: {
+                id: true,
+                name: true,
+                code: true,
+              },
+            },
           },
         },
-        documents: true,
         user: {
           select: {
             id: true,
@@ -74,9 +82,6 @@ export const getAllStudents = async (queryParams = {}) => {
           },
         },
       },
-      orderBy,
-      skip,
-      take: limitNum,
     }),
   ]);
 
@@ -89,14 +94,12 @@ export const getAllStudents = async (queryParams = {}) => {
       page: pageNum,
       limit: limitNum,
       totalPages,
-      hasNextPage: pageNum < totalPages,
-      hasPreviousPage: pageNum > 1,
     },
   };
 };
 
 /**
- * Get single student details by database ID or studentId string.
+ * Get student by DB id or STU-xxx studentId.
  */
 export const getStudentById = async (idOrStudentId) => {
   const student = await prisma.student.findFirst({
@@ -137,21 +140,62 @@ export const getStudentById = async (idOrStudentId) => {
 };
 
 /**
- * Update student profile info.
+ * Update student profile & fee structure details by Super Admin.
  */
-export const updateStudentProfile = async (idOrStudentId, updateData) => {
+export const updateStudentFullService = async (idOrStudentId, updateData) => {
   const student = await getStudentById(idOrStudentId);
 
-  return prisma.student.update({
+  const {
+    fullName,
+    mobile,
+    email,
+    address,
+    status,
+    courseFees,
+    discount,
+    finalFees,
+    remarks,
+  } = updateData;
+
+  // 1. Update Student Table
+  const updatedStudent = await prisma.student.update({
     where: { id: student.id },
-    data: updateData,
-    include: {
-      admission: {
-        include: {
-          course: true,
-        },
-      },
-      documents: true,
+    data: {
+      ...(fullName && { fullName }),
+      ...(mobile && { mobile }),
+      ...(email !== undefined && { email }),
+      ...(address !== undefined && { address }),
+      ...(status && { status }),
     },
   });
+
+  // 2. Update Admission & Fee structure if admission exists
+  if (student.admissionId) {
+    const currentAdm = student.admission || (await prisma.admission.findUnique({ where: { id: student.admissionId } }));
+    
+    const newCourseFees = courseFees !== undefined ? Number(courseFees) : Number(currentAdm.courseFees);
+    const newDiscount = discount !== undefined ? Number(discount) : Number(currentAdm.discount);
+    const calculatedFinalFees = finalFees !== undefined ? Number(finalFees) : Math.max(0, newCourseFees - newDiscount);
+    const paidAmount = Number(currentAdm.paidAmount || 0);
+    const newPendingAmount = Math.max(0, calculatedFinalFees - paidAmount);
+
+    let admStatus = currentAdm.status;
+    if (status === "COMPLETED") admStatus = "COMPLETED";
+    if (status === "DROPPED" || status === "CANCELLED") admStatus = "CANCELLED";
+    if (status === "ACTIVE") admStatus = "ACTIVE";
+
+    await prisma.admission.update({
+      where: { id: student.admissionId },
+      data: {
+        courseFees: newCourseFees,
+        discount: newDiscount,
+        finalFees: calculatedFinalFees,
+        pendingAmount: newPendingAmount,
+        status: admStatus,
+        ...(remarks !== undefined && { remarks: String(remarks) }),
+      },
+    });
+  }
+
+  return getStudentById(student.id);
 };

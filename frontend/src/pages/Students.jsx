@@ -8,6 +8,7 @@ import {
   Search,
   Filter,
   Eye,
+  Edit,
   ChevronLeft,
   ChevronRight,
   GraduationCap,
@@ -20,6 +21,8 @@ import {
   X,
   LayoutGrid,
   List,
+  Save,
+  AlertCircle,
 } from "lucide-react";
 
 export const Students = () => {
@@ -28,7 +31,25 @@ export const Students = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  
+  // Modals state
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [editingStudent, setEditingStudent] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [editError, setEditError] = useState("");
+
+  // Edit Form state
+  const [editForm, setEditForm] = useState({
+    fullName: "",
+    mobile: "",
+    email: "",
+    address: "",
+    status: "ACTIVE",
+    courseFees: "",
+    discount: "",
+    finalFees: "",
+    remarks: "",
+  });
 
   // View Mode: 'table' | 'grid'
   const [viewMode, setViewMode] = useState("table");
@@ -64,6 +85,44 @@ export const Students = () => {
     fetchStudents(1, search);
   };
 
+  const handleOpenEdit = (student) => {
+    setEditingStudent(student);
+    setEditError("");
+    const adm = student.admission;
+    setEditForm({
+      fullName: student.fullName || "",
+      mobile: student.mobile || "",
+      email: student.email || "",
+      address: student.address || "",
+      status: student.status || "ACTIVE",
+      courseFees: adm?.courseFees || adm?.courseFeesSnapshot || 5000,
+      discount: adm?.discount || 0,
+      finalFees: adm?.finalFees || 5000,
+      remarks: adm?.remarks || "",
+    });
+  };
+
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
+    setEditError("");
+
+    if (!editForm.fullName || !editForm.mobile) {
+      setEditError("Full Name and Mobile number are required.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await api.put(`/students/${editingStudent.id}`, editForm);
+      setEditingStudent(null);
+      fetchStudents(pagination.page);
+    } catch (err) {
+      setEditError(err.response?.data?.message || "Failed to update student details.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="space-y-6 font-sans">
       {/* Top Header */}
@@ -71,7 +130,7 @@ export const Students = () => {
         <div>
           <h1 className="text-2xl font-black text-white tracking-tight">Student Directory</h1>
           <p className="text-xs text-slate-400">
-            Search, filter, and inspect detailed student profiles and fee histories.
+            Search, filter, edit student profiles, update fees, and change academic status.
           </p>
         </div>
 
@@ -135,6 +194,7 @@ export const Students = () => {
             <option value="ON_HOLD">ON_HOLD</option>
             <option value="COMPLETED">COMPLETED</option>
             <option value="DROPPED">DROPPED</option>
+            <option value="TRANSFERRED">TRANSFERRED</option>
           </select>
         </div>
       </div>
@@ -158,17 +218,15 @@ export const Students = () => {
                   <th className="p-3.5">Student Name</th>
                   <th className="p-3.5">Mobile</th>
                   <th className="p-3.5">Course</th>
-                  <th className="p-3.5">Admission Date</th>
                   <th className="p-3.5">Status</th>
-                  <th className="p-3.5 text-right">Action</th>
+                  <th className="p-3.5 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
                 {students.map((student) => (
                   <tr
                     key={student.id}
-                    className="hover:bg-slate-800/40 transition-colors cursor-pointer"
-                    onClick={() => setSelectedStudent(student)}
+                    className="hover:bg-slate-800/40 transition-colors"
                   >
                     <td className="p-3.5 font-mono text-xs font-bold text-cyan-400">
                       {student.studentId}
@@ -180,32 +238,35 @@ export const Students = () => {
                     <td className="p-3.5 text-xs text-slate-300">
                       {student.admission?.courseNameSnapshot || "N/A"}
                     </td>
-                    <td className="p-3.5 text-xs text-slate-400">
-                      {student.admission?.admissionDate
-                        ? new Date(student.admission.admissionDate).toLocaleDateString("en-IN")
-                        : "N/A"}
-                    </td>
                     <td className="p-3.5">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                           student.status === "ACTIVE"
                             ? "bg-emerald-950 text-emerald-400 border border-emerald-800/60"
+                            : student.status === "COMPLETED"
+                            ? "bg-blue-950 text-blue-300 border border-blue-800/60"
+                            : student.status === "DROPPED"
+                            ? "bg-rose-950 text-rose-400 border border-rose-800/60"
                             : "bg-slate-800 text-slate-400 border border-slate-700"
                         }`}
                       >
                         {student.status}
                       </span>
                     </td>
-                    <td className="p-3.5 text-right">
+                    <td className="p-3.5 text-right space-x-2">
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedStudent(student);
-                        }}
+                        onClick={() => setSelectedStudent(student)}
                         className="p-1.5 rounded-lg bg-slate-800 hover:bg-cyan-600 text-slate-300 hover:text-white transition-colors"
                         title="View Full Profile"
                       >
                         <Eye className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleOpenEdit(student)}
+                        className="p-1.5 rounded-lg bg-slate-800 hover:bg-amber-600 text-slate-300 hover:text-white transition-colors"
+                        title="Edit Details, Fees & Status"
+                      >
+                        <Edit className="w-4 h-4" />
                       </button>
                     </td>
                   </tr>
@@ -219,8 +280,7 @@ export const Students = () => {
             {students.map((student) => (
               <div
                 key={student.id}
-                onClick={() => setSelectedStudent(student)}
-                className="p-5 bg-slate-950/80 border border-slate-800 rounded-2xl space-y-3 cursor-pointer hover:border-cyan-500/40 transition"
+                className="p-5 bg-slate-950/80 border border-slate-800 rounded-2xl space-y-3 hover:border-cyan-500/40 transition"
               >
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-xs font-bold text-cyan-400">{student.studentId}</span>
@@ -228,6 +288,10 @@ export const Students = () => {
                     className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
                       student.status === "ACTIVE"
                         ? "bg-emerald-950 text-emerald-400 border border-emerald-800/60"
+                        : student.status === "COMPLETED"
+                        ? "bg-blue-950 text-blue-300 border border-blue-800/60"
+                        : student.status === "DROPPED"
+                        ? "bg-rose-950 text-rose-400 border border-rose-800/60"
                         : "bg-slate-800 text-slate-400 border border-slate-700"
                     }`}
                   >
@@ -255,16 +319,22 @@ export const Students = () => {
                   )}
                 </div>
 
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedStudent(student);
-                  }}
-                  className="w-full py-1.5 bg-slate-900 hover:bg-cyan-600 text-slate-300 hover:text-white rounded-xl text-xs font-semibold flex items-center justify-center space-x-1 transition"
-                >
-                  <Eye className="w-3.5 h-3.5" />
-                  <span>View Details</span>
-                </button>
+                <div className="flex items-center space-x-2 pt-1">
+                  <button
+                    onClick={() => setSelectedStudent(student)}
+                    className="flex-1 py-1.5 bg-slate-900 hover:bg-cyan-600 text-slate-300 hover:text-white rounded-xl text-xs font-semibold flex items-center justify-center space-x-1 transition"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>View Profile</span>
+                  </button>
+                  <button
+                    onClick={() => handleOpenEdit(student)}
+                    className="px-3 py-1.5 bg-amber-600/20 hover:bg-amber-600 text-amber-400 hover:text-white rounded-xl text-xs font-semibold flex items-center space-x-1 transition"
+                  >
+                    <Edit className="w-3.5 h-3.5" />
+                    <span>Edit</span>
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -297,7 +367,7 @@ export const Students = () => {
         )}
       </div>
 
-      {/* Student Profile Modal */}
+      {/* VIEW PROFILE MODAL */}
       {selectedStudent && (
         <Modal
           isOpen={!!selectedStudent}
@@ -305,26 +375,38 @@ export const Students = () => {
           title="Student Profile Overview"
         >
           <div className="space-y-6 text-sm text-slate-200">
-            {/* Header info */}
-            <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-950 border border-slate-800">
-              <div className="p-3.5 rounded-2xl bg-cyan-950 text-cyan-400 border border-cyan-800">
-                <GraduationCap className="w-8 h-8" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-white">{selectedStudent.fullName}</h3>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="font-mono text-xs text-cyan-400 font-bold">
-                    {selectedStudent.studentId}
-                  </span>
-                  <span className="text-slate-600">•</span>
-                  <span className="text-xs text-slate-400">
-                    Status: <strong className="text-emerald-400">{selectedStudent.status}</strong>
-                  </span>
+            <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-slate-950 border border-slate-800">
+              <div className="flex items-center space-x-3">
+                <div className="p-3.5 rounded-2xl bg-cyan-950 text-cyan-400 border border-cyan-800">
+                  <GraduationCap className="w-8 h-8" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white">{selectedStudent.fullName}</h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="font-mono text-xs text-cyan-400 font-bold">
+                      {selectedStudent.studentId}
+                    </span>
+                    <span className="text-slate-600">•</span>
+                    <span className="text-xs text-slate-400">
+                      Status: <strong className="text-emerald-400">{selectedStudent.status}</strong>
+                    </span>
+                  </div>
                 </div>
               </div>
+
+              <button
+                onClick={() => {
+                  const s = selectedStudent;
+                  setSelectedStudent(null);
+                  handleOpenEdit(s);
+                }}
+                className="px-3 py-1.5 bg-amber-600/20 hover:bg-amber-600 text-amber-400 hover:text-white rounded-xl text-xs font-semibold flex items-center space-x-1 transition"
+              >
+                <Edit className="w-3.5 h-3.5" />
+                <span>Edit Student</span>
+              </button>
             </div>
 
-            {/* Profile fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
               <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/60 space-y-1">
                 <span className="text-slate-500 uppercase font-semibold text-[10px]">Mobile Contact</span>
@@ -356,7 +438,6 @@ export const Students = () => {
               </div>
             </div>
 
-            {/* Admission details */}
             {selectedStudent.admission && (
               <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
                 <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
@@ -393,6 +474,176 @@ export const Students = () => {
             )}
           </div>
         </Modal>
+      )}
+
+      {/* EDIT STUDENT & FEES MODAL */}
+      {editingStudent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto font-sans">
+          <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 my-8">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div>
+                <h3 className="text-base font-bold text-white">Edit Student Profile & Fee Structure</h3>
+                <p className="text-xs text-slate-400">{editingStudent.fullName} ({editingStudent.studentId})</p>
+              </div>
+              <button onClick={() => setEditingStudent(null)} className="text-slate-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {editError && (
+              <div className="p-3 bg-rose-950/80 border border-rose-800 text-rose-300 rounded-xl text-xs flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                <span>{editError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSaveEdit} className="space-y-3.5 text-xs">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Full Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editForm.fullName}
+                    onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Mobile Number *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editForm.mobile}
+                    onChange={(e) => setEditForm({ ...editForm, mobile: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Email Address</label>
+                  <input
+                    type="email"
+                    value={editForm.email}
+                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Academic Status</label>
+                  <select
+                    value={editForm.status}
+                    onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500 font-bold text-cyan-400"
+                  >
+                    <option value="ACTIVE">ACTIVE</option>
+                    <option value="ON_HOLD">ON_HOLD</option>
+                    <option value="COMPLETED">COMPLETED</option>
+                    <option value="DROPPED">DROPPED</option>
+                    <option value="TRANSFERRED">TRANSFERRED</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">Address</label>
+                <input
+                  type="text"
+                  value={editForm.address}
+                  onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <div className="p-3 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
+                <span className="text-[11px] font-bold text-amber-400 uppercase tracking-wider block">
+                  Fee Structure Correction
+                </span>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="block text-[10px] text-slate-400 mb-1">Course Fee (₹)</label>
+                    <input
+                      type="number"
+                      value={editForm.courseFees}
+                      onChange={(e) => {
+                        const cf = Number(e.target.value);
+                        const disc = Number(editForm.discount);
+                        setEditForm({
+                          ...editForm,
+                          courseFees: e.target.value,
+                          finalFees: Math.max(0, cf - disc),
+                        });
+                      }}
+                      className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 font-bold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] text-slate-400 mb-1">Discount (₹)</label>
+                    <input
+                      type="number"
+                      value={editForm.discount}
+                      onChange={(e) => {
+                        const disc = Number(e.target.value);
+                        const cf = Number(editForm.courseFees);
+                        setEditForm({
+                          ...editForm,
+                          discount: e.target.value,
+                          finalFees: Math.max(0, cf - disc),
+                        });
+                      }}
+                      className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-emerald-400 font-bold"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] text-slate-400 mb-1">Net Final Fee (₹)</label>
+                    <input
+                      type="number"
+                      value={editForm.finalFees}
+                      onChange={(e) => setEditForm({ ...editForm, finalFees: e.target.value })}
+                      className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-cyan-400 font-bold"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">Remarks / Note</label>
+                <input
+                  type="text"
+                  value={editForm.remarks}
+                  onChange={(e) => setEditForm({ ...editForm, remarks: e.target.value })}
+                  placeholder="Reason for edit or fee correction..."
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingStudent(null)}
+                  className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl font-semibold hover:bg-slate-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl font-bold shadow-md flex items-center space-x-1 disabled:opacity-50"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  <span>{submitting ? "Saving..." : "Save Changes"}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );
