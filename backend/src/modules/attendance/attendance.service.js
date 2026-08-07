@@ -81,7 +81,7 @@ export const getAttendanceByDate = async (dateStr, courseId) => {
     deletedAt: null,
     status: { in: ["ACTIVE", "REVISION"] },
     admission: {
-      status: { in: ["ACTIVE", "REVISION"] },
+      status: "ACTIVE",
     },
   };
 
@@ -126,7 +126,7 @@ export const getAttendanceStats = async () => {
       where: {
         deletedAt: null,
         status: { in: ["ACTIVE", "REVISION"] },
-        admission: { status: { in: ["ACTIVE", "REVISION"] } },
+        admission: { status: "ACTIVE" },
       },
     }),
     prisma.attendance.count({ where: { date: today, status: "PRESENT" } }),
