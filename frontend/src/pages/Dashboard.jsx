@@ -28,6 +28,7 @@ export const Dashboard = () => {
   const [stats, setStats] = useState(null);
   const [recentAdmissions, setRecentAdmissions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
     fetchDashboardData();
@@ -35,6 +36,7 @@ export const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     setLoading(true);
+    setErrorMsg("");
     try {
       const [statsRes, admissionsRes] = await Promise.all([
         api.get("/admissions/statistics"),
@@ -45,6 +47,10 @@ export const Dashboard = () => {
       setRecentAdmissions(admissionsRes.data?.data?.admissions || []);
     } catch (err) {
       console.error("Dashboard fetch error:", err);
+      setErrorMsg(
+        err.response?.data?.message ||
+          "Unable to connect to backend server. Please verify backend server is running and accessible."
+      );
     } finally {
       setLoading(false);
     }
@@ -95,6 +101,18 @@ export const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {errorMsg && (
+        <div className="p-4 bg-rose-950/80 border border-rose-800 text-rose-300 rounded-2xl text-xs flex items-center justify-between shadow-lg">
+          <span>⚠️ {errorMsg}</span>
+          <button
+            onClick={fetchDashboardData}
+            className="px-3 py-1 bg-rose-900 hover:bg-rose-800 text-white rounded-lg font-bold text-[11px]"
+          >
+            Retry Connection
+          </button>
+        </div>
+      )}
 
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
