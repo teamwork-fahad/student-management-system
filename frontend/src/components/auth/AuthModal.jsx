@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { X, UserCheck, GraduationCap, ShieldCheck, User, Lock, Phone, Mail, MapPin, AlertCircle, CheckCircle2, BookOpen, KeyRound, ArrowRight } from "lucide-react";
+import { X, UserCheck, GraduationCap, ShieldCheck, User, Lock, Phone, Mail, MapPin, AlertCircle, CheckCircle2, BookOpen, KeyRound, ArrowRight, Eye, EyeOff } from "lucide-react";
 import api from "../../api/axios";
 
 export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMode = "login" }) => {
@@ -10,6 +10,12 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
 
   const [role, setRole] = useState(initialRole); // "STUDENT" | "FACULTY" | "SUPER_ADMIN"
   const [mode, setMode] = useState(initialMode); // "login" | "register" | "forgot-password"
+
+  // Password visibility states
+  const [showLoginPass, setShowLoginPass] = useState(false);
+  const [showRegPass, setShowRegPass] = useState(false);
+  const [showNewPass, setShowNewPass] = useState(false);
+  const [showConfirmPass, setShowConfirmPass] = useState(false);
 
   // Login Form state
   const [identifier, setIdentifier] = useState("");
@@ -28,7 +34,9 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
   const [forgotId, setForgotId] = useState("");
   const [forgotOtp, setForgotOtp] = useState("");
   const [forgotNewPass, setForgotNewPass] = useState("");
+  const [forgotConfirmPass, setForgotConfirmPass] = useState("");
   const [forgotSubmitting, setForgotSubmitting] = useState(false);
+
 
   // Courses dropdown list
   const [courses, setCourses] = useState([]);
@@ -134,13 +142,11 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
     setForgotSubmitting(true);
     try {
       const res = await api.post("/auth/forgot-password", { identifier: forgotId });
-      setSuccessMessage(res.data.message || "OTP code generated! Check your email or enter OTP below.");
+      setSuccessMessage(res.data.message || "OTP code sent to your email! Please check your email inbox.");
       setForgotStep(2);
-      if (res.data.data?.otp) {
-        // Auto fill OTP in dev environment if available
-        setForgotOtp(res.data.data.otp);
-      }
+      setForgotOtp("");
     } catch (err) {
+
       setErrorMessage(err.response?.data?.message || "Failed to generate OTP.");
     } finally {
       setForgotSubmitting(false);
@@ -152,12 +158,23 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
     setErrorMessage("");
     setSuccessMessage("");
 
-    if (!forgotOtp || !forgotNewPass) {
-      setErrorMessage("Please enter the OTP code and your new password.");
+    if (!forgotOtp || !forgotNewPass || !forgotConfirmPass) {
+      setErrorMessage("Please enter the 6-digit OTP code, New Password, and Confirm Password.");
+      return;
+    }
+
+    if (forgotNewPass !== forgotConfirmPass) {
+      setErrorMessage("New Password and Confirm Password do not match! Please check again.");
+      return;
+    }
+
+    if (forgotNewPass.length < 6) {
+      setErrorMessage("Password must be at least 6 characters long.");
       return;
     }
 
     setForgotSubmitting(true);
+
     try {
       const res = await api.post("/auth/reset-password", {
         identifier: forgotId,
@@ -374,15 +391,48 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
 
                   <div>
                     <label className="block font-bold text-slate-700 mb-1">New Password *</label>
-                    <input
-                      type="password"
-                      required
-                      minLength={6}
-                      value={forgotNewPass}
-                      onChange={(e) => setForgotNewPass(e.target.value)}
-                      placeholder="Enter new strong password"
-                      className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-blue-600"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showNewPass ? "text" : "password"}
+                        required
+                        minLength={6}
+                        value={forgotNewPass}
+                        onChange={(e) => setForgotNewPass(e.target.value)}
+                        placeholder="Enter new strong password"
+                        className="w-full pl-3 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-blue-600"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPass(!showNewPass)}
+                        className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 transition"
+                        title={showNewPass ? "Hide password" : "Show password"}
+                      >
+                        {showNewPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Confirm New Password *</label>
+                    <div className="relative">
+                      <input
+                        type={showConfirmPass ? "text" : "password"}
+                        required
+                        minLength={6}
+                        value={forgotConfirmPass}
+                        onChange={(e) => setForgotConfirmPass(e.target.value)}
+                        placeholder="Re-enter new password to confirm"
+                        className="w-full pl-3 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-blue-600"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPass(!showConfirmPass)}
+                        className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 transition"
+                        title={showConfirmPass ? "Hide password" : "Show password"}
+                      >
+                        {showConfirmPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
                   </div>
 
                   <button
@@ -443,13 +493,21 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                   <input
-                    type="password"
+                    type={showLoginPass ? "text" : "password"}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter password"
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600"
+                    className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowLoginPass(!showLoginPass)}
+                    className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 transition"
+                    title={showLoginPass ? "Hide password" : "Show password"}
+                  >
+                    {showLoginPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
@@ -504,16 +562,27 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
 
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">Set Password *</label>
-                <input
-                  type="password"
-                  required
-                  minLength={6}
-                  value={regPassword}
-                  onChange={(e) => setRegPassword(e.target.value)}
-                  placeholder="At least 6 characters"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-blue-600"
-                />
+                <div className="relative">
+                  <input
+                    type={showRegPass ? "text" : "password"}
+                    required
+                    minLength={6}
+                    value={regPassword}
+                    onChange={(e) => setRegPassword(e.target.value)}
+                    placeholder="At least 6 characters"
+                    className="w-full pl-3.5 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-blue-600"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowRegPass(!showRegPass)}
+                    className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 transition"
+                    title={showRegPass ? "Hide password" : "Show password"}
+                  >
+                    {showRegPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
+
 
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">Enrolled / Interested Course</label>

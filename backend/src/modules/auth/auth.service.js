@@ -364,11 +364,11 @@ export const forgotPasswordService = async (identifier) => {
   }
 
   return {
-    message: `Password reset OTP has been generated and sent to ${targetEmail || "registered contact"}.`,
+    message: `Password reset OTP has been sent to your email address (${targetEmail || "registered contact"}). Please check your inbox.`,
     email: targetEmail,
-    otp: resetOtp,
   };
 };
+
 
 export const resetPasswordService = async (identifier, otpCode, newPassword) => {
   const cleanId = String(identifier).trim();
