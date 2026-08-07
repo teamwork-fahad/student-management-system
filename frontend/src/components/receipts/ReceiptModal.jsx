@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { X, Printer, Download, CheckCircle2, ShieldCheck, CreditCard, Calendar, Receipt, FileText } from "lucide-react";
 import { formatDate } from "../../utils/formatters";
-import html2pdf from "html2pdf.js";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export const ReceiptModal = ({ payment, student, admission, onClose }) => {
   if (!payment) return null;
@@ -20,31 +21,156 @@ export const ReceiptModal = ({ payment, student, admission, onClose }) => {
   };
 
   const handleDownloadPdf = async () => {
-    const element = document.getElementById("printable-receipt-card");
-    if (!element) return;
-
     setDownloadingPdf(true);
     try {
+      const doc = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const studentName = student?.fullName || currentAdm?.student?.fullName || payment.studentName || "Student";
+      const studentId = student?.studentId || currentAdm?.admissionNumber || "N/A";
+      const courseName = currentAdm?.courseNameSnapshot || currentAdm?.course?.name || "General Course";
       const receiptRef = payment.transactionReference || `REC-${payment.id?.slice(-6).toUpperCase()}`;
-      const studentName = (student?.fullName || currentAdm?.student?.fullName || payment.studentName || "Student").replace(/\s+/g, "_");
-      const filename = `Fee_Receipt_${receiptRef}_${studentName}.pdf`;
+      const paymentDateStr = formatDate(payment.paymentDate || payment.createdAt);
+      const paymentModeStr = (payment.paymentMode || "CASH").toUpperCase();
 
-      const opt = {
-        margin: [6, 6, 6, 6],
-        filename,
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-      };
+      // 1. Deep Blue Header Banner
+      doc.setFillColor(30, 58, 138); // #1e3a8a
+      doc.rect(0, 0, 210, 32, "F");
 
-      await html2pdf().set(opt).from(element).save();
+      // Title & Subtitle
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(22);
+      doc.text("EduMaster Academy", 14, 16);
+
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text("Official Fee Payment Receipt", 14, 23);
+
+      // Receipt Ref & Date
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.text(`Receipt No: ${receiptRef}`, 196, 16, { align: "right" });
+      doc.setFont("helvetica", "normal");
+      doc.text(`Date: ${paymentDateStr}`, 196, 23, { align: "right" });
+
+      // 2. Student & Course Info Grid Table
+      autoTable(doc, {
+        startY: 38,
+        head: [["Student Name", "Student ID / Adm No", "Enrolled Course", "Payment Mode"]],
+        body: [[studentName, studentId, courseName, paymentModeStr]],
+        theme: "plain",
+        headStyles: { fillColor: [241, 245, 249], textColor: [71, 85, 105], fontStyle: "bold", fontSize: 9 },
+        bodyStyles: { textColor: [15, 23, 42], fontSize: 10, fontStyle: "bold" },
+        margin: { left: 14, right: 14 },
+      });
+
+      let currentY = doc.lastAutoTable.finalY + 8;
+
+      // 3. Amount Paid Box (Green Box)
+      doc.setFillColor(236, 253, 245); // Emerald-50
+      doc.setDrawColor(167, 243, 208); // Emerald-200
+      doc.roundedRect(14, currentY, 182, 22, 3, 3, "FD");
+
+      doc.setTextColor(6, 95, 70);
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "bold");
+      doc.text("AMOUNT PAID IN THIS RECEIPT", 20, currentY + 8);
+
+      doc.setFontSize(18);
+      doc.text(`Rs. ${Number(payment.amount).toLocaleString("en-IN")}`, 20, currentY + 17);
+
+      doc.setFillColor(5, 150, 105); // Emerald-600
+      doc.roundedRect(145, currentY + 6, 45, 10, 2, 2, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "bold");
+      doc.text("PAID & VERIFIED", 167.5, currentY + 12.5, { align: "center" });
+
+      currentY += 30;
+
+      // 4. Financial Ledger Summary Table
+      autoTable(doc, {
+        startY: currentY,
+        head: [["Total Course Fee", "Total Paid to Date", "Remaining Pending Dues"]],
+        body: [[`Rs. ${totalCourseFee.toLocaleString("en-IN")}`, `Rs. ${totalPaidToDate.toLocaleString("en-IN")}`, `Rs. ${pendingBalance.toLocaleString("en-IN")}`]],
+        theme: "grid",
+        headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: "bold", fontSize: 9 },
+        bodyStyles: { fontSize: 10, fontStyle: "bold", textColor: [15, 23, 42] },
+        columnStyles: {
+          0: { textColor: [15, 23, 42] },
+          1: { textColor: [5, 150, 105] },
+          2: { textColor: [217, 119, 6] },
+        },
+        margin: { left: 14, right: 14 },
+      });
+
+      currentY = doc.lastAutoTable.finalY + 8;
+
+      // 5. Payment Receipts History for this Course
+      if (pastPayments && pastPayments.length > 0) {
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(51, 65, 85);
+        doc.text("Payment Receipts History for this Course", 14, currentY);
+        currentY += 4;
+
+        const historyRows = pastPayments.slice(0, 6).map((p) => [
+          p.transactionReference || `REC-${p.id?.slice(-6).toUpperCase()}`,
+          formatDate(p.paymentDate || p.createdAt),
+          (p.paymentMode || "CASH").toUpperCase(),
+          `Rs. ${Number(p.amount).toLocaleString("en-IN")}`,
+        ]);
+
+        autoTable(doc, {
+          startY: currentY,
+          head: [["Receipt / Ref", "Date", "Mode", "Amount Paid"]],
+          body: historyRows,
+          theme: "striped",
+          headStyles: { fillColor: [241, 245, 249], textColor: [100, 116, 139], fontStyle: "bold", fontSize: 8 },
+          bodyStyles: { fontSize: 9, textColor: [30, 41, 59] },
+          margin: { left: 14, right: 14 },
+        });
+
+        currentY = doc.lastAutoTable.finalY + 8;
+      }
+
+      // 6. Remarks if present
+      if (payment.remarks) {
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(71, 85, 105);
+        doc.text(`Remarks: ${payment.remarks}`, 14, currentY);
+      }
+
+      // 7. Footer / Authorized Signature
+      doc.setDrawColor(226, 232, 240);
+      doc.line(14, 270, 196, 270);
+
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(30, 41, 59);
+      doc.text("Authorized Signature", 14, 276);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(148, 163, 184);
+      doc.text("EduMaster Accounts Office - Computer Generated Document", 14, 281);
+
+      // Save PDF file
+      const sanitizeName = studentName.replace(/[^a-zA-Z0-9]/g, "_");
+      doc.save(`Fee_Receipt_${receiptRef}_${sanitizeName}.pdf`);
     } catch (err) {
-      console.error("PDF Download error:", err);
+      console.error("Native PDF Error:", err);
+      alert("Failed to generate PDF. Triggering print...");
       window.print();
     } finally {
       setDownloadingPdf(false);
     }
   };
+
 
 
   const formattedDate = formatDate(payment.paymentDate || payment.createdAt);
