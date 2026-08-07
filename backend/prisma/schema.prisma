@@ -41,6 +41,7 @@ enum StudentStatus {
   COMPLETED
   DROPPED
   TRANSFERRED
+  REVISION
 }
 
 enum StudentCategory {

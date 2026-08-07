@@ -456,6 +456,8 @@ export const StudentProfilePage = () => {
                   className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
                     studentData.status === "ACTIVE"
                       ? "bg-emerald-950 text-emerald-400 border-emerald-800"
+                      : studentData.status === "REVISION"
+                      ? "bg-purple-950 text-purple-300 border-purple-800"
                       : studentData.status === "ON_HOLD"
                       ? "bg-amber-950 text-amber-300 border-amber-800"
                       : studentData.status === "COMPLETED"
@@ -465,6 +467,8 @@ export const StudentProfilePage = () => {
                 >
                   {studentData.status === "ACTIVE"
                     ? "🟢 ACTIVE"
+                    : studentData.status === "REVISION"
+                    ? "🔄 REVISION"
                     : studentData.status === "ON_HOLD"
                     ? "🟡 ON HOLD"
                     : studentData.status === "COMPLETED"
@@ -1032,6 +1036,7 @@ export const StudentProfilePage = () => {
                   className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-bold"
                 >
                   <option value="ACTIVE">🟢 ACTIVE</option>
+                  <option value="REVISION">🔄 REVISION (Revision / Practice)</option>
                   <option value="ON_HOLD">🟡 ON HOLD</option>
                   <option value="COMPLETED">🔵 COMPLETED</option>
                   <option value="DROPPED">🔴 DROPPED</option>

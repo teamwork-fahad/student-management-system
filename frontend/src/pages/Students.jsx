@@ -686,6 +686,8 @@ export const Students = () => {
                               className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold border ${
                                 st === "ACTIVE"
                                   ? "bg-emerald-950 text-emerald-400 border-emerald-800"
+                                  : st === "REVISION"
+                                  ? "bg-purple-950 text-purple-300 border-purple-800"
                                   : st === "ON_HOLD"
                                   ? "bg-amber-950 text-amber-300 border-amber-800"
                                   : st === "COMPLETED"
@@ -695,6 +697,8 @@ export const Students = () => {
                             >
                               {st === "ACTIVE"
                                 ? "🟢 ACTIVE"
+                                : st === "REVISION"
+                                ? "🔄 REVISION"
                                 : st === "ON_HOLD"
                                 ? "🟡 ON HOLD"
                                 : st === "COMPLETED"

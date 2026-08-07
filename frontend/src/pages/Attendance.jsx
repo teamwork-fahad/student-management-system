@@ -362,16 +362,23 @@ export const Attendance = () => {
                         </a>
                       </td>
                       <td className="py-3.5 px-4 font-bold text-white">
-                        <a
-                          href={profileUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="hover:text-cyan-400 hover:underline transition flex items-center space-x-1.5"
-                          title="Open student profile in new tab"
-                        >
-                          <span>{s.fullName}</span>
-                          <ExternalLink className="w-3 h-3 text-slate-400 opacity-60 hover:opacity-100 inline" />
-                        </a>
+                        <div className="flex items-center space-x-2">
+                          <a
+                            href={profileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:text-cyan-400 hover:underline transition flex items-center space-x-1.5"
+                            title="Open student profile in new tab"
+                          >
+                            <span>{s.fullName}</span>
+                            <ExternalLink className="w-3 h-3 text-slate-400 opacity-60 hover:opacity-100 inline" />
+                          </a>
+                          {s.studentStatus === "REVISION" && (
+                            <span className="px-2 py-0.5 bg-purple-950 text-purple-300 border border-purple-800 rounded-full font-bold text-[10px]" title="Student is taking Revision/Practice classes">
+                              🔄 REVISION
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="py-3.5 px-4 text-slate-400">{s.courseName}</td>
 
