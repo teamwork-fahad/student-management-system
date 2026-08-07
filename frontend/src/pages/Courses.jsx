@@ -22,11 +22,12 @@ import {
   Phone,
   ExternalLink,
   Trash2,
+  Building2,
 } from "lucide-react";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 
-const COURSE_CATEGORIES = [
+const STATIC_COURSE_CATEGORIES = [
   "School Course",
   "IT Course",
   "AI Related",
@@ -40,6 +41,7 @@ export const Courses = () => {
   const { user } = useAuth();
   const isSuperAdmin = user?.role === "SUPER_ADMIN";
   const [courses, setCourses] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
@@ -50,6 +52,7 @@ export const Courses = () => {
 
   // Create Course Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [departmentId, setDepartmentId] = useState("");
   const [courseName, setCourseName] = useState("");
   const [courseCode, setCourseCode] = useState("");
   const [category, setCategory] = useState("IT Course");
@@ -65,11 +68,19 @@ export const Courses = () => {
     name: "",
     code: "",
     category: "IT Course",
+    departmentId: "",
     duration: 3,
     durationType: "MONTHS",
     fees: 5000,
     description: "",
   });
+
+  // Department Management Modal State (Super Admin CRUD)
+  const [isDeptModalOpen, setIsDeptModalOpen] = useState(false);
+  const [editingDept, setEditingDept] = useState(null);
+  const [deptForm, setDeptForm] = useState({ name: "", code: "", description: "" });
+  const [deptError, setDeptError] = useState("");
+  const [submittingDept, setSubmittingDept] = useState(false);
 
   // Course Students Detail Modal State
   const [selectedCourseForStudents, setSelectedCourseForStudents] = useState(null);
@@ -82,7 +93,58 @@ export const Courses = () => {
 
   useEffect(() => {
     fetchCourses();
+    fetchDepartments();
   }, [sortBy, categoryFilter]);
+
+  const fetchDepartments = async () => {
+    try {
+      const res = await api.get("/departments?includeInactive=true");
+      setDepartments(res.data.data || []);
+    } catch (err) {
+      console.error("Failed to fetch departments", err);
+    }
+  };
+
+  const handleSaveDepartment = async (e) => {
+    e.preventDefault();
+    setDeptError("");
+    setSubmittingDept(true);
+    try {
+      if (editingDept) {
+        await api.put(`/departments/${editingDept.id}`, deptForm);
+      } else {
+        await api.post("/departments", deptForm);
+      }
+      setDeptForm({ name: "", code: "", description: "" });
+      setEditingDept(null);
+      fetchDepartments();
+      fetchCourses();
+    } catch (err) {
+      setDeptError(err.response?.data?.message || "Failed to save department");
+    } finally {
+      setSubmittingDept(false);
+    }
+  };
+
+  const handleToggleDeptStatus = async (dept) => {
+    try {
+      await api.put(`/departments/${dept.id}`, { isActive: !dept.isActive });
+      fetchDepartments();
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to update department status");
+    }
+  };
+
+  const handleDeleteDept = async (dept) => {
+    if (!window.confirm(`Are you sure you want to delete department "${dept.name}"?`)) return;
+    try {
+      await api.delete(`/departments/${dept.id}`);
+      fetchDepartments();
+      fetchCourses();
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to delete department");
+    }
+  };
 
   const fetchCourses = async () => {
     setLoading(true);
@@ -517,6 +579,21 @@ export const Courses = () => {
             </button>
           </div>
 
+          {isSuperAdmin && (
+            <button
+              onClick={() => {
+                setDeptForm({ name: "", code: "", description: "" });
+                setEditingDept(null);
+                setDeptError("");
+                setIsDeptModalOpen(true);
+              }}
+              className="px-4 py-2.5 bg-slate-900 border border-slate-700 hover:border-cyan-500 text-cyan-300 font-bold text-xs rounded-xl shadow-lg flex items-center space-x-2 transition"
+            >
+              <Building2 className="w-4 h-4 text-cyan-400" />
+              <span>Manage Departments</span>
+            </button>
+          )}
+
           <button
             onClick={openCreateModal}
             className="px-4 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-lg flex items-center space-x-2 transition"
@@ -610,12 +687,18 @@ export const Courses = () => {
               onChange={(e) => setCategoryFilter(e.target.value)}
               className="bg-transparent text-slate-200 text-xs focus:outline-none font-bold cursor-pointer"
             >
-              <option value="" className="bg-slate-950">All Categories / Departments</option>
-              {COURSE_CATEGORIES.map((cat) => (
-                <option key={cat} value={cat} className="bg-slate-950">
-                  {cat}
-                </option>
-              ))}
+              <option value="" className="bg-slate-950">All Departments / Categories</option>
+              {departments.length > 0
+                ? departments.map((d) => (
+                    <option key={d.id} value={d.name} className="bg-slate-950">
+                      {d.name} {d.code ? `(${d.code})` : ""}
+                    </option>
+                  ))
+                : STATIC_COURSE_CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat} className="bg-slate-950">
+                      {cat}
+                    </option>
+                  ))}
             </select>
           </div>
         </div>
@@ -1787,6 +1870,168 @@ export const Courses = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* SUPER ADMIN DEPARTMENT MANAGEMENT MODAL */}
+      {isDeptModalOpen && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-2xl w-full shadow-2xl space-y-5 my-8">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center space-x-2">
+                <Building2 className="w-5 h-5 text-cyan-400" />
+                <h3 className="font-extrabold text-white text-base">Department Management (Super Admin)</h3>
+              </div>
+              <button
+                onClick={() => setIsDeptModalOpen(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {deptError && (
+              <div className="p-3 bg-rose-950/80 border border-rose-800 text-rose-300 rounded-xl text-xs">
+                {deptError}
+              </div>
+            )}
+
+            {/* Department Form (Create / Edit) */}
+            <form onSubmit={handleSaveDepartment} className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
+              <h4 className="text-xs font-bold text-cyan-400 uppercase tracking-wider">
+                {editingDept ? `Edit Department: ${editingDept.name}` : "Create New Department"}
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-300 mb-1">Department Name *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Artificial Intelligence"
+                    value={deptForm.name}
+                    onChange={(e) => setDeptForm({ ...deptForm, name: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 text-xs outline-none focus:border-cyan-500 font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-slate-300 mb-1">Department Code</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. AI"
+                    value={deptForm.code}
+                    onChange={(e) => setDeptForm({ ...deptForm, code: e.target.value.toUpperCase() })}
+                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-cyan-400 text-xs outline-none focus:border-cyan-500 font-mono font-bold"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-300 mb-1">Description</label>
+                <input
+                  type="text"
+                  placeholder="Short description of department..."
+                  value={deptForm.description}
+                  onChange={(e) => setDeptForm({ ...deptForm, description: e.target.value })}
+                  className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 text-xs outline-none focus:border-cyan-500"
+                />
+              </div>
+              <div className="flex justify-end space-x-2 pt-1">
+                {editingDept && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingDept(null);
+                      setDeptForm({ name: "", code: "", description: "" });
+                    }}
+                    className="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-700"
+                  >
+                    Cancel Edit
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  disabled={submittingDept}
+                  className="px-4 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-bold shadow flex items-center space-x-1"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  <span>{submittingDept ? "Saving..." : editingDept ? "Update Department" : "Create Department"}</span>
+                </button>
+              </div>
+            </form>
+
+            {/* Department List Table */}
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                Existing Departments ({departments.length})
+              </h4>
+              <div className="max-h-60 overflow-y-auto border border-slate-800 rounded-2xl divide-y divide-slate-800/60 bg-slate-950">
+                {departments.length === 0 ? (
+                  <div className="p-4 text-center text-xs text-slate-500">No departments found.</div>
+                ) : (
+                  departments.map((d) => (
+                    <div key={d.id} className="p-3 flex items-center justify-between hover:bg-slate-900/60 text-xs">
+                      <div className="space-y-0.5">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-bold text-slate-100">{d.name}</span>
+                          {d.code && (
+                            <span className="px-1.5 py-0.5 text-[10px] bg-slate-800 text-cyan-400 font-mono rounded font-bold">
+                              {d.code}
+                            </span>
+                          )}
+                          <span className={`px-2 py-0.5 text-[10px] rounded-full font-bold ${
+                            d.isActive ? "bg-emerald-950 text-emerald-400 border border-emerald-800" : "bg-rose-950 text-rose-400 border border-rose-800"
+                          }`}>
+                            {d.isActive ? "Active" : "Inactive"}
+                          </span>
+                        </div>
+                        {d.description && <p className="text-[11px] text-slate-400">{d.description}</p>}
+                        <p className="text-[10px] text-slate-500">
+                          {d._count?.courses || 0} associated course(s)
+                        </p>
+                      </div>
+
+                      <div className="flex items-center space-x-1.5">
+                        <button
+                          onClick={() => {
+                            setEditingDept(d);
+                            setDeptForm({ name: d.name, code: d.code || "", description: d.description || "" });
+                          }}
+                          className="p-1.5 bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg"
+                          title="Edit Department"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleToggleDeptStatus(d)}
+                          className={`p-1.5 rounded-lg text-xs font-semibold ${
+                            d.isActive ? "bg-amber-950/60 text-amber-400 hover:bg-amber-900" : "bg-emerald-950/60 text-emerald-400 hover:bg-emerald-900"
+                          }`}
+                          title={d.isActive ? "Deactivate" : "Activate"}
+                        >
+                          {d.isActive ? <XCircle className="w-3.5 h-3.5" /> : <CheckCircle className="w-3.5 h-3.5" />}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteDept(d)}
+                          className="p-1.5 bg-slate-800 hover:bg-rose-900 text-rose-400 rounded-lg"
+                          title="Delete Department"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={() => setIsDeptModalOpen(false)}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

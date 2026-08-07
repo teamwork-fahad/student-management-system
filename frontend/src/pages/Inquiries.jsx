@@ -18,10 +18,13 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import api from "../api/axios";
+import { SearchableSelect } from "../components/common/SearchableSelect";
 
 export const Inquiries = () => {
   const [inquiries, setInquiries] = useState([]);
   const [courses, setCourses] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [inqDeptId, setInqDeptId] = useState("");
   const [leadSources, setLeadSources] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -75,12 +78,14 @@ export const Inquiries = () => {
 
   const fetchDropdowns = async () => {
     try {
-      const [cRes, lRes] = await Promise.all([
+      const [cRes, lRes, dRes] = await Promise.all([
         api.get("/courses"),
         api.get("/inquiries/lead-sources"),
+        api.get("/departments"),
       ]);
       setCourses(cRes.data.data?.courses || cRes.data.data || []);
       setLeadSources(lRes.data.data || []);
+      setDepartments(dRes.data.data || []);
     } catch (err) {
       console.error("Failed to fetch dropdown options", err);
     }
@@ -451,17 +456,38 @@ export const Inquiries = () => {
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Course Interested</label>
+                  <label className="block font-semibold text-slate-300 mb-1">Select Department</label>
                   <select
-                    value={addCourseId}
-                    onChange={(e) => setAddCourseId(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500"
+                    value={inqDeptId}
+                    onChange={(e) => setInqDeptId(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500 text-xs font-medium"
                   >
-                    <option value="">Select Course</option>
-                    {courses.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
+                    <option value="">-- All Departments --</option>
+                    {departments.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.name} {d.code ? `(${d.code})` : ""}
+                      </option>
                     ))}
                   </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Course Interested (Searchable)</label>
+                  <SearchableSelect
+                    options={courses
+                      .filter((c) => !inqDeptId || c.departmentId === inqDeptId || c.department?.id === inqDeptId)
+                      .map((c) => ({
+                        value: c.id,
+                        label: `${c.name} (${c.code})`,
+                        subLabel: `Fee: ₹${Number(c.fees).toLocaleString("en-IN")}`,
+                        departmentName: c.department?.name || c.category,
+                      }))}
+                    value={addCourseId}
+                    onChange={(_, val) => setAddCourseId(val)}
+                    placeholder="-- Select / Search Course --"
+                    searchPlaceholder="Type to search course..."
+                    required
+                  />
                 </div>
               </div>
 

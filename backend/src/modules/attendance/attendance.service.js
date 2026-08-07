@@ -80,12 +80,13 @@ export const getAttendanceByDate = async (dateStr, courseId) => {
   const where = {
     deletedAt: null,
     status: "ACTIVE",
+    admission: {
+      status: "ACTIVE",
+    },
   };
 
   if (courseId) {
-    where.admission = {
-      courseId,
-    };
+    where.admission.courseId = courseId;
   }
 
   const students = await prisma.student.findMany({
@@ -120,7 +121,7 @@ export const getAttendanceStats = async () => {
   const today = parseDateToUTC(new Date().toISOString().split("T")[0]);
 
   const [totalStudents, todayPresent, todayAbsent, todayLate] = await Promise.all([
-    prisma.student.count({ where: { deletedAt: null, status: "ACTIVE" } }),
+    prisma.student.count({ where: { deletedAt: null, status: "ACTIVE", admission: { status: "ACTIVE" } } }),
     prisma.attendance.count({ where: { date: today, status: "PRESENT" } }),
     prisma.attendance.count({ where: { date: today, status: "ABSENT" } }),
     prisma.attendance.count({ where: { date: today, status: "LATE" } }),

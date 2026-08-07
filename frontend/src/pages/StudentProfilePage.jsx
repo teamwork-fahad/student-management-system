@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { LoadingSpinner } from "../components/common/LoadingSpinner";
 import { Modal } from "../components/common/Modal";
 import { ReceiptModal } from "../components/receipts/ReceiptModal";
-import { formatDate } from "../utils/formatters";
+import { SearchableSelect } from "../components/common/SearchableSelect";
 import {
   ArrowLeft,
   GraduationCap,
@@ -102,10 +102,24 @@ export const StudentProfilePage = () => {
     remarks: "",
   });
 
+  const [departments, setDepartments] = useState([]);
+  const [addCourseDeptId, setAddCourseDeptId] = useState("");
+  const [editCourseDeptId, setEditCourseDeptId] = useState("");
+
   useEffect(() => {
     fetchStudentProfile();
     fetchCourses();
+    fetchDepartments();
   }, [id]);
+
+  const fetchDepartments = async () => {
+    try {
+      const res = await api.get("/departments");
+      setDepartments(res.data?.data || []);
+    } catch (err) {
+      console.error("Error fetching departments:", err);
+    }
+  };
 
   const fetchStudentProfile = async () => {
     setLoading(true);
@@ -1175,21 +1189,42 @@ export const StudentProfilePage = () => {
               </div>
             )}
 
-            <div>
-              <label className="text-slate-400 block mb-1 font-semibold">Select Course</label>
-              <select
-                value={addCourseForm.courseId}
-                onChange={(e) => handleCourseSelectionChange(e.target.value)}
-                required
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-bold"
-              >
-                <option value="">Select a Course...</option>
-                {coursesList.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} ({c.code}) - ₹{c.fees}
-                  </option>
-                ))}
-              </select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className="text-slate-400 block mb-1 font-semibold">1. Select Department</label>
+                <select
+                  value={addCourseDeptId}
+                  onChange={(e) => setAddCourseDeptId(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-medium text-xs"
+                >
+                  <option value="">-- All Departments --</option>
+                  {departments.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name} {d.code ? `(${d.code})` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-slate-400 block mb-1 font-semibold">2. Select Course (Searchable) *</label>
+                <SearchableSelect
+                  options={coursesList
+                    .filter((c) => !addCourseDeptId || c.departmentId === addCourseDeptId || c.department?.id === addCourseDeptId)
+                    .map((c) => ({
+                      value: c.id,
+                      label: `${c.name} (${c.code})`,
+                      subLabel: `Fee: ₹${Number(c.fees).toLocaleString("en-IN")}`,
+                      departmentName: c.department?.name || c.category,
+                      fees: c.fees,
+                    }))}
+                  value={addCourseForm.courseId}
+                  onChange={(_, val) => handleCourseSelectionChange(val)}
+                  placeholder="-- Search Course --"
+                  searchPlaceholder="Search by course name or code..."
+                  required
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -1251,34 +1286,57 @@ export const StudentProfilePage = () => {
               </div>
             )}
 
-            <div>
-              <label className="text-slate-400 block mb-1 font-semibold">
-                Transfer / Reassign Course
-              </label>
-              <select
-                value={editCourseForm.courseId}
-                onChange={(e) => {
-                  const targetCourseId = e.target.value;
-                  const foundCourse = coursesList.find((c) => c.id === targetCourseId);
-                  const newBaseFees = foundCourse ? String(foundCourse.fees) : editCourseForm.courseFees;
-                  const discountVal = Number(editCourseForm.discount || 0);
-                  const finalVal = Math.max(0, Number(newBaseFees) - discountVal);
-                  setEditCourseForm({
-                    ...editCourseForm,
-                    courseId: targetCourseId,
-                    courseFees: newBaseFees,
-                    finalFees: String(finalVal),
-                  });
-                }}
-                required
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-cyan-400 focus:outline-none focus:border-cyan-500 font-bold text-xs"
-              >
-                {coursesList.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} ({c.code}) - ₹{c.fees}
-                  </option>
-                ))}
-              </select>
+            <div className="space-y-3">
+              <div>
+                <label className="text-slate-400 block mb-1 font-semibold">
+                  1. Filter by Department
+                </label>
+                <select
+                  value={editCourseDeptId}
+                  onChange={(e) => setEditCourseDeptId(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-medium text-xs"
+                >
+                  <option value="">-- All Departments --</option>
+                  {departments.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name} {d.code ? `(${d.code})` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-slate-400 block mb-1 font-semibold">
+                  2. Transfer / Reassign Course (Search Box)
+                </label>
+                <SearchableSelect
+                  options={coursesList
+                    .filter((c) => !editCourseDeptId || c.departmentId === editCourseDeptId || c.department?.id === editCourseDeptId)
+                    .map((c) => ({
+                      value: c.id,
+                      label: `${c.name} (${c.code})`,
+                      subLabel: `Fee: ₹${Number(c.fees).toLocaleString("en-IN")}`,
+                      departmentName: c.department?.name || c.category,
+                      fees: c.fees,
+                    }))}
+                  value={editCourseForm.courseId}
+                  onChange={(_, targetCourseId) => {
+                    const foundCourse = coursesList.find((c) => c.id === targetCourseId);
+                    const newBaseFees = foundCourse ? String(foundCourse.fees) : editCourseForm.courseFees;
+                    const discountVal = Number(editCourseForm.discount || 0);
+                    const finalVal = Math.max(0, Number(newBaseFees) - discountVal);
+                    setEditCourseForm({
+                      ...editCourseForm,
+                      courseId: targetCourseId,
+                      courseFees: newBaseFees,
+                      finalFees: String(finalVal),
+                    });
+                  }}
+                  placeholder="-- Search Course --"
+                  searchPlaceholder="Search course name or code..."
+                  required
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-3 gap-3">

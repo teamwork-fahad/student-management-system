@@ -41,29 +41,45 @@ export const createCourse = async (courseData) => {
 };
 
 export const getAllCourses = async (query = {}) => {
-  const { sortBy = "name_asc", search = "", category = "" } = query;
+  const { sortBy = "name_asc", search = "", category = "", departmentId = "" } = query;
 
   const where = {
     isActive: true,
   };
 
-  if (category) {
-    where.category = category;
+  if (departmentId) {
+    where.departmentId = departmentId;
+  } else if (category) {
+    where.OR = [
+      { category: category },
+      { department: { name: category } },
+    ];
   }
 
   if (search) {
     const trimmed = String(search).trim();
-    where.OR = [
+    const searchConditions = [
       { name: { contains: trimmed, mode: "insensitive" } },
       { code: { contains: trimmed, mode: "insensitive" } },
       { category: { contains: trimmed, mode: "insensitive" } },
       { description: { contains: trimmed, mode: "insensitive" } },
+      { department: { name: { contains: trimmed, mode: "insensitive" } } },
     ];
+    if (where.OR) {
+      where.AND = [
+        { OR: where.OR },
+        { OR: searchConditions },
+      ];
+      delete where.OR;
+    } else {
+      where.OR = searchConditions;
+    }
   }
 
   const courses = await prisma.course.findMany({
     where,
     include: {
+      department: true,
       admissions: {
         where: {
           deletedAt: null,

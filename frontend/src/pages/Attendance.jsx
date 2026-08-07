@@ -20,6 +20,10 @@ export const Attendance = () => {
 
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [students, setStudents] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [selectedDeptId, setSelectedDeptId] = useState("");
+  const [selectedCourseId, setSelectedCourseId] = useState("");
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -29,15 +33,52 @@ export const Attendance = () => {
   const [attendanceState, setAttendanceState] = useState({});
 
   useEffect(() => {
+    fetchDropdowns();
+  }, []);
+
+  useEffect(() => {
     fetchAttendance();
     fetchStats();
-  }, [date]);
+  }, [date, selectedCourseId, selectedDeptId]);
+
+  const fetchDropdowns = async () => {
+    try {
+      const [dRes, cRes] = await Promise.all([
+        api.get("/departments"),
+        api.get("/courses"),
+      ]);
+      setDepartments(dRes.data.data || []);
+      setCourses(cRes.data.data || []);
+    } catch (err) {
+      console.error("Failed to load filter dropdowns", err);
+    }
+  };
 
   const fetchAttendance = async () => {
     setLoading(true);
     try {
-      const res = await api.get(`/attendance?date=${date}`);
-      const list = res.data.data || [];
+      let url = `/attendance?date=${date}`;
+      if (selectedCourseId) {
+        url += `&courseId=${selectedCourseId}`;
+      }
+      const res = await api.get(url);
+      let list = res.data.data || [];
+
+      // Filter locally by department if selected and course not explicitly picked
+      if (selectedDeptId && !selectedCourseId) {
+        const deptCourseIds = new Set(
+          courses
+            .filter((c) => c.departmentId === selectedDeptId || c.department?.id === selectedDeptId)
+            .map((c) => c.id)
+        );
+        const deptCourseNames = new Set(
+          courses
+            .filter((c) => c.departmentId === selectedDeptId || c.department?.id === selectedDeptId)
+            .map((c) => c.name)
+        );
+        list = list.filter((s) => deptCourseNames.has(s.courseName));
+      }
+
       setStudents(list);
 
       const state = {};
@@ -154,7 +195,46 @@ export const Attendance = () => {
           </p>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-3 flex-wrap gap-y-2">
+          {/* Department Filter */}
+          <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 px-3 py-2 rounded-xl text-xs">
+            <Filter className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+            <select
+              value={selectedDeptId}
+              onChange={(e) => {
+                setSelectedDeptId(e.target.value);
+                setSelectedCourseId(""); // reset course when dept changes
+              }}
+              className="bg-transparent text-slate-100 font-bold outline-none cursor-pointer text-xs"
+            >
+              <option value="" className="bg-slate-950">-- All Departments --</option>
+              {departments.map((d) => (
+                <option key={d.id} value={d.id} className="bg-slate-950">
+                  {d.name} {d.code ? `(${d.code})` : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Course Filter */}
+          <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 px-3 py-2 rounded-xl text-xs">
+            <span className="text-[10px] font-bold text-slate-400 uppercase">Course:</span>
+            <select
+              value={selectedCourseId}
+              onChange={(e) => setSelectedCourseId(e.target.value)}
+              className="bg-transparent text-cyan-400 font-bold outline-none cursor-pointer text-xs"
+            >
+              <option value="" className="bg-slate-950">-- All Courses --</option>
+              {courses
+                .filter((c) => !selectedDeptId || c.departmentId === selectedDeptId || c.department?.id === selectedDeptId)
+                .map((c) => (
+                  <option key={c.id} value={c.id} className="bg-slate-950">
+                    {c.name} ({c.code})
+                  </option>
+                ))}
+            </select>
+          </div>
+
           <div className="flex items-center space-x-2 bg-slate-900 border border-slate-800 px-3 py-2 rounded-xl">
             <CalendarIcon className="w-4 h-4 text-cyan-400" />
             <input

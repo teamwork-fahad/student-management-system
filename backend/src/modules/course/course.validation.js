@@ -19,6 +19,7 @@ export const createCourseSchema = z.object({
     .trim()
     .min(1, "Code is required"),
   category: z.string().trim().optional(),
+  departmentId: z.string().trim().nullable().optional(),
   description: z.string().trim().optional(),
   duration: z.coerce
     .number()
