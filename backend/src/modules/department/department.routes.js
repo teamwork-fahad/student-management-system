@@ -6,17 +6,18 @@ import {
   updateDepartment,
   deleteDepartment,
 } from './department.controller.js';
-import { authenticateUser, authorizeRoles } from '../../middlewares/authMiddleware.js';
+import { authenticate } from '../../middlewares/auth.middleware.js';
+import { authorize } from '../../middlewares/role.middleware.js';
 
 const router = express.Router();
 
 // Public / Authenticated read routes
-router.get('/', authenticateUser, getDepartments);
-router.get('/:id', authenticateUser, getDepartmentById);
+router.get('/', authenticate, getDepartments);
+router.get('/:id', authenticate, getDepartmentById);
 
 // Super Admin CRUD write routes
-router.post('/', authenticateUser, authorizeRoles('SUPER_ADMIN'), createDepartment);
-router.put('/:id', authenticateUser, authorizeRoles('SUPER_ADMIN'), updateDepartment);
-router.delete('/:id', authenticateUser, authorizeRoles('SUPER_ADMIN'), deleteDepartment);
+router.post('/', authenticate, authorize('SUPER_ADMIN'), createDepartment);
+router.put('/:id', authenticate, authorize('SUPER_ADMIN'), updateDepartment);
+router.delete('/:id', authenticate, authorize('SUPER_ADMIN'), deleteDepartment);
 
 export default router;
