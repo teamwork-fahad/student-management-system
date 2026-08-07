@@ -476,6 +476,102 @@ export const StudentDashboard = () => {
           )}
         </div>
 
+        {/* ATTENDANCE LOG & PERFORMANCE HISTORY */}
+        <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 space-y-6">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-indigo-600/20 text-indigo-400 rounded-xl">
+                <Calendar className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white">Attendance Log & History</h3>
+                <p className="text-xs text-slate-400">Classroom attendance record & presence percentage</p>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <span className="text-xs font-semibold text-slate-400">Attendance Rate:</span>
+              <span className="px-3 py-1 bg-emerald-950 text-emerald-400 border border-emerald-800 rounded-full font-black text-xs">
+                {studentData?.attendanceStats?.attendancePercentage || 100}%
+              </span>
+            </div>
+          </div>
+
+          {/* Attendance Stats Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+            <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800">
+              <span className="text-slate-500 uppercase font-bold text-[10px] block">Total Conducted Sessions</span>
+              <span className="text-xl font-extrabold text-white">
+                {studentData?.attendanceStats?.totalClasses || 0} Days
+              </span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800">
+              <span className="text-emerald-500 uppercase font-bold text-[10px] block">Present Sessions</span>
+              <span className="text-xl font-extrabold text-emerald-400">
+                {studentData?.attendanceStats?.presentCount || 0} Days
+              </span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800">
+              <span className="text-rose-500 uppercase font-bold text-[10px] block">Absent Sessions</span>
+              <span className="text-xl font-extrabold text-rose-400">
+                {studentData?.attendanceStats?.absentCount || 0} Days
+              </span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800">
+              <span className="text-cyan-500 uppercase font-bold text-[10px] block">Presence Score</span>
+              <span className="text-xl font-extrabold text-cyan-400">
+                {studentData?.attendanceStats?.attendancePercentage || 100}%
+              </span>
+            </div>
+          </div>
+
+          {/* Attendance Logs Table */}
+          {(!studentData?.attendanceStats?.recentLogs || studentData.attendanceStats.recentLogs.length === 0) ? (
+            <div className="text-center py-8 text-xs text-slate-500">
+              No daily attendance records marked yet.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-950/80 text-slate-400 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-800">
+                  <tr>
+                    <th className="py-3 px-4">Date</th>
+                    <th className="py-3 px-4">Attendance Status</th>
+                    <th className="py-3 px-4">Remarks / Notes</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                  {studentData.attendanceStats.recentLogs.map((log) => (
+                    <tr key={log.id} className="hover:bg-slate-800/30 transition">
+                      <td className="py-3 px-4 font-mono font-semibold text-white">
+                        {formatDate(log.date)}
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className={`px-2.5 py-1 rounded-lg font-bold text-[10px] ${
+                          log.status === "PRESENT"
+                            ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
+                            : log.status === "LATE"
+                            ? "bg-amber-950 text-amber-400 border border-amber-800"
+                            : "bg-rose-950 text-rose-400 border border-rose-800"
+                        }`}>
+                          {log.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-slate-400 italic">
+                        {log.remarks || "Regular session marked by instructor"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+
         {/* QUICK COURSE INQUIRY HELPDESK */}
         <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 space-y-4">
           <div className="flex items-center space-x-3 pb-3 border-b border-slate-800">

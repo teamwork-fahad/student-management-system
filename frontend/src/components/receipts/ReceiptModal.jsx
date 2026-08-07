@@ -20,32 +20,42 @@ export const ReceiptModal = ({ payment, student, admission, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto font-sans print:p-0 print:bg-white print:static">
-      {/* CSS @media print rules to hide website background & headers completely */}
+      {/* CSS @media print rules to print clean receipt without blank page */}
       <style>{`
         @media print {
-          body * {
-            visibility: hidden !important;
+          @page {
+            margin: 10mm;
+            size: auto;
           }
-          #printable-receipt-card, #printable-receipt-card * {
-            visibility: visible !important;
+          body {
+            visibility: hidden !important;
+            background: #ffffff !important;
+            color: #000000 !important;
           }
           #printable-receipt-card {
+            visibility: visible !important;
             position: absolute !important;
             left: 0 !important;
             top: 0 !important;
             width: 100% !important;
             max-width: 100% !important;
+            margin: 0 !important;
+            padding: 15px !important;
+            box-shadow: none !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 12px !important;
             background: #ffffff !important;
             color: #000000 !important;
-            box-shadow: none !important;
-            border: none !important;
-            padding: 20px !important;
+          }
+          #printable-receipt-card * {
+            visibility: visible !important;
           }
           .no-print {
             display: none !important;
           }
         }
       `}</style>
+
 
       <div
         id="printable-receipt-card"
