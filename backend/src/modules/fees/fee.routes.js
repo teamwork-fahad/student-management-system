@@ -5,6 +5,7 @@ import {
   collectFeeController,
   getFeeHistoryController,
   getStudentFeeSummaryController,
+  updateFeePaymentController,
 } from "./fee.controller.js";
 
 const router = Router();
@@ -22,6 +23,14 @@ router.post(
   authenticate,
   authorize("SUPER_ADMIN", "FACULTY"),
   collectFeeController
+);
+
+// PUT /api/v1/fees/:id - Edit fee payment receipt details (SUPER_ADMIN)
+router.put(
+  "/:id",
+  authenticate,
+  authorize("SUPER_ADMIN"),
+  updateFeePaymentController
 );
 
 // GET /api/v1/fees - Get fee history list with filters (SUPER_ADMIN, FACULTY)

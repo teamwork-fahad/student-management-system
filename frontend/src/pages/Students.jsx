@@ -970,7 +970,7 @@ export const Students = () => {
                           </div>
                           <div>
                             <button
-                              onClick={() => setSelectedStudent(student)}
+                              onClick={() => navigate(`/dashboard/students/${student.id}`)}
                               className="font-bold text-white hover:text-cyan-400 text-sm text-left transition"
                             >
                               {toTitleCase(student.fullName)}
@@ -1000,7 +1000,7 @@ export const Students = () => {
                             <span
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setSelectedStudent(student);
+                                navigate(`/dashboard/students/${student.id}`);
                               }}
                               className="px-2 py-0.5 bg-purple-950 hover:bg-purple-900 text-purple-300 border border-purple-800 rounded-lg text-[10px] font-extrabold cursor-pointer transition shadow hover:scale-105 inline-flex items-center space-x-0.5"
                               title="Click to view all enrolled courses"
@@ -1060,8 +1060,8 @@ export const Students = () => {
                       {/* ACTIONS */}
                       <td className="p-3.5 text-center space-x-1.5">
                         <button
-                          onClick={() => setSelectedStudent(student)}
-                          className="px-2.5 py-1 bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white rounded-lg font-bold text-xs inline-flex items-center space-x-1 transition"
+                          onClick={() => navigate(`/dashboard/students/${student.id}`)}
+                          className="px-2.5 py-1 bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white rounded-lg font-bold text-xs inline-flex items-center space-x-1 transition cursor-pointer"
                           title="View Complete Student Profile & History"
                         >
                           <Eye className="w-3.5 h-3.5" />
@@ -1168,8 +1168,8 @@ export const Students = () => {
                     <span>Pay Fee</span>
                   </button>
                   <button
-                    onClick={() => setSelectedStudent(student)}
-                    className="flex-1 py-1.5 bg-slate-900 hover:bg-cyan-600 text-slate-300 hover:text-white rounded-xl text-xs font-semibold flex items-center justify-center space-x-1 transition"
+                    onClick={() => navigate(`/dashboard/students/${student.id}`)}
+                    className="flex-1 py-1.5 bg-slate-900 hover:bg-cyan-600 text-slate-300 hover:text-white rounded-xl text-xs font-semibold flex items-center justify-center space-x-1 transition cursor-pointer"
                   >
                     <Eye className="w-3.5 h-3.5" />
                     <span>Profile</span>

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import api from "../api/axios";
 import { ReceiptModal } from "../components/receipts/ReceiptModal";
 import { Modal } from "../components/common/Modal";
 import { SearchableSelect } from "../components/common/SearchableSelect";
 import { formatDate } from "../utils/formatters";
+import { useAuth } from "../context/AuthContext";
 import {
   CreditCard,
   CheckCircle2,
@@ -20,18 +22,75 @@ import {
   Calendar,
   Layers,
   Eye,
+  Edit,
+  Save,
   X,
   BarChart3,
   DollarSign,
 } from "lucide-react";
 
 export const Fees = () => {
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === "SUPER_ADMIN";
+
   const [students, setStudents] = useState([]);
   const [feeHistory, setFeeHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [selectedReceiptPayment, setSelectedReceiptPayment] = useState(null);
+
+  // Edit Fee Payment Modal State (Super Admin)
+  const [editingPayment, setEditingPayment] = useState(null);
+  const [editFeeForm, setEditFeeForm] = useState({
+    amount: "",
+    paymentMode: "CASH",
+    paymentDate: new Date().toISOString().split("T")[0],
+    transactionReference: "",
+    remarks: "",
+  });
+  const [editFeeSubmitting, setEditFeeSubmitting] = useState(false);
+  const [editFeeError, setEditFeeError] = useState("");
+
+  const handleOpenEditFeeModal = (payment) => {
+    setEditingPayment(payment);
+    const formattedDate = payment.paymentDate
+      ? new Date(payment.paymentDate).toISOString().split("T")[0]
+      : new Date(payment.createdAt).toISOString().split("T")[0];
+
+    setEditFeeForm({
+      amount: payment.amount ? String(payment.amount) : "0",
+      paymentMode: payment.paymentMode || "CASH",
+      paymentDate: formattedDate,
+      transactionReference: payment.transactionReference || "",
+      remarks: payment.remarks || "",
+    });
+    setEditFeeError("");
+  };
+
+  const handleEditFeeSubmit = async (e) => {
+    e.preventDefault();
+    if (!editingPayment) return;
+
+    setEditFeeSubmitting(true);
+    setEditFeeError("");
+    try {
+      await api.put(`/fees/${editingPayment.id}`, {
+        amount: Number(editFeeForm.amount),
+        paymentMode: editFeeForm.paymentMode,
+        paymentDate: editFeeForm.paymentDate,
+        transactionReference: editFeeForm.transactionReference,
+        remarks: editFeeForm.remarks,
+      });
+
+      setEditingPayment(null);
+      fetchInitialData();
+    } catch (err) {
+      setEditFeeError(err.response?.data?.message || "Failed to update fee payment.");
+    } finally {
+      setEditFeeSubmitting(false);
+    }
+  };
 
   // Analytics Switcher Tab: 'yearly' | 'monthly'
   const [analyticsTab, setAnalyticsTab] = useState("yearly");
@@ -777,7 +836,17 @@ export const Fees = () => {
                         {p.transactionReference || `REC-${p.id.slice(-6).toUpperCase()}`}
                       </td>
                       <td className="py-3 px-4 font-bold text-white">
-                        {p.admission?.student?.fullName || "Student"}
+                        {p.admission?.studentId || p.admission?.student?.id ? (
+                          <Link
+                            to={`/dashboard/students/${p.admission?.studentId || p.admission?.student?.id}`}
+                            className="hover:text-cyan-400 hover:underline transition"
+                            title="View Student Profile"
+                          >
+                            {p.admission?.student?.fullName || "Student"}
+                          </Link>
+                        ) : (
+                          p.admission?.student?.fullName || "Student"
+                        )}
                       </td>
                       <td className="py-3 px-4 text-slate-400 font-mono">
                         {formatDate(p.paymentDate || p.createdAt)}
@@ -791,13 +860,26 @@ export const Fees = () => {
                         ₹{Number(p.amount).toLocaleString("en-IN")}
                       </td>
                       <td className="py-3 px-4 text-center">
-                        <button
-                          onClick={() => setSelectedReceiptPayment(p)}
-                          className="px-2.5 py-1 bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white rounded-lg font-semibold text-[11px] inline-flex items-center space-x-1 transition"
-                        >
-                          <Printer className="w-3.5 h-3.5" />
-                          <span>Print</span>
-                        </button>
+                        <div className="flex items-center justify-center space-x-1.5">
+                          <button
+                            onClick={() => setSelectedReceiptPayment(p)}
+                            className="px-2.5 py-1 bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white rounded-lg font-semibold text-[11px] inline-flex items-center space-x-1 transition cursor-pointer"
+                          >
+                            <Printer className="w-3.5 h-3.5" />
+                            <span>Print</span>
+                          </button>
+                          {isSuperAdmin && (
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEditFeeModal(p)}
+                              className="px-2.5 py-1 bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-800 rounded-lg font-bold text-[11px] inline-flex items-center space-x-1 transition cursor-pointer"
+                              title="Edit fee payment receipt details"
+                            >
+                              <Edit className="w-3.5 h-3.5" />
+                              <span>Edit</span>
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -829,13 +911,26 @@ export const Fees = () => {
                     <div className="text-base font-extrabold text-emerald-400">
                       ₹{Number(p.amount).toLocaleString("en-IN")}
                     </div>
-                    <button
-                      onClick={() => setSelectedReceiptPayment(p)}
-                      className="px-3 py-1 bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white rounded-lg font-semibold text-[11px] flex items-center space-x-1 transition"
-                    >
-                      <Printer className="w-3.5 h-3.5" />
-                      <span>Print</span>
-                    </button>
+                    <div className="flex items-center space-x-1.5">
+                      <button
+                        onClick={() => setSelectedReceiptPayment(p)}
+                        className="px-3 py-1 bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white rounded-lg font-semibold text-[11px] flex items-center space-x-1 transition cursor-pointer"
+                      >
+                        <Printer className="w-3.5 h-3.5" />
+                        <span>Print</span>
+                      </button>
+                      {isSuperAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEditFeeModal(p)}
+                          className="px-2.5 py-1 bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-800 rounded-lg font-bold text-[11px] flex items-center space-x-1 transition cursor-pointer"
+                          title="Edit fee payment receipt details"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                          <span>Edit</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -961,6 +1056,116 @@ export const Fees = () => {
               </table>
             </div>
           </div>
+        </Modal>
+      )}
+
+      {/* EDIT FEE PAYMENT MODAL (SUPER ADMIN) */}
+      {editingPayment && (
+        <Modal
+          isOpen={!!editingPayment}
+          onClose={() => setEditingPayment(null)}
+          title={`Edit Fee Payment Receipt (${editingPayment.transactionReference || "REC-" + editingPayment.id.slice(-6).toUpperCase()})`}
+        >
+          <form onSubmit={handleEditFeeSubmit} className="space-y-4 text-xs font-sans">
+            {editFeeError && (
+              <div className="p-3 bg-rose-950/80 border border-rose-800 rounded-xl text-rose-300">
+                {editFeeError}
+              </div>
+            )}
+
+            <div className="p-3.5 bg-slate-950/80 border border-slate-800 rounded-xl space-y-1">
+              <span className="text-slate-400 block font-semibold text-[10px] uppercase">Student Name</span>
+              <span className="font-bold text-white text-sm">
+                {editingPayment.admission?.student?.fullName || "Student"}
+              </span>
+              <span className="text-slate-400 block text-[11px] font-mono">
+                Course: {editingPayment.admission?.courseNameSnapshot || editingPayment.admission?.course?.name || "General Course"}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-slate-400 block mb-1 font-semibold">Paid Amount (₹) *</label>
+                <input
+                  type="number"
+                  value={editFeeForm.amount}
+                  onChange={(e) => setEditFeeForm({ ...editFeeForm, amount: e.target.value })}
+                  required
+                  min={1}
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-bold text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="text-slate-400 block mb-1 font-semibold">Payment Date *</label>
+                <input
+                  type="date"
+                  value={editFeeForm.paymentDate}
+                  onChange={(e) => setEditFeeForm({ ...editFeeForm, paymentDate: e.target.value })}
+                  onClick={(e) => e.target.showPicker?.()}
+                  required
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-bold cursor-pointer [color-scheme:dark]"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-slate-400 block mb-1 font-semibold">Payment Mode</label>
+                <select
+                  value={editFeeForm.paymentMode}
+                  onChange={(e) => setEditFeeForm({ ...editFeeForm, paymentMode: e.target.value })}
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-bold"
+                >
+                  <option value="CASH">CASH</option>
+                  <option value="UPI">UPI / GPay / PhonePe</option>
+                  <option value="CARD">CARD</option>
+                  <option value="BANK_TRANSFER">BANK TRANSFER</option>
+                  <option value="CHEQUE">CHEQUE</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-slate-400 block mb-1 font-semibold">Txn Ref / Receipt No</label>
+                <input
+                  type="text"
+                  value={editFeeForm.transactionReference}
+                  onChange={(e) => setEditFeeForm({ ...editFeeForm, transactionReference: e.target.value })}
+                  placeholder="UPI Ref / Receipt Number"
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-mono"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-slate-400 block mb-1 font-semibold">Remarks / Installment Note</label>
+              <textarea
+                rows={2}
+                value={editFeeForm.remarks}
+                onChange={(e) => setEditFeeForm({ ...editFeeForm, remarks: e.target.value })}
+                placeholder="Installment payment note..."
+                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 resize-none"
+              />
+            </div>
+
+            <div className="flex justify-end space-x-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setEditingPayment(null)}
+                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-slate-400 rounded-xl font-bold"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={editFeeSubmitting}
+                className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl font-bold shadow flex items-center space-x-1 disabled:opacity-50"
+              >
+                <Save className="w-4 h-4" />
+                <span>{editFeeSubmitting ? "Updating..." : "Save Receipt Changes"}</span>
+              </button>
+            </div>
+          </form>
         </Modal>
       )}
     </div>

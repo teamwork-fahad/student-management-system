@@ -230,3 +230,63 @@ export const getStudentFeeSummary = async (studentId) => {
     payments: admission.payments,
   };
 };
+
+/**
+ * Update an existing fee payment record and recalculate admission dues.
+ */
+export const updateFeePayment = async (paymentId, payload, updatedBy) => {
+  const existingPayment = await prisma.admissionPayment.findUnique({
+    where: { id: paymentId },
+    include: {
+      admission: true,
+    },
+  });
+
+  if (!existingPayment) {
+    throw createHttpError("Fee payment record not found", 404);
+  }
+
+  const { amount, paymentMode, paymentDate, transactionReference, remarks } = payload;
+
+  return prisma.$transaction(async (tx) => {
+    const updateData = {};
+    if (amount !== undefined) updateData.amount = new Prisma.Decimal(Number(amount));
+    if (paymentMode) updateData.paymentMode = paymentMode;
+    if (paymentDate) updateData.paymentDate = new Date(paymentDate);
+    if (transactionReference !== undefined) updateData.transactionReference = transactionReference;
+    if (remarks !== undefined) updateData.remarks = remarks;
+
+    const updatedPayment = await tx.admissionPayment.update({
+      where: { id: paymentId },
+      data: updateData,
+      include: {
+        admission: {
+          include: {
+            student: true,
+            course: true,
+          },
+        },
+      },
+    });
+
+    // Recalculate Admission total paid & pending amounts
+    const allPayments = await tx.admissionPayment.findMany({
+      where: { admissionId: existingPayment.admissionId },
+    });
+
+    const totalPaid = allPayments.reduce((sum, p) => sum + Number(p.amount), 0);
+    const finalFees = Number(existingPayment.admission.finalFees || 0);
+    const newPending = Math.max(0, finalFees - totalPaid);
+
+    await tx.admission.update({
+      where: { id: existingPayment.admissionId },
+      data: {
+        paidAmount: new Prisma.Decimal(totalPaid),
+        pendingAmount: new Prisma.Decimal(newPending),
+        updatedBy,
+      },
+    });
+
+    return updatedPayment;
+  });
+};

@@ -273,13 +273,18 @@ export const StudentProfilePage = () => {
   };
 
   // Open Fee Collection Modal
-  const handleOpenFeeModal = () => {
+  const handleOpenFeeModal = (admObj = null) => {
     if (!studentData) return;
-    const defaultAdm = studentData.allAdmissions?.[0] || studentData.admission;
+    // Guard against React SyntheticEvent being passed as admObj
+    const targetAdm = (admObj && typeof admObj === "object" && admObj.id)
+      ? admObj
+      : (studentData.allAdmissions?.[0] || studentData.admission);
+
     setFeeForm({
-      admissionId: defaultAdm?.id || "",
-      amount: defaultAdm?.pendingAmount ? String(defaultAdm.pendingAmount) : "",
+      admissionId: targetAdm?.id || "",
+      amount: targetAdm?.pendingAmount ? String(targetAdm.pendingAmount) : "",
       paymentMode: "CASH",
+      paymentDate: new Date().toISOString().split("T")[0],
       transactionReference: "",
       remarks: "",
     });
@@ -297,9 +302,11 @@ export const StudentProfilePage = () => {
     setFeeSubmitting(true);
     setFeeError("");
     try {
-      await api.post(`/admissions/${feeForm.admissionId}/payments`, {
+      await api.post("/fees/collect", {
+        admissionId: feeForm.admissionId,
         amount: Number(feeForm.amount),
         paymentMode: feeForm.paymentMode,
+        paymentDate: feeForm.paymentDate,
         transactionReference: feeForm.transactionReference,
         remarks: feeForm.remarks,
       });
@@ -474,7 +481,7 @@ export const StudentProfilePage = () => {
           </button>
 
           <button
-            onClick={handleOpenFeeModal}
+            onClick={() => handleOpenFeeModal()}
             className="px-3.5 py-2 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white rounded-xl border border-emerald-700/60 flex items-center space-x-1.5 transition shadow"
             title="Collect tuition fee"
           >
@@ -1064,19 +1071,21 @@ export const StudentProfilePage = () => {
               <select
                 value={feeForm.admissionId}
                 onChange={(e) => {
-                  const adm = admissions.find((a) => a.id === e.target.value);
+                  const selId = e.target.value;
+                  const adm = admissions.find((a) => a.id === selId);
                   setFeeForm({
                     ...feeForm,
-                    admissionId: e.target.value,
-                    amount: adm?.pendingAmount ? String(adm.pendingAmount) : "",
+                    admissionId: selId,
+                    amount: adm?.pendingAmount ? String(adm.pendingAmount) : feeForm.amount,
                   });
                 }}
                 required
                 className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-bold"
               >
+                {!feeForm.admissionId && <option value="">-- Select an Enrolled Course --</option>}
                 {admissions.map((adm) => (
                   <option key={adm.id} value={adm.id}>
-                    {adm.courseNameSnapshot || adm.course?.name} (Pending: ₹{Number(adm.pendingAmount).toLocaleString("en-IN")})
+                    {adm.courseNameSnapshot || adm.course?.name} (Pending Dues: ₹{Number(adm.pendingAmount).toLocaleString("en-IN")})
                   </option>
                 ))}
               </select>
@@ -1096,6 +1105,20 @@ export const StudentProfilePage = () => {
               </div>
 
               <div>
+                <label className="text-slate-400 block mb-1 font-semibold">Payment Date *</label>
+                <input
+                  type="date"
+                  value={feeForm.paymentDate || new Date().toISOString().split("T")[0]}
+                  onChange={(e) => setFeeForm({ ...feeForm, paymentDate: e.target.value })}
+                  onClick={(e) => e.target.showPicker?.()}
+                  required
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-bold cursor-pointer [color-scheme:dark]"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
                 <label className="text-slate-400 block mb-1 font-semibold">Payment Mode</label>
                 <select
                   value={feeForm.paymentMode}
@@ -1108,17 +1131,17 @@ export const StudentProfilePage = () => {
                   <option value="CHEQUE">CHEQUE</option>
                 </select>
               </div>
-            </div>
 
-            <div>
-              <label className="text-slate-400 block mb-1 font-semibold">Transaction Reference / UTR</label>
-              <input
-                type="text"
-                value={feeForm.transactionReference}
-                onChange={(e) => setFeeForm({ ...feeForm, transactionReference: e.target.value })}
-                placeholder="UPI Ref / Receipt Number"
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-mono"
-              />
+              <div>
+                <label className="text-slate-400 block mb-1 font-semibold">Transaction Reference / UTR</label>
+                <input
+                  type="text"
+                  value={feeForm.transactionReference}
+                  onChange={(e) => setFeeForm({ ...feeForm, transactionReference: e.target.value })}
+                  placeholder="UPI Ref / Receipt Number"
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-mono"
+                />
+              </div>
             </div>
 
             <div className="flex justify-end space-x-2 pt-2">

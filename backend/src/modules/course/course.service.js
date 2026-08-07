@@ -80,6 +80,7 @@ export const getAllCourses = async (query = {}) => {
     const admissions = c.admissions || [];
     const activeStudents = admissions.filter((a) => a.status === "ACTIVE").length;
     const completedStudents = admissions.filter((a) => a.status === "COMPLETED").length;
+    const droppedStudents = admissions.filter((a) => a.status === "DROPPED").length;
     const cancelledStudents = admissions.filter((a) => a.status === "CANCELLED").length;
     const totalStudents = admissions.length;
 
@@ -89,6 +90,7 @@ export const getAllCourses = async (query = {}) => {
       stats: {
         activeStudents,
         completedStudents,
+        droppedStudents,
         cancelledStudents,
         totalStudents,
       },

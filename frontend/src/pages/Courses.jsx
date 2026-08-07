@@ -432,6 +432,11 @@ export const Courses = () => {
     });
 
   const filteredModalStudents = courseStudents.filter((s) => {
+    // Strictly filter by tab status (ACTIVE | COMPLETED | DROPPED | CANCELLED | ALL)
+    const matchesStatus =
+      studentsModalFilter === "ALL" || s.status === studentsModalFilter;
+    if (!matchesStatus) return false;
+
     if (!modalStudentSearch.trim()) return true;
     const q = modalStudentSearch.toLowerCase().trim();
     return (
@@ -697,11 +702,9 @@ export const Courses = () => {
                       />
                     </th>
                   )}
-                  <th className="py-3.5 px-4">Course Code</th>
-                  <th className="py-3.5 px-4">Course Name</th>
-                  <th className="py-3.5 px-4">Category / Department</th>
-                  <th className="py-3.5 px-4">Duration</th>
-                  <th className="py-3.5 px-4 text-center">Enrolled Students</th>
+                  <th className="py-3.5 px-4">Course Details</th>
+                  <th className="py-3.5 px-4 text-center">Enrolled Breakdown</th>
+                  <th className="py-3.5 px-4 text-center">Total Students</th>
                   <th className="py-3.5 px-4 text-right">Tuition Fees</th>
                   <th className="py-3.5 px-4 text-center">Status</th>
                   <th className="py-3.5 px-4 text-center">Actions</th>
@@ -725,37 +728,67 @@ export const Courses = () => {
                         />
                       </td>
                     )}
-                    <td className="py-3.5 px-4 font-mono font-bold text-cyan-400">{c.code}</td>
-                    <td className="py-3.5 px-4 font-bold text-white text-sm">{c.name}</td>
                     <td className="py-3.5 px-4">
-                      <span className={`px-2.5 py-0.5 border rounded-md text-[10px] font-bold ${getCategoryBadgeClass(c.category || "IT Course")}`}>
-                        {c.category || "IT Course"}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-slate-400 font-semibold">
-                      {c.duration} {c.durationType.toLowerCase()}
+                      <div className="space-y-1">
+                        <div className="font-bold text-white text-sm">{c.name}</div>
+                        <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+                          <span className="font-mono text-xs font-bold text-cyan-400 bg-cyan-950/80 px-1.5 py-0.5 rounded border border-cyan-800">
+                            {c.code}
+                          </span>
+                          <span className={`px-2 py-0.5 border rounded-md text-[10px] font-bold ${getCategoryBadgeClass(c.category || "IT Course")}`}>
+                            {c.category || "IT Course"}
+                          </span>
+                        </div>
+                      </div>
                     </td>
                     <td className="py-3.5 px-4 text-center">
-                      <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                      <div className="flex items-center justify-center gap-1.5 flex-wrap max-w-[260px] mx-auto">
                         <button
                           type="button"
                           onClick={() => openCourseStudentsModal(c, "ACTIVE")}
                           className="px-2 py-0.5 rounded-md bg-emerald-950/80 hover:bg-emerald-900 text-emerald-400 border border-emerald-800/80 text-[10px] font-bold inline-flex items-center gap-1 transition cursor-pointer hover:scale-105 shadow-sm"
-                          title="Click to view Active Students list"
+                          title="View Active Students"
                         >
                           <UserCheck className="w-3 h-3" />
-                          {c.stats?.activeStudents || 0} Active
+                          <span>Active: {c.stats?.activeStudents || 0}</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => openCourseStudentsModal(c, "COMPLETED")}
                           className="px-2 py-0.5 rounded-md bg-purple-950/80 hover:bg-purple-900 text-purple-300 border border-purple-800/80 text-[10px] font-bold inline-flex items-center gap-1 transition cursor-pointer hover:scale-105 shadow-sm"
-                          title="Click to view Completed Students list"
+                          title="View Completed Students"
                         >
                           <GraduationCap className="w-3 h-3" />
-                          {c.stats?.completedStudents || 0} Done
+                          <span>Done: {c.stats?.completedStudents || 0}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => openCourseStudentsModal(c, "DROPPED")}
+                          className="px-2 py-0.5 rounded-md bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800/80 text-[10px] font-bold inline-flex items-center gap-1 transition cursor-pointer hover:scale-105 shadow-sm"
+                          title="View Dropped Students"
+                        >
+                          <span>Dropped: {c.stats?.droppedStudents || 0}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => openCourseStudentsModal(c, "CANCELLED")}
+                          className="px-2 py-0.5 rounded-md bg-slate-950 hover:bg-slate-900 text-slate-400 border border-slate-800 text-[10px] font-bold inline-flex items-center gap-1 transition cursor-pointer hover:scale-105 shadow-sm"
+                          title="View Cancelled Students"
+                        >
+                          <span>Cancel: {c.stats?.cancelledStudents || 0}</span>
                         </button>
                       </div>
+                    </td>
+                    <td className="py-3.5 px-4 text-center">
+                      <button
+                        type="button"
+                        onClick={() => openCourseStudentsModal(c, "ALL")}
+                        className="px-3 py-1 bg-slate-950 hover:bg-cyan-950/80 text-white hover:text-cyan-300 border border-slate-800 hover:border-cyan-800 rounded-xl font-extrabold text-xs transition cursor-pointer inline-flex items-center space-x-1 shadow"
+                        title="Click to view all enrolled students"
+                      >
+                        <Users className="w-3.5 h-3.5 text-cyan-400" />
+                        <span>{c.stats?.totalStudents || 0}</span>
+                      </button>
                     </td>
                     <td className="py-3.5 px-4 text-right font-extrabold text-emerald-400 text-sm">
                       ₹{Number(c.fees).toLocaleString("en-IN")}
@@ -1201,76 +1234,86 @@ export const Courses = () => {
               </button>
             </div>
 
-            {/* Filter Tabs & Search Row */}
-            <div className="flex flex-col sm:flex-row gap-3 justify-between items-center">
-              {/* Filter Tabs */}
-              <div className="flex items-center space-x-1.5 p-1 bg-slate-950 border border-slate-800 rounded-xl w-full sm:w-auto">
-                <button
-                  type="button"
-                  onClick={() => handleStatusFilterChange("ACTIVE")}
-                  className={`flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-1.5 ${
-                    studentsModalFilter === "ACTIVE"
-                      ? "bg-emerald-600 text-white shadow"
-                      : "text-slate-400 hover:text-white"
-                  }`}
-                >
-                  <UserCheck className="w-3.5 h-3.5" />
-                  <span>Active ({selectedCourseForStudents.stats?.activeStudents || 0})</span>
-                </button>
+            {/* Filter Tabs Row (Row 1 - Full Width) */}
+            <div className="flex items-center space-x-1.5 p-1.5 bg-slate-950 border border-slate-800 rounded-2xl w-full overflow-x-auto">
+              <button
+                type="button"
+                onClick={() => handleStatusFilterChange("ACTIVE")}
+                className={`flex-1 min-w-[100px] px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 ${
+                  studentsModalFilter === "ACTIVE"
+                    ? "bg-emerald-600 text-white shadow-md font-black"
+                    : "text-slate-400 hover:text-white hover:bg-slate-900"
+                }`}
+              >
+                <UserCheck className="w-3.5 h-3.5" />
+                <span>Active ({selectedCourseForStudents.stats?.activeStudents || 0})</span>
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => handleStatusFilterChange("COMPLETED")}
-                  className={`flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-1.5 ${
-                    studentsModalFilter === "COMPLETED"
-                      ? "bg-purple-600 text-white shadow"
-                      : "text-slate-400 hover:text-white"
-                  }`}
-                >
-                  <GraduationCap className="w-3.5 h-3.5" />
-                  <span>Completed ({selectedCourseForStudents.stats?.completedStudents || 0})</span>
-                </button>
+              <button
+                type="button"
+                onClick={() => handleStatusFilterChange("COMPLETED")}
+                className={`flex-1 min-w-[110px] px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 ${
+                  studentsModalFilter === "COMPLETED"
+                    ? "bg-purple-600 text-white shadow-md font-black"
+                    : "text-slate-400 hover:text-white hover:bg-slate-900"
+                }`}
+              >
+                <GraduationCap className="w-3.5 h-3.5" />
+                <span>Completed ({selectedCourseForStudents.stats?.completedStudents || 0})</span>
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => handleStatusFilterChange("ALL")}
-                  className={`flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-1.5 ${
-                    studentsModalFilter === "ALL"
-                      ? "bg-cyan-600 text-white shadow"
-                      : "text-slate-400 hover:text-white"
-                  }`}
-                >
-                  <Users className="w-3.5 h-3.5" />
-                  <span>All ({selectedCourseForStudents.stats?.totalStudents || 0})</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => handleStatusFilterChange("DROPPED")}
+                className={`flex-1 min-w-[100px] px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 ${
+                  studentsModalFilter === "DROPPED"
+                    ? "bg-rose-600 text-white shadow-md font-black"
+                    : "text-slate-400 hover:text-white hover:bg-slate-900"
+                }`}
+              >
+                <span>Dropped ({selectedCourseForStudents.stats?.droppedStudents || 0})</span>
+              </button>
 
-              {/* Search Bar & Quick Select */}
-              <div className="flex items-center space-x-2 w-full sm:w-auto">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const activeIds = filteredModalStudents
-                      .filter((s) => s.status === "ACTIVE")
-                      .map((s) => s.admissionId || s.id);
-                    setSelectedAdmissionIds(activeIds);
-                  }}
-                  className="px-2.5 py-1.5 bg-slate-950 hover:bg-cyan-950 text-cyan-400 border border-slate-800 hover:border-cyan-800 rounded-xl text-xs font-bold transition shrink-0"
-                  title="Select all active students in 1 click"
-                >
-                  Select Active ({filteredModalStudents.filter((s) => s.status === "ACTIVE").length})
-                </button>
+              <button
+                type="button"
+                onClick={() => handleStatusFilterChange("ALL")}
+                className={`flex-1 min-w-[90px] px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 ${
+                  studentsModalFilter === "ALL"
+                    ? "bg-cyan-600 text-white shadow-md font-black"
+                    : "text-slate-400 hover:text-white hover:bg-slate-900"
+                }`}
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>All ({selectedCourseForStudents.stats?.totalStudents || 0})</span>
+              </button>
+            </div>
 
-                <div className="relative flex-1 sm:w-56">
-                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="text"
-                    value={modalStudentSearch}
-                    onChange={(e) => setModalStudentSearch(e.target.value)}
-                    placeholder="Filter student name, ID or mobile..."
-                    className="w-full pl-9 pr-3 py-1.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-cyan-500 font-medium"
-                  />
-                </div>
+            {/* Quick Action & Search Row (Row 2) */}
+            <div className="flex flex-col sm:flex-row gap-2.5 justify-between items-center">
+              <button
+                type="button"
+                onClick={() => {
+                  const activeIds = filteredModalStudents
+                    .filter((s) => s.status === "ACTIVE")
+                    .map((s) => s.admissionId || s.id);
+                  setSelectedAdmissionIds(activeIds);
+                }}
+                className="w-full sm:w-auto px-3 py-2 bg-slate-950 hover:bg-cyan-950 text-cyan-400 border border-slate-800 hover:border-cyan-800 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-sm"
+                title="Select all active students in 1 click"
+              >
+                <UserCheck className="w-3.5 h-3.5" />
+                <span>Select Active ({filteredModalStudents.filter((s) => s.status === "ACTIVE").length})</span>
+              </button>
+
+              <div className="relative w-full sm:w-72">
+                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={modalStudentSearch}
+                  onChange={(e) => setModalStudentSearch(e.target.value)}
+                  placeholder="Search student name, ID or mobile..."
+                  className="w-full pl-10 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-cyan-500 font-medium placeholder-slate-500"
+                />
               </div>
             </div>
 
