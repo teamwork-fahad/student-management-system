@@ -284,23 +284,69 @@ export const registerStudentService = async ({
 export const forgotPasswordService = async (identifier) => {
   const cleanId = String(identifier).trim();
 
-  const user = await prisma.user.findFirst({
+  // 1. Search for existing User account
+  let user = await prisma.user.findFirst({
     where: {
       OR: [
         { email: { equals: cleanId, mode: "insensitive" } },
         { student: { mobile: cleanId } },
         { student: { studentId: { equals: cleanId, mode: "insensitive" } } },
+        { student: { email: { equals: cleanId, mode: "insensitive" } } },
       ],
     },
+    include: { student: true },
   });
 
+  // 2. If user account does not exist yet, check if student record exists from admission/import
   if (!user) {
-    throw createHttpError("No user account found with this Email, Mobile, or Student ID.", 404);
+    const student = await prisma.student.findFirst({
+      where: {
+        OR: [
+          { email: { equals: cleanId, mode: "insensitive" } },
+          { mobile: cleanId },
+          { studentId: { equals: cleanId, mode: "insensitive" } },
+        ],
+        deletedAt: null,
+      },
+    });
+
+    if (!student) {
+      throw createHttpError("No registered student or user account found with this Email, Mobile, or Student ID.", 404);
+    }
+
+    if (student.userId) {
+      user = await prisma.user.findUnique({
+        where: { id: student.userId },
+        include: { student: true },
+      });
+    }
+
+    if (!user) {
+      // Auto-create & link user account for this onboarded student
+      const userEmail = student.email || `${student.mobile}@student.edumaster.local`;
+      const tempPass = await bcrypt.hash(Math.random().toString(36).slice(-10), 10);
+
+      user = await prisma.user.create({
+        data: {
+          name: student.fullName,
+          email: userEmail,
+          password: tempPass,
+          role: "STUDENT",
+        },
+      });
+
+      await prisma.student.update({
+        where: { id: student.id },
+        data: { userId: user.id },
+      });
+
+      user.student = student;
+    }
   }
 
   // Generate 6-digit OTP code
   const resetOtp = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiry = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+  const expiry = new Date(Date.now() + 15 * 60 * 1000); // 15 mins validity
 
   await prisma.user.update({
     where: { id: user.id },
@@ -310,14 +356,16 @@ export const forgotPasswordService = async (identifier) => {
     },
   });
 
-  // Send Email if email exists
-  if (user.email && !user.email.endsWith("@student.edumaster.local")) {
-    await sendForgotPasswordEmail(user.email, user.name, resetOtp);
+  const targetEmail = user.email || user.student?.email;
+
+  // Send Email OTP if valid email exists
+  if (targetEmail && !targetEmail.endsWith("@student.edumaster.local")) {
+    await sendForgotPasswordEmail(targetEmail, user.name || user.student?.fullName, resetOtp);
   }
 
   return {
-    message: `Password reset OTP generated successfully.`,
-    email: user.email,
+    message: `Password reset OTP has been generated and sent to ${targetEmail || "registered contact"}.`,
+    email: targetEmail,
     otp: resetOtp,
   };
 };
@@ -325,26 +373,43 @@ export const forgotPasswordService = async (identifier) => {
 export const resetPasswordService = async (identifier, otpCode, newPassword) => {
   const cleanId = String(identifier).trim();
 
-  const user = await prisma.user.findFirst({
+  let user = await prisma.user.findFirst({
     where: {
       OR: [
         { email: { equals: cleanId, mode: "insensitive" } },
         { student: { mobile: cleanId } },
         { student: { studentId: { equals: cleanId, mode: "insensitive" } } },
+        { student: { email: { equals: cleanId, mode: "insensitive" } } },
       ],
     },
   });
+
+  if (!user) {
+    const student = await prisma.student.findFirst({
+      where: {
+        OR: [
+          { email: { equals: cleanId, mode: "insensitive" } },
+          { mobile: cleanId },
+          { studentId: { equals: cleanId, mode: "insensitive" } },
+        ],
+      },
+    });
+
+    if (student?.userId) {
+      user = await prisma.user.findUnique({ where: { id: student.userId } });
+    }
+  }
 
   if (!user) {
     throw createHttpError("User account not found.", 404);
   }
 
   if (!user.resetToken || user.resetToken !== String(otpCode).trim()) {
-    throw createHttpError("Invalid OTP reset code. Please check and try again.", 400);
+    throw createHttpError("Invalid OTP reset code. Please check your email and enter the 6-digit code.", 400);
   }
 
   if (user.resetTokenExpiry && new Date(user.resetTokenExpiry) < new Date()) {
-    throw createHttpError("OTP reset code has expired. Please request a new one.", 400);
+    throw createHttpError("OTP reset code has expired. Please request a new OTP.", 400);
   }
 
   const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -362,6 +427,7 @@ export const resetPasswordService = async (identifier, otpCode, newPassword) => 
     message: "Password reset successful! You can now login with your new password.",
   };
 };
+
 
 export const getStudentProfileService = async (userId) => {
   const user = await prisma.user.findUnique({

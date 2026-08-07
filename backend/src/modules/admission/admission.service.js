@@ -2,6 +2,8 @@ import { Prisma } from "@prisma/client";
 import prisma from "../../config/prisma.js";
 import bcrypt from "bcrypt";
 import { createHttpError } from "../../utils/httpError.js";
+import { createNotification } from "../notifications/notification.service.js";
+
 
 /**
  * ============================================================================
@@ -432,7 +434,8 @@ export const completeAdmission = async (admissionPayload) => {
     instituteId = null,
   } = admissionPayload;
 
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
+
     // Step 1: Validate Inquiry (Must exist & not already admitted)
     const inquiry = await validateInquiry(inquiryId, tx);
 
@@ -568,7 +571,18 @@ export const completeAdmission = async (admissionPayload) => {
       documents: createdDocuments,
     };
   });
+
+  // Trigger In-App Notification for Admin
+  createNotification({
+    title: "🎓 New Student Enrolled",
+    message: `New Student ${result.student.fullName} (${result.student.studentId}) successfully enrolled in ${result.admission.courseNameSnapshot}.`,
+    type: "NEW_STUDENT",
+    link: "/dashboard/students",
+  }).catch((e) => console.error("[NEW STUDENT NOTIFICATION ERROR]:", e));
+
+  return result;
 };
+
 
 /**
  * ----------------------------------------------------------------------------

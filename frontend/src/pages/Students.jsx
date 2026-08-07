@@ -969,16 +969,26 @@ export const Students = () => {
                             {student.fullName[0]?.toUpperCase()}
                           </div>
                           <div>
-                            <button
-                              onClick={() => navigate(`/dashboard/students/${student.id}`)}
-                              className="font-bold text-white hover:text-cyan-400 text-sm text-left transition"
+                            <a
+                              href={`/dashboard/students/${student.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-bold text-white hover:text-cyan-400 text-sm text-left transition inline-flex items-center space-x-1"
+                              title="Open Student Profile in new tab"
                             >
-                              {toTitleCase(student.fullName)}
-                            </button>
+                              <span>{toTitleCase(student.fullName)}</span>
+                              <ExternalLink className="w-3 h-3 text-cyan-400/80 inline" />
+                            </a>
                             <div className="flex items-center space-x-2 mt-0.5">
-                              <span className="font-mono text-[10px] font-bold text-cyan-400 bg-cyan-950 px-1.5 py-0.5 rounded border border-cyan-800/80">
+                              <a
+                                href={`/dashboard/students/${student.id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="font-mono text-[10px] font-bold text-cyan-400 bg-cyan-950 hover:bg-cyan-900 px-1.5 py-0.5 rounded border border-cyan-800/80 transition"
+                                title="Open Student Profile in new tab"
+                              >
                                 {student.studentId}
-                              </span>
+                              </a>
                               <span className="text-slate-500 text-xs font-mono">
                                 📞 {student.mobile}
                               </span>
@@ -997,16 +1007,15 @@ export const Students = () => {
                             {student.courseInfo?.primaryCourse || student.admission?.courseNameSnapshot || "General Course"}
                           </span>
                           {student.courseInfo?.extraCoursesCount > 0 && (
-                            <span
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/dashboard/students/${student.id}`);
-                              }}
+                            <a
+                              href={`/dashboard/students/${student.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
                               className="px-2 py-0.5 bg-purple-950 hover:bg-purple-900 text-purple-300 border border-purple-800 rounded-lg text-[10px] font-extrabold cursor-pointer transition shadow hover:scale-105 inline-flex items-center space-x-0.5"
-                              title="Click to view all enrolled courses"
+                              title="Click to view all enrolled courses in new tab"
                             >
                               <span>+ {student.courseInfo.extraCoursesCount} more</span>
-                            </span>
+                            </a>
                           )}
                         </div>
                       </td>
@@ -1059,14 +1068,17 @@ export const Students = () => {
 
                       {/* ACTIONS */}
                       <td className="p-3.5 text-center space-x-1.5">
-                        <button
-                          onClick={() => navigate(`/dashboard/students/${student.id}`)}
+                        <a
+                          href={`/dashboard/students/${student.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="px-2.5 py-1 bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white rounded-lg font-bold text-xs inline-flex items-center space-x-1 transition cursor-pointer"
-                          title="View Complete Student Profile & History"
+                          title="Open Complete Student Profile & History in new tab"
                         >
                           <Eye className="w-3.5 h-3.5" />
-                          <span>View</span>
-                        </button>
+                          <span>View ↗</span>
+                        </a>
+
 
                         <button
                           onClick={() => handleOpenCollectFee(student)}
@@ -1167,13 +1179,17 @@ export const Students = () => {
                     <CreditCard className="w-3.5 h-3.5" />
                     <span>Pay Fee</span>
                   </button>
-                  <button
-                    onClick={() => navigate(`/dashboard/students/${student.id}`)}
+                  <a
+                    href={`/dashboard/students/${student.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="flex-1 py-1.5 bg-slate-900 hover:bg-cyan-600 text-slate-300 hover:text-white rounded-xl text-xs font-semibold flex items-center justify-center space-x-1 transition cursor-pointer"
+                    title="Open Student Profile in new tab"
                   >
                     <Eye className="w-3.5 h-3.5" />
-                    <span>Profile</span>
-                  </button>
+                    <span>Profile ↗</span>
+                  </a>
+
                   <button
                     onClick={() => handleOpenEdit(student)}
                     className="px-3 py-1.5 bg-amber-600/20 hover:bg-amber-600 text-amber-400 hover:text-white rounded-xl text-xs font-semibold flex items-center space-x-1 transition"

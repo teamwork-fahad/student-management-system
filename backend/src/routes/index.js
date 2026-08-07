@@ -7,6 +7,7 @@ import feeRoutes from "../modules/fees/fee.routes.js";
 import studentRoutes from "../modules/students/student.routes.js";
 import attendanceRoutes from "../modules/attendance/attendance.routes.js";
 import expenseRoutes from "../modules/expense/expense.routes.js";
+import notificationRoutes from "../modules/notifications/notification.routes.js";
 
 const router = Router();
 
@@ -18,5 +19,7 @@ router.use("/v1/fees", feeRoutes);
 router.use("/v1/students", studentRoutes);
 router.use("/v1/attendance", attendanceRoutes);
 router.use("/v1/expenses", expenseRoutes);
+router.use("/v1/notifications", notificationRoutes);
 
 export default router;
+

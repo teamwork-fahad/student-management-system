@@ -2,27 +2,44 @@ import nodemailer from "nodemailer";
 
 const ADMIN_NOTIFICATION_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL || "fahadvohra143@gmail.com";
 
-// Create Nodemailer transport with SMTP / Ethereal / Gmail fallback
-const createTransporter = () => {
-  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+// Create Nodemailer transport for real SMTP / Gmail email delivery
+const getTransporter = () => {
+  const smtpHost = process.env.SMTP_HOST;
+  const smtpUser = process.env.SMTP_USER || process.env.GMAIL_USER;
+  const smtpPass = process.env.SMTP_PASS || process.env.GMAIL_PASS || process.env.GMAIL_APP_PASSWORD;
+  const smtpPort = Number(process.env.SMTP_PORT) || 587;
+
+  if (smtpHost && smtpUser && smtpPass) {
     return nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT) || 587,
-      secure: Number(process.env.SMTP_PORT) === 465,
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpPort === 465,
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        user: smtpUser,
+        pass: smtpPass,
+      },
+      tls: {
+        rejectUnauthorized: false,
       },
     });
   }
 
-  // Fallback dev transport using nodemailer jsonTransport for clean console logging
+  if (smtpUser && smtpPass) {
+    return nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: smtpUser,
+        pass: smtpPass,
+      },
+    });
+  }
+
+  // Fallback dev transport logging to console when SMTP credentials are not yet added in .env
   return nodemailer.createTransport({
     jsonTransport: true,
   });
 };
 
-const transporter = createTransporter();
 
 /**
  * Send notification email to Admin when a new student registers
@@ -68,7 +85,8 @@ export const sendAdminRegistrationNotification = async (studentInfo) => {
   };
 
   try {
-    const info = await transporter.sendMail(mailOptions);
+    const info = await getTransporter().sendMail(mailOptions);
+
     console.log(`[EMAIL SENT] Admin Notification sent to ${ADMIN_NOTIFICATION_EMAIL}:`, info.messageId || info);
     return true;
   } catch (err) {
@@ -76,6 +94,69 @@ export const sendAdminRegistrationNotification = async (studentInfo) => {
     return false;
   }
 };
+
+/**
+ * Send notification email to Admin when a new Inquiry is generated
+ */
+export const sendAdminInquiryNotification = async (inquiryInfo) => {
+  const mailOptions = {
+    from: `"EduMaster ERP" <noreply@edumaster.com>`,
+    to: ADMIN_NOTIFICATION_EMAIL,
+    subject: `📩 New Inquiry Received: ${inquiryInfo.fullName} (${inquiryInfo.inquiryNumber || "NEW"})`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; padding: 20px; border: 1px solid #1e293b; border-radius: 12px; background-color: #0f172a; color: #f8fafc;">
+        <h2 style="color: #06b6d4; margin-top: 0;">📩 New Student Inquiry Alert</h2>
+        <p style="color: #94a3b8;">A new inquiry has been submitted on the EduMaster ERP system.</p>
+        
+        <table style="width: 100%; border-collapse: collapse; margin-top: 15px; text-align: left; font-size: 14px;">
+          <tr style="border-bottom: 1px solid #334155;">
+            <th style="padding: 10px; color: #cbd5e1;">Inquiry Number:</th>
+            <td style="padding: 10px; font-weight: bold; color: #06b6d4;">${inquiryInfo.inquiryNumber || "N/A"}</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #334155;">
+            <th style="padding: 10px; color: #cbd5e1;">Applicant Name:</th>
+            <td style="padding: 10px; font-weight: bold; color: #ffffff;">${inquiryInfo.fullName}</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #334155;">
+            <th style="padding: 10px; color: #cbd5e1;">Mobile:</th>
+            <td style="padding: 10px; color: #ffffff;">${inquiryInfo.mobile}</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #334155;">
+            <th style="padding: 10px; color: #cbd5e1;">Email:</th>
+            <td style="padding: 10px; color: #ffffff;">${inquiryInfo.email || "N/A"}</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #334155;">
+            <th style="padding: 10px; color: #cbd5e1;">Course Interested:</th>
+            <td style="padding: 10px; color: #38bdf8;">${inquiryInfo.courseName || "General Course"}</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #334155;">
+            <th style="padding: 10px; color: #cbd5e1;">Remarks/Message:</th>
+            <td style="padding: 10px; color: #94a3b8;">${inquiryInfo.remarks || "No remarks provided"}</td>
+          </tr>
+          <tr style="border-bottom: 1px solid #334155;">
+            <th style="padding: 10px; color: #cbd5e1;">Date & Time:</th>
+            <td style="padding: 10px; color: #94a3b8;">${new Date().toLocaleString("en-IN")}</td>
+          </tr>
+        </table>
+        
+        <div style="margin-top: 20px; padding: 12px; background: #1e293b; border-radius: 8px; font-size: 12px; color: #cbd5e1;">
+          EduMaster ERP Automated System Notification
+        </div>
+      </div>
+    `,
+  };
+
+  try {
+    const info = await getTransporter().sendMail(mailOptions);
+
+    console.log(`[EMAIL SENT] Admin Inquiry Alert sent to ${ADMIN_NOTIFICATION_EMAIL}:`, info.messageId || info);
+    return true;
+  } catch (err) {
+    console.error("[EMAIL ERROR] Failed to send inquiry email to admin:", err);
+    return false;
+  }
+};
+
 
 /**
  * Send Forgot Password Reset OTP/Email to student
@@ -103,7 +184,8 @@ export const sendForgotPasswordEmail = async (toEmail, studentName, resetOtp) =>
   };
 
   try {
-    const info = await transporter.sendMail(mailOptions);
+    const info = await getTransporter().sendMail(mailOptions);
+
     console.log(`[EMAIL SENT] Reset OTP sent to ${toEmail}:`, info.messageId || info);
     return true;
   } catch (err) {

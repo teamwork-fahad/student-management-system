@@ -27,6 +27,7 @@ import {
   X,
   BarChart3,
   DollarSign,
+  ExternalLink,
 } from "lucide-react";
 
 export const Fees = () => {
@@ -837,13 +838,16 @@ export const Fees = () => {
                       </td>
                       <td className="py-3 px-4 font-bold text-white">
                         {p.admission?.studentId || p.admission?.student?.id ? (
-                          <Link
-                            to={`/dashboard/students/${p.admission?.studentId || p.admission?.student?.id}`}
-                            className="hover:text-cyan-400 hover:underline transition"
-                            title="View Student Profile"
+                          <a
+                            href={`/dashboard/students/${p.admission?.studentId || p.admission?.student?.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:text-cyan-400 hover:underline transition inline-flex items-center space-x-1"
+                            title="Open Student Profile in new tab"
                           >
-                            {p.admission?.student?.fullName || "Student"}
-                          </Link>
+                            <span>{p.admission?.student?.fullName || "Student"}</span>
+                            <ExternalLink className="w-3 h-3 text-cyan-400/80 inline" />
+                          </a>
                         ) : (
                           p.admission?.student?.fullName || "Student"
                         )}
@@ -901,11 +905,27 @@ export const Fees = () => {
                   </div>
 
                   <div>
-                    <h4 className="text-sm font-bold text-white">{p.admission?.student?.fullName || "Student"}</h4>
+                    <h4 className="text-sm font-bold text-white">
+                      {p.admission?.studentId || p.admission?.student?.id ? (
+                        <a
+                          href={`/dashboard/students/${p.admission?.studentId || p.admission?.student?.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:text-cyan-400 hover:underline transition inline-flex items-center space-x-1"
+                          title="Open Student Profile in new tab"
+                        >
+                          <span>{p.admission?.student?.fullName || "Student"}</span>
+                          <ExternalLink className="w-3.5 h-3.5 text-cyan-400/80 inline" />
+                        </a>
+                      ) : (
+                        p.admission?.student?.fullName || "Student"
+                      )}
+                    </h4>
                     <p className="text-[11px] text-slate-400 font-mono">
                       Date: {formatDate(p.paymentDate || p.createdAt)}
                     </p>
                   </div>
+
 
                   <div className="pt-2 border-t border-slate-900 flex items-center justify-between">
                     <div className="text-base font-extrabold text-emerald-400">

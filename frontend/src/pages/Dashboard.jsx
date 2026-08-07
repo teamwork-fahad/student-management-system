@@ -19,7 +19,9 @@ import {
   ShieldCheck,
   Calendar,
   Eye,
+  ExternalLink,
 } from "lucide-react";
+
 
 export const Dashboard = () => {
   const navigate = useNavigate();
@@ -204,18 +206,35 @@ export const Dashboard = () => {
               <tbody className="divide-y divide-slate-800/60">
                 {recentAdmissions.map((adm) => {
                   const targetStudentId = adm.student?.id || adm.studentId || adm.id;
+                  const profileUrl = `/dashboard/students/${targetStudentId}`;
+
                   return (
                     <tr
                       key={adm.id}
-                      onClick={() => navigate(`/dashboard/students/${targetStudentId}`)}
+                      onClick={() => window.open(profileUrl, "_blank")}
                       className="hover:bg-slate-800/50 transition-colors cursor-pointer"
-                      title="Click to view full student profile"
+                      title="Click to view full student profile in new tab"
                     >
                       <td className="p-3.5 font-mono text-cyan-400 font-bold">
-                        {adm.admissionNumber}
+                        <a
+                          href={profileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline flex items-center space-x-1"
+                        >
+                          <span>{adm.admissionNumber}</span>
+                        </a>
                       </td>
                       <td className="p-3.5 font-bold text-white">
-                        {adm.student?.fullName || "N/A"}
+                        <a
+                          href={profileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:text-cyan-400 hover:underline transition inline-flex items-center space-x-1"
+                        >
+                          <span>{adm.student?.fullName || "N/A"}</span>
+                          <ExternalLink className="w-3 h-3 text-cyan-400/80 inline" />
+                        </a>
                       </td>
                       <td className="p-3.5 text-slate-300">{adm.courseNameSnapshot}</td>
                       <td className="p-3.5 text-right font-bold text-emerald-400">
@@ -228,21 +247,22 @@ export const Dashboard = () => {
                         {formatDate(adm.admissionDate)}
                       </td>
                       <td className="p-3.5 text-center">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/dashboard/students/${targetStudentId}`);
-                          }}
+                        <a
+                          href={profileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
                           className="px-2.5 py-1 bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white rounded-lg font-semibold text-[11px] inline-flex items-center space-x-1 transition cursor-pointer"
-                          title="View Full Student Profile Page"
+                          title="Open Full Student Profile Page in new tab"
                         >
                           <Eye className="w-3.5 h-3.5" />
-                          <span>View Profile</span>
-                        </button>
+                          <span>View Profile ↗</span>
+                        </a>
                       </td>
                     </tr>
                   );
                 })}
+
               </tbody>
             </table>
           </div>

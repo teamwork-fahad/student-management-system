@@ -1,6 +1,8 @@
 import { Prisma } from "@prisma/client";
 import prisma from "../../config/prisma.js";
 import { createHttpError } from "../../utils/httpError.js";
+import { sendAdminInquiryNotification } from "../../utils/emailService.js";
+import { createNotification } from "../notifications/notification.service.js";
 
 const INQUIRY_NUMBER_PREFIX = "INQ";
 const INQUIRY_NUMBER_MAX_RETRIES = 3;
@@ -58,6 +60,50 @@ const getNextInquiryNumber = async (tx) => {
     : 0;
 
   return buildInquiryNumber(year, latestSequence + 1);
+};
+
+const checkDuplicateInquiryOrStudent = async (mobile, email, allowDuplicate = false) => {
+  if (allowDuplicate) return;
+
+  const cleanMobile = String(mobile || "").trim();
+  const cleanEmail = email ? String(email || "").trim() : null;
+
+  if (!cleanMobile && !cleanEmail) return;
+
+  const existingInquiry = await prisma.inquiry.findFirst({
+    where: {
+      isActive: true,
+      OR: [
+        { mobile: cleanMobile },
+        ...(cleanEmail ? [{ email: cleanEmail }] : []),
+      ],
+    },
+    include: { course: true },
+  });
+
+  if (existingInquiry) {
+    throw createHttpError(
+      `An inquiry already exists with this mobile (${cleanMobile}) or email address. Duplicate inquiry submission is disabled unless explicitly allowed by Admin.`,
+      409
+    );
+  }
+
+  const existingStudent = await prisma.student.findFirst({
+    where: {
+      deletedAt: null,
+      OR: [
+        { mobile: cleanMobile },
+        ...(cleanEmail ? [{ email: cleanEmail }] : []),
+      ],
+    },
+  });
+
+  if (existingStudent) {
+    throw createHttpError(
+      `A registered student already exists with mobile (${cleanMobile}). Cannot generate duplicate inquiry.`,
+      409
+    );
+  }
 };
 
 const getActiveInquiryById = async (id) => {
@@ -178,11 +224,22 @@ export const getAllLeadSources = async () => {
 };
 
 export const createInquiry = async (inquiryData) => {
-  await ensureInquiryReferencesExist(inquiryData);
+  const { allowDuplicate, ...cleanData } = inquiryData;
+
+  if (!cleanData.gender) cleanData.gender = "Male";
+  if (!cleanData.nextFollowUpDate) cleanData.nextFollowUpDate = new Date(Date.now() + 3 * 86400000);
+  if (cleanData.expectedFees === undefined) cleanData.expectedFees = 0;
+
+  await checkDuplicateInquiryOrStudent(cleanData.mobile, cleanData.email, allowDuplicate);
+  await ensureInquiryReferencesExist(cleanData);
+
+  let newInquiry = null;
 
   for (let attempt = 1; attempt <= INQUIRY_NUMBER_MAX_RETRIES; attempt += 1) {
     try {
-      return await createInquiryWithGeneratedNumber(inquiryData);
+      newInquiry = await createInquiryWithGeneratedNumber(cleanData);
+      break;
+
     } catch (error) {
       const isInquiryNumberConflict =
         error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -195,8 +252,31 @@ export const createInquiry = async (inquiryData) => {
     }
   }
 
-  throw createHttpError("Unable to generate inquiry number", 500);
+  if (!newInquiry) {
+    throw createHttpError("Unable to generate inquiry number", 500);
+  }
+
+  // Send Email Alert to Admin
+  sendAdminInquiryNotification({
+    inquiryNumber: newInquiry.inquiryNumber,
+    fullName: newInquiry.fullName,
+    mobile: newInquiry.mobile,
+    email: newInquiry.email,
+    courseName: newInquiry.course?.name || "General Course",
+    remarks: newInquiry.remarks,
+  }).catch((e) => console.error("[EMAIL NOTIFICATION TRIGGER ERROR]:", e));
+
+  // Create In-App Notification for Admin
+  await createNotification({
+    title: "📩 New Inquiry Received",
+    message: `New Inquiry from ${newInquiry.fullName} (${newInquiry.mobile}) for ${newInquiry.course?.name || "Course"}.`,
+    type: "NEW_INQUIRY",
+    link: "/dashboard/inquiries",
+  }).catch((e) => console.error("[IN-APP NOTIFICATION ERROR]:", e));
+
+  return newInquiry;
 };
+
 
 export const getAllInquiries = async (queryParams = {}) => {
   const { status, search, courseId, leadSourceId, assignedToId } = queryParams;
@@ -341,7 +421,9 @@ export const convertInquiry = async (id) => {
 };
 
 export const createPublicInquiry = async (data) => {
-  const { fullName, mobile, email, courseId, remarks } = data;
+  const { fullName, mobile, email, courseId, remarks, allowDuplicate } = data;
+
+  await checkDuplicateInquiryOrStudent(mobile, email, allowDuplicate);
 
   let adminUser = await prisma.user.findFirst({ where: { role: "SUPER_ADMIN" } });
   let leadSource = await prisma.leadSource.findFirst();
@@ -354,7 +436,7 @@ export const createPublicInquiry = async (data) => {
   const nextInquiryNumber = await getNextInquiryNumber(prisma);
   const now = new Date();
 
-  return prisma.inquiry.create({
+  const newInquiry = await prisma.inquiry.create({
     data: {
       inquiryNumber: nextInquiryNumber,
       fullName: String(fullName).trim(),
@@ -371,6 +453,27 @@ export const createPublicInquiry = async (data) => {
       leadSourceId: leadSource ? leadSource.id : "default_ls",
       assignedToId: adminUser ? adminUser.id : "admin",
     },
+    include: inquiryInclude,
   });
+
+  // Send Email Alert to Admin
+  sendAdminInquiryNotification({
+    inquiryNumber: newInquiry.inquiryNumber,
+    fullName: newInquiry.fullName,
+    mobile: newInquiry.mobile,
+    email: newInquiry.email,
+    courseName: course.name,
+    remarks: newInquiry.remarks,
+  }).catch((e) => console.error("[EMAIL NOTIFICATION TRIGGER ERROR]:", e));
+
+  // Create In-App Notification for Admin
+  await createNotification({
+    title: "📩 New Inquiry Received",
+    message: `New Inquiry from ${newInquiry.fullName} (${newInquiry.mobile}) for ${course.name}.`,
+    type: "NEW_INQUIRY",
+    link: "/dashboard/inquiries",
+  }).catch((e) => console.error("[IN-APP NOTIFICATION ERROR]:", e));
+
+  return newInquiry;
 };
 

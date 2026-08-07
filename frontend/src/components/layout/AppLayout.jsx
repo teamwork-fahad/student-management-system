@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate, Outlet } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { NotificationDropdown } from "../notifications/NotificationDropdown";
 import {
   LayoutDashboard,
   UserPlus,
@@ -17,6 +18,7 @@ import {
   CalendarCheck,
   Wallet,
 } from "lucide-react";
+
 
 export const AppLayout = () => {
   const { user, logout } = useAuth();
@@ -148,6 +150,7 @@ export const AppLayout = () => {
           </div>
 
           <div className="flex items-center space-x-3">
+            <NotificationDropdown />
             <button
               onClick={() => navigate("/")}
               className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition"
@@ -159,6 +162,7 @@ export const AppLayout = () => {
               Super Admin ERP Active
             </span>
           </div>
+
         </header>
 
         {/* Main Viewport */}

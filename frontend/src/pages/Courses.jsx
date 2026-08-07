@@ -1497,17 +1497,17 @@ export const Courses = () => {
                           )}
                         </td>
                         <td className="py-3 px-4 text-center">
-                          <button
-                            onClick={() => {
-                              setSelectedCourseForStudents(null);
-                              navigate(`/dashboard/students/${s.id}`);
-                            }}
+                          <a
+                            href={`/dashboard/students/${s.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="p-1.5 bg-slate-900 hover:bg-cyan-600 text-slate-300 hover:text-white rounded-lg border border-slate-800 transition inline-flex items-center gap-1 text-[11px] font-bold"
-                            title="View Full Student Profile & History Page"
+                            title="Open Full Student Profile & History Page in new tab"
                           >
                             <ExternalLink className="w-3 h-3" />
-                            <span>View Profile</span>
-                          </button>
+                            <span>View Profile ↗</span>
+                          </a>
+
                         </td>
                       </tr>
                     ))}

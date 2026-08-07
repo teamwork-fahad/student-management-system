@@ -11,10 +11,13 @@ import {
   AlertCircle,
   RotateCcw,
   Zap,
+  ExternalLink,
+  User,
 } from "lucide-react";
 import api from "../api/axios";
 
 export const Attendance = () => {
+
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [students, setStudents] = useState([]);
   const [stats, setStats] = useState(null);
@@ -262,12 +265,36 @@ export const Attendance = () => {
               <tbody className="divide-y divide-slate-800/60 text-slate-300">
                 {students.map((s) => {
                   const currentStatus = attendanceState[s.studentId] || "UNMARKED";
+                  const profileUrl = `/dashboard/students/${s.studentId}`;
 
                   return (
                     <tr key={s.studentId} className="hover:bg-slate-800/30 transition">
-                      <td className="py-3.5 px-4 font-mono font-bold text-cyan-400">{s.displayId}</td>
-                      <td className="py-3.5 px-4 font-bold text-white">{s.fullName}</td>
+                      <td className="py-3.5 px-4 font-mono font-bold text-cyan-400">
+                        <a
+                          href={profileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline flex items-center space-x-1"
+                          title="Open student profile in new tab"
+                        >
+                          <span>{s.displayId}</span>
+                          <ExternalLink className="w-3 h-3 text-cyan-400/80 inline" />
+                        </a>
+                      </td>
+                      <td className="py-3.5 px-4 font-bold text-white">
+                        <a
+                          href={profileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:text-cyan-400 hover:underline transition flex items-center space-x-1.5"
+                          title="Open student profile in new tab"
+                        >
+                          <span>{s.fullName}</span>
+                          <ExternalLink className="w-3 h-3 text-slate-400 opacity-60 hover:opacity-100 inline" />
+                        </a>
+                      </td>
                       <td className="py-3.5 px-4 text-slate-400">{s.courseName}</td>
+
                       <td className="py-3.5 px-4 text-center">
                         {currentStatus === "PRESENT" ? (
                           <span className="px-2.5 py-0.5 bg-emerald-950 text-emerald-400 border border-emerald-800 rounded-full font-bold text-[10px]">
