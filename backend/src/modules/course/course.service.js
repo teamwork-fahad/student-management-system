@@ -40,11 +40,29 @@ export const createCourse = async (courseData) => {
   });
 };
 
-export const getAllCourses = async () => {
+export const getAllCourses = async (query = {}) => {
+  const { sortBy = "name_asc", search = "", category = "" } = query;
+
+  const where = {
+    isActive: true,
+  };
+
+  if (category) {
+    where.category = category;
+  }
+
+  if (search) {
+    const trimmed = String(search).trim();
+    where.OR = [
+      { name: { contains: trimmed, mode: "insensitive" } },
+      { code: { contains: trimmed, mode: "insensitive" } },
+      { category: { contains: trimmed, mode: "insensitive" } },
+      { description: { contains: trimmed, mode: "insensitive" } },
+    ];
+  }
+
   const courses = await prisma.course.findMany({
-    where: {
-      isActive: true,
-    },
+    where,
     include: {
       admissions: {
         where: {
@@ -56,12 +74,9 @@ export const getAllCourses = async () => {
         },
       },
     },
-    orderBy: {
-      createdAt: "desc",
-    },
   });
 
-  return courses.map((c) => {
+  const formatted = courses.map((c) => {
     const admissions = c.admissions || [];
     const activeStudents = admissions.filter((a) => a.status === "ACTIVE").length;
     const completedStudents = admissions.filter((a) => a.status === "COMPLETED").length;
@@ -79,6 +94,40 @@ export const getAllCourses = async () => {
       },
     };
   });
+
+  // Apply Sorting (Name A to Z by default)
+  formatted.sort((a, b) => {
+    if (sortBy === "name_asc") {
+      return (a.name || "").localeCompare(b.name || "");
+    }
+    if (sortBy === "name_desc") {
+      return (b.name || "").localeCompare(a.name || "");
+    }
+    if (sortBy === "students_desc") {
+      return (b.stats?.totalStudents || 0) - (a.stats?.totalStudents || 0);
+    }
+    if (sortBy === "students_asc") {
+      return (a.stats?.totalStudents || 0) - (b.stats?.totalStudents || 0);
+    }
+    if (sortBy === "fee_desc") {
+      return Number(b.fees || 0) - Number(a.fees || 0);
+    }
+    if (sortBy === "fee_asc") {
+      return Number(a.fees || 0) - Number(b.fees || 0);
+    }
+    if (sortBy === "newest") {
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    }
+    if (sortBy === "oldest") {
+      return new Date(a.createdAt) - new Date(b.createdAt);
+    }
+    if (sortBy === "duration_desc") {
+      return Number(b.duration || 0) - Number(a.duration || 0);
+    }
+    return (a.name || "").localeCompare(b.name || "");
+  });
+
+  return formatted;
 };
 
 export const getCourseById = async (id) => {
@@ -98,7 +147,22 @@ export const updateCourse = async (id, courseData) => {
 };
 
 export const deleteCourse = async (id) => {
-  await findActiveCourseById(id);
+  const course = await findActiveCourseById(id);
+
+  // Check if any active/valid admissions are linked to this course
+  const linkedAdmissionsCount = await prisma.admission.count({
+    where: {
+      courseId: id,
+      deletedAt: null,
+    },
+  });
+
+  if (linkedAdmissionsCount > 0) {
+    throw createHttpError(
+      `Cannot delete course "${course.name}"! There are ${linkedAdmissionsCount} student(s) currently enrolled under this course. Please transfer or reassign these students to another course before deleting.`,
+      400
+    );
+  }
 
   return prisma.course.update({
     where: {
@@ -108,4 +172,129 @@ export const deleteCourse = async (id) => {
       isActive: false,
     },
   });
+};
+
+export const getCourseStudents = async (courseId, status) => {
+  await findActiveCourseById(courseId);
+
+  const where = {
+    courseId,
+    deletedAt: null,
+  };
+
+  if (status && status !== "ALL") {
+    where.status = status;
+  }
+
+  const admissions = await prisma.admission.findMany({
+    where,
+    orderBy: {
+      admissionDate: "desc",
+    },
+    include: {
+      student: {
+        select: {
+          id: true,
+          studentId: true,
+          fullName: true,
+          mobile: true,
+          email: true,
+          status: true,
+          joinedDate: true,
+        },
+      },
+      inquiry: {
+        select: {
+          fullName: true,
+          mobile: true,
+          email: true,
+        },
+      },
+    },
+  });
+
+  return admissions.map((adm) => ({
+    id: adm.student?.id || adm.id,
+    admissionId: adm.id,
+    admissionNumber: adm.admissionNumber,
+    studentId: adm.student?.studentId || adm.admissionNumber,
+    fullName: adm.student?.fullName || adm.inquiry?.fullName || "N/A",
+    mobile: adm.student?.mobile || adm.inquiry?.mobile || "N/A",
+    email: adm.student?.email || adm.inquiry?.email || "N/A",
+    status: adm.status,
+    studentStatus: adm.student?.status || "ACTIVE",
+    admissionDate: adm.admissionDate,
+    finalFees: Number(adm.finalFees || 0),
+    paidAmount: Number(adm.paidAmount || 0),
+    pendingAmount: Number(adm.pendingAmount || 0),
+  }));
+};
+
+/**
+ * Bulk Delete Courses (only if 0 enrolled students)
+ */
+export const bulkDeleteCourses = async (courseIds = []) => {
+  if (!Array.isArray(courseIds) || courseIds.length === 0) {
+    throw createHttpError("No courses selected for deletion", 400);
+  }
+
+  // Check if any selected courses have linked active admissions
+  const coursesWithStudents = await prisma.course.findMany({
+    where: {
+      id: { in: courseIds },
+      admissions: {
+        some: {
+          deletedAt: null,
+        },
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+    },
+  });
+
+  if (coursesWithStudents.length > 0) {
+    const blockedNames = coursesWithStudents.map((c) => c.name).join(", ");
+    throw createHttpError(
+      `Cannot delete course(s): [${blockedNames}]! Students are currently enrolled under these courses. Please transfer or reassign students first.`,
+      400
+    );
+  }
+
+  // Deactivate selected courses
+  await prisma.course.updateMany({
+    where: {
+      id: { in: courseIds },
+    },
+    data: {
+      isActive: false,
+    },
+  });
+
+  return { deletedCount: courseIds.length };
+};
+
+/**
+ * Bulk Update Course Category / Department
+ */
+export const bulkUpdateCourseCategory = async (courseIds = [], category) => {
+  if (!Array.isArray(courseIds) || courseIds.length === 0) {
+    throw createHttpError("No courses selected for category update", 400);
+  }
+
+  if (!category) {
+    throw createHttpError("Please specify a valid department category", 400);
+  }
+
+  await prisma.course.updateMany({
+    where: {
+      id: { in: courseIds },
+    },
+    data: {
+      category,
+    },
+  });
+
+  return { updatedCount: courseIds.length, category };
 };

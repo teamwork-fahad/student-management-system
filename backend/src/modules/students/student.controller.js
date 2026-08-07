@@ -6,6 +6,7 @@ import {
   updateStudentFullService,
   bulkUpdateStudentStatus,
   addCourseToStudent,
+  deleteStudent,
 } from "./student.service.js";
 
 export const getAllStudentsController = asyncHandler(async (req, res) => {
@@ -64,5 +65,16 @@ export const addCourseToStudentController = asyncHandler(async (req, res) => {
     "New course added to student profile successfully",
     result,
     201
+  );
+});
+
+export const deleteStudentController = asyncHandler(async (req, res) => {
+  const result = await deleteStudent(req.params.id);
+
+  return successResponse(
+    res,
+    "Student record deleted successfully",
+    result,
+    200
   );
 });

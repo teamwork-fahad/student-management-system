@@ -7,6 +7,7 @@ import {
   updateStudentController,
   bulkUpdateStudentStatusController,
   addCourseToStudentController,
+  deleteStudentController,
 } from "./student.controller.js";
 
 const router = Router();
@@ -56,6 +57,14 @@ router.patch(
   authenticate,
   authorize("SUPER_ADMIN", "FACULTY"),
   updateStudentController
+);
+
+// DELETE /api/v1/students/:id - Delete Student (SUPER_ADMIN)
+router.delete(
+  "/:id",
+  authenticate,
+  authorize("SUPER_ADMIN"),
+  deleteStudentController
 );
 
 export default router;

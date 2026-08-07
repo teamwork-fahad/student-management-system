@@ -10,6 +10,7 @@ import {
   updateAdmissionController,
   updateAdmissionStatusController,
   deleteAdmissionController,
+  bulkUpdateAdmissionStatusController,
 } from "./admission.controller.js";
 
 const router = Router();
@@ -68,6 +69,14 @@ router.patch(
   authenticate,
   authorize("SUPER_ADMIN", "FACULTY"),
   updateAdmissionStatusController
+);
+
+// POST /api/v1/admissions/bulk-status - Bulk update course status for multiple students (SUPER_ADMIN, FACULTY)
+router.post(
+  "/bulk-status",
+  authenticate,
+  authorize("SUPER_ADMIN", "FACULTY"),
+  bulkUpdateAdmissionStatusController
 );
 
 // DELETE /api/v1/admissions/:id - Delete a specific course enrollment (SUPER_ADMIN)

@@ -7,6 +7,9 @@ import {
   getAllCoursesController,
   getCourseByIdController,
   updateCourseController,
+  getCourseStudentsController,
+  bulkDeleteCoursesController,
+  bulkUpdateCourseCategoryController,
 } from "./course.controller.js";
 
 const router = Router();
@@ -21,6 +24,20 @@ router.post(
   createCourseController
 );
 
+router.post(
+  "/bulk-delete",
+  authenticate,
+  authorize("SUPER_ADMIN"),
+  bulkDeleteCoursesController
+);
+
+router.post(
+  "/bulk-category",
+  authenticate,
+  authorize("SUPER_ADMIN"),
+  bulkUpdateCourseCategoryController
+);
+
 router.get(
   "/",
   authenticate,
@@ -33,6 +50,13 @@ router.get(
   authenticate,
   authorize("SUPER_ADMIN", "FACULTY"),
   getCourseByIdController
+);
+
+router.get(
+  "/:id/students",
+  authenticate,
+  authorize("SUPER_ADMIN", "FACULTY"),
+  getCourseStudentsController
 );
 
 router.put(

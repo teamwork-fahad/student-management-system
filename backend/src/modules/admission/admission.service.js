@@ -907,19 +907,93 @@ export const deleteAdmissionService = async (admissionId) => {
   const admission = await prisma.admission.findUnique({ where: { id: admissionId } });
   if (!admission) throw createHttpError("Admission record not found", 404);
 
-  // Soft-delete admission
+  // Soft-delete admission record
   const updatedAdm = await prisma.admission.update({
     where: { id: admissionId },
     data: { deletedAt: new Date(), status: "CANCELLED" },
   });
 
-  // Soft-delete only secondary student records specifically tied to this admission
-  await prisma.student.updateMany({
+  // Keep Student profile intact in DB; set status to DROPPED if no remaining active admissions
+  const student = await prisma.student.findFirst({
     where: {
-      admissionId: admissionId,
+      OR: [
+        { admissionId },
+        { id: admission.studentId || "" },
+      ],
     },
-    data: { deletedAt: new Date(), status: "DROPPED" },
   });
 
+  if (student) {
+    const remainingAdmissions = await prisma.admission.findMany({
+      where: {
+        OR: [
+          { studentId: student.id },
+          { guardianMobile: student.mobile },
+          { mobile: student.mobile },
+        ],
+        deletedAt: null,
+      },
+    });
+
+    if (remainingAdmissions.length === 0) {
+      await prisma.student.update({
+        where: { id: student.id },
+        data: { status: "DROPPED" }, // Keep deletedAt: null so student remains visible in directory!
+      });
+    }
+  }
+
   return updatedAdm;
+};
+
+/**
+ * Bulk update course admission status for multiple students (e.g. mark entire batch COMPLETED)
+ */
+export const bulkUpdateAdmissionStatusService = async (admissionIds = [], status) => {
+  if (!Array.isArray(admissionIds) || admissionIds.length === 0) {
+    throw createHttpError("No admissions selected for bulk update", 400);
+  }
+
+  // 1. Update Admission status for all selected IDs
+  await prisma.admission.updateMany({
+    where: {
+      id: { in: admissionIds },
+      deletedAt: null,
+    },
+    data: { status },
+  });
+
+  // 2. Fetch affected student IDs
+  const affectedAdmissions = await prisma.admission.findMany({
+    where: {
+      id: { in: admissionIds },
+    },
+    select: {
+      studentId: true,
+    },
+  });
+
+  const studentIds = Array.from(new Set(affectedAdmissions.map((a) => a.studentId).filter(Boolean)));
+
+  // 3. For each affected student, update primary student status if all their admissions match new status
+  for (const sId of studentIds) {
+    const studentAdmissions = await prisma.admission.findMany({
+      where: {
+        studentId: sId,
+        deletedAt: null,
+      },
+    });
+
+    if (studentAdmissions.length > 0) {
+      const allSame = studentAdmissions.every((a) => a.status === status);
+      if (allSame) {
+        await prisma.student.update({
+          where: { id: sId },
+          data: { status },
+        });
+      }
+    }
+  }
+
+  return { updatedCount: admissionIds.length, status };
 };

@@ -109,6 +109,7 @@ export const getAllStudents = async (queryParams = {}) => {
     search,
     status,
     courseId,
+    paymentFilter,
     sortBy = "newest",
   } = queryParams;
 
@@ -131,30 +132,35 @@ export const getAllStudents = async (queryParams = {}) => {
 
   if (search) {
     const trimmed = String(search).trim();
+    const cleanedDigits = trimmed.replace(/\D/g, "");
+    const last10 = cleanedDigits.length >= 10 ? cleanedDigits.slice(-10) : cleanedDigits;
+
     where.OR = [
       { studentId: { contains: trimmed, mode: "insensitive" } },
       { fullName: { contains: trimmed, mode: "insensitive" } },
       { mobile: { contains: trimmed, mode: "insensitive" } },
+      { whatsapp: { contains: trimmed, mode: "insensitive" } },
       { email: { contains: trimmed, mode: "insensitive" } },
       { fatherName: { contains: trimmed, mode: "insensitive" } },
+      { motherName: { contains: trimmed, mode: "insensitive" } },
+      { aadhaarNumber: { contains: trimmed, mode: "insensitive" } },
       { admission: { admissionNumber: { contains: trimmed, mode: "insensitive" } } },
       { admission: { courseNameSnapshot: { contains: trimmed, mode: "insensitive" } } },
+      { admission: { guardianName: { contains: trimmed, mode: "insensitive" } } },
+      { admission: { guardianMobile: { contains: trimmed, mode: "insensitive" } } },
     ];
-  }
 
-  let orderBy = { createdAt: "desc" };
-  if (sortBy === "oldest") {
-    orderBy = { createdAt: "asc" };
-  } else if (sortBy === "name") {
-    orderBy = { fullName: "asc" };
-  } else if (sortBy === "studentId") {
-    orderBy = { studentId: "asc" };
+    if (last10 && last10.length >= 4) {
+      where.OR.push({ mobile: { contains: last10, mode: "insensitive" } });
+      where.OR.push({ whatsapp: { contains: last10, mode: "insensitive" } });
+      where.OR.push({ admission: { guardianMobile: { contains: last10, mode: "insensitive" } } });
+    }
   }
 
   // Fetch all matching rows to deduplicate accurately across admissions
   const rawStudents = await prisma.student.findMany({
     where,
-    orderBy,
+    orderBy: { createdAt: "desc" },
     include: {
       admission: {
         include: {
@@ -178,16 +184,48 @@ export const getAllStudents = async (queryParams = {}) => {
     },
   });
 
-  const uniqueStudents = deduplicateStudents(rawStudents);
+  let uniqueStudents = deduplicateStudents(rawStudents);
 
-  // By default (when no status filter is applied), sort so ACTIVE students come first
-  if (!status) {
-    uniqueStudents.sort((a, b) => {
-      if (a.status === "ACTIVE" && b.status !== "ACTIVE") return -1;
-      if (a.status !== "ACTIVE" && b.status === "ACTIVE") return 1;
-      return 0;
-    });
+  // Fee Status Filter (Payment Filter)
+  if (paymentFilter === "PENDING") {
+    uniqueStudents = uniqueStudents.filter(
+      (s) => Number(s.admission?.pendingAmount || 0) > 0
+    );
+  } else if (paymentFilter === "CLEARED") {
+    uniqueStudents = uniqueStudents.filter(
+      (s) => Number(s.admission?.pendingAmount || 0) <= 0
+    );
   }
+
+  // Sorting
+  if (sortBy === "pending_desc") {
+    uniqueStudents.sort(
+      (a, b) => Number(b.admission?.pendingAmount || 0) - Number(a.admission?.pendingAmount || 0)
+    );
+  } else if (sortBy === "pending_asc") {
+    uniqueStudents.sort(
+      (a, b) => Number(a.admission?.pendingAmount || 0) - Number(b.admission?.pendingAmount || 0)
+    );
+  } else if (sortBy === "name_asc") {
+    uniqueStudents.sort((a, b) => (a.fullName || "").localeCompare(b.fullName || ""));
+  } else if (sortBy === "name_desc") {
+    uniqueStudents.sort((a, b) => (b.fullName || "").localeCompare(a.fullName || ""));
+  } else if (sortBy === "oldest") {
+    uniqueStudents.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  } else if (sortBy === "newest") {
+    uniqueStudents.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }
+
+  // Aggregate Stats
+  const activeStudents = uniqueStudents.filter((s) => s.status === "ACTIVE").length;
+  const completedStudents = uniqueStudents.filter((s) => s.status === "COMPLETED").length;
+  const pendingDuesStudents = uniqueStudents.filter(
+    (s) => Number(s.admission?.pendingAmount || 0) > 0
+  );
+  const totalPendingDuesAmount = pendingDuesStudents.reduce(
+    (sum, s) => sum + Number(s.admission?.pendingAmount || 0),
+    0
+  );
 
   const total = uniqueStudents.length;
   const totalPages = Math.ceil(total / limitNum) || 1;
@@ -204,6 +242,13 @@ export const getAllStudents = async (queryParams = {}) => {
       page: pageNum,
       limit: limitNum,
       totalPages,
+    },
+    stats: {
+      totalStudents: total,
+      activeStudents,
+      completedStudents,
+      pendingDuesCount: pendingDuesStudents.length,
+      totalPendingDuesAmount,
     },
   };
 };
@@ -650,4 +695,34 @@ export const addCourseToStudent = async (idOrStudentId, payload) => {
 
     return getStudentById(student.id);
   });
+};
+
+export const deleteStudent = async (studentId) => {
+  const student = await prisma.student.findUnique({
+    where: { id: studentId },
+  });
+
+  if (!student) {
+    throw createHttpError("Student not found", 404);
+  }
+
+  const now = new Date();
+
+  await prisma.$transaction([
+    prisma.student.update({
+      where: { id: studentId },
+      data: { deletedAt: now },
+    }),
+    prisma.admission.updateMany({
+      where: {
+        OR: [
+          { studentId: student.id },
+          { id: student.admissionId },
+        ],
+      },
+      data: { deletedAt: now },
+    }),
+  ]);
+
+  return { message: "Student record deleted successfully" };
 };

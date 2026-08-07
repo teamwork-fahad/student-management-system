@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import api from "../api/axios";
 import { LoadingSpinner } from "../components/common/LoadingSpinner";
 import { EmptyState } from "../components/common/EmptyState";
@@ -35,6 +37,8 @@ import {
   History,
   PlusCircle,
   SlidersHorizontal,
+  Trash2,
+  User,
 } from "lucide-react";
 
 export const toTitleCase = (str) => {
@@ -48,6 +52,11 @@ export const toTitleCase = (str) => {
 };
 
 export const Students = () => {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === "SUPER_ADMIN";
+
   const [students, setStudents] = useState([]);
   const [allStudentsCache, setAllStudentsCache] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
@@ -135,10 +144,38 @@ export const Students = () => {
     remarks: "",
   });
 
+  const [courseFilter, setCourseFilter] = useState("");
+  const [paymentFilter, setPaymentFilter] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    activeStudents: 0,
+    completedStudents: 0,
+    pendingDuesCount: 0,
+    totalPendingDuesAmount: 0,
+  });
+
+  const queryFromUrl = searchParams.get("search") || searchParams.get("studentId") || "";
+
   useEffect(() => {
-    fetchStudents(1);
+    if (queryFromUrl) {
+      setSearch(queryFromUrl);
+      fetchStudents(1, queryFromUrl, true);
+    } else {
+      fetchStudents(1, "", false);
+    }
     fetchAllStudentsForSuggestions();
-  }, [statusFilter]);
+    fetchCoursesForFilter();
+  }, [queryFromUrl, statusFilter, courseFilter, paymentFilter, sortBy]);
+
+  const fetchCoursesForFilter = async () => {
+    try {
+      const res = await api.get("/courses");
+      setCoursesList(res.data?.data || []);
+    } catch (err) {
+      console.error("Fetch courses for filter error:", err);
+    }
+  };
 
   const handleCourseStatusChange = async (admissionId, newStatus) => {
     try {
@@ -163,6 +200,21 @@ export const Students = () => {
       fetchStudents(pagination.page);
     } catch (err) {
       alert(err.response?.data?.message || "Failed to delete course enrollment");
+    }
+  };
+
+  const handleDeleteStudent = async (studentId, studentName) => {
+    if (!window.confirm(`CAUTION: Are you sure you want to completely delete student record for "${studentName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await api.delete(`/students/${studentId}`);
+      setSelectedStudent(null);
+      fetchStudents(pagination.page);
+      alert(`Student record for ${studentName} deleted successfully.`);
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to delete student record");
     }
   };
 
@@ -207,21 +259,57 @@ export const Students = () => {
     }
   };
 
-  const fetchStudents = async (page = 1, searchQuery = search) => {
+  const fetchStudents = async (page = 1, searchQuery = search, autoSelect = false) => {
     setLoading(true);
     try {
-      const response = await api.get("/students", {
+      let response = await api.get("/students", {
         params: {
           page,
           limit: 12,
           search: searchQuery || undefined,
           status: statusFilter || undefined,
+          courseId: courseFilter || undefined,
+          paymentFilter: paymentFilter || undefined,
+          sortBy: sortBy || "newest",
         },
       });
 
-      const data = response.data?.data;
-      setStudents(data?.students || []);
-      setPagination(data?.pagination || { page: 1, totalPages: 1, total: 0 });
+      let data = response.data?.data;
+      let studentList = data?.students || [];
+
+      // Fallback: If active filters return empty for a search query, retry without filter restrictions
+      if (searchQuery && studentList.length === 0 && (statusFilter || courseFilter || paymentFilter)) {
+        response = await api.get("/students", {
+          params: { page: 1, limit: 12, search: searchQuery },
+        });
+        data = response.data?.data;
+        studentList = data?.students || [];
+      }
+
+      setStudents(studentList);
+      setPagination(data?.pagination || { total: 0, page: 1, limit: 12, totalPages: 1 });
+      if (data?.stats) {
+        setStats(data.stats);
+      }
+
+      if (autoSelect && studentList.length > 0) {
+        const cleanQuery = String(searchQuery).replace(/\D/g, "");
+        const exactMatch =
+          studentList.find((s) => {
+            const sMobileClean = (s.mobile || "").replace(/\D/g, "");
+            const sWhatsappClean = (s.whatsapp || "").replace(/\D/g, "");
+            return (
+              s.studentId?.toLowerCase() === String(searchQuery).toLowerCase() ||
+              s.fullName?.toLowerCase() === String(searchQuery).toLowerCase() ||
+              (cleanQuery.length >= 4 && (sMobileClean.includes(cleanQuery) || sWhatsappClean.includes(cleanQuery))) ||
+              s.mobile === searchQuery
+            );
+          }) || studentList[0];
+
+        if (exactMatch && exactMatch.id) {
+          navigate(`/dashboard/students/${exactMatch.id}`);
+        }
+      }
     } catch (err) {
       console.error("Fetch students error:", err);
     } finally {
@@ -237,8 +325,8 @@ export const Students = () => {
       const q = val.toLowerCase().trim();
       const matches = allStudentsCache.filter(
         (s) =>
-          s.fullName.toLowerCase().includes(q) ||
-          s.studentId.toLowerCase().includes(q) ||
+          (s.fullName || "").toLowerCase().includes(q) ||
+          (s.studentId || "").toLowerCase().includes(q) ||
           (s.mobile || "").includes(q) ||
           (s.admission?.courseNameSnapshot || "").toLowerCase().includes(q)
       ).slice(0, 6);
@@ -254,13 +342,14 @@ export const Students = () => {
   const handleSelectSuggestion = (s) => {
     setSearch(s.fullName);
     setShowSuggestions(false);
-    fetchStudents(1, s.fullName);
+    setSelectedStudent(s);
+    fetchStudents(1, s.fullName, true);
   };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     setShowSuggestions(false);
-    fetchStudents(1, search);
+    fetchStudents(1, search, true);
   };
 
   const handleOpenCollectFee = (student) => {
@@ -468,9 +557,9 @@ export const Students = () => {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-white tracking-tight">Student Directory</h1>
+          <h1 className="text-2xl font-black text-white tracking-tight">Student Directory & Academic Tracking</h1>
           <p className="text-xs text-slate-400">
-            Search, filter, edit student profiles, collect tuition fees, and change academic status.
+            Monitor student enrollments, academic status, tuition fee balances, and payment collections.
           </p>
         </div>
 
@@ -501,232 +590,265 @@ export const Students = () => {
         </div>
       </div>
 
-      {/* Filter and Google-Style Search Bar with Auto-Complete Dropdown */}
-      <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row gap-4 justify-between items-center relative z-20">
-        <div ref={searchContainerRef} className="flex-1 w-full relative">
-          <form onSubmit={handleSearchSubmit} className="flex items-center gap-2">
-            <div className="relative flex-1">
-              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                value={search}
-                onChange={handleSearchChange}
-                onFocus={() => search.trim().length >= 2 && setShowSuggestions(true)}
-                placeholder="Type name, mobile or student ID (e.g. Krishna, 9825...)..."
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-cyan-500 font-medium"
-              />
-            </div>
-            <button
-              type="submit"
-              className="px-4 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs rounded-xl shadow-lg transition-colors"
-            >
-              Search
-            </button>
-          </form>
-
-          {/* AUTO-COMPLETE SUGGESTIONS DROPDOWN */}
-          {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute left-0 right-0 top-12 bg-slate-950 border border-cyan-800/80 rounded-2xl shadow-2xl overflow-hidden z-50 divide-y divide-slate-800/60">
-              <div className="px-3.5 py-2 bg-slate-900 text-[10px] uppercase font-bold text-slate-400 flex items-center justify-between">
-                <span className="flex items-center space-x-1.5">
-                  <Search className="w-3 h-3 text-cyan-400" />
-                  <span>Matching Student Results</span>
-                </span>
-                <span className="text-slate-500 font-normal">Click student to view profile</span>
-              </div>
-              {suggestions.map((s) => {
-                const st = s.status || "ACTIVE";
-                return (
-                  <div
-                    key={s.id}
-                    onClick={() => handleSelectSuggestion(s)}
-                    className="p-3 hover:bg-slate-900/80 cursor-pointer flex items-center justify-between transition"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800 flex items-center justify-center font-bold text-xs shrink-0">
-                        {s.fullName[0]}
-                      </div>
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <p className="text-xs font-bold text-white">{toTitleCase(s.fullName)}</p>
-                          <span
-                            className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold border ${
-                              st === "ACTIVE"
-                                ? "bg-emerald-950 text-emerald-400 border-emerald-800"
-                                : st === "ON_HOLD"
-                                ? "bg-amber-950 text-amber-300 border-amber-800"
-                                : st === "COMPLETED"
-                                ? "bg-blue-950 text-blue-300 border-blue-800"
-                                : "bg-rose-950 text-rose-400 border-rose-800"
-                            }`}
-                          >
-                            {st === "ACTIVE"
-                              ? "🟢 ACTIVE"
-                              : st === "ON_HOLD"
-                              ? "🟡 ON HOLD"
-                              : st === "COMPLETED"
-                              ? "🔵 COMPLETED"
-                              : "🔴 INACTIVE"}
-                          </span>
-                        </div>
-                        <p className="text-[10px] text-slate-400">
-                          Mobile: {s.mobile} • Course: {s.admission?.courseNameSnapshot || "N/A"}
-                        </p>
-                      </div>
-                    </div>
-                    <span className="font-mono text-[10px] font-bold text-cyan-400 bg-cyan-950 px-2 py-0.5 rounded border border-cyan-800 shrink-0">
-                      {s.studentId}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+      {/* KPI STATS SUMMARY CARDS HEADER */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
+          <div className="p-3 bg-cyan-950/80 border border-cyan-800/80 rounded-xl text-cyan-400">
+            <Users className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Registered</p>
+            <h3 className="text-xl font-black text-white">{stats.totalStudents || pagination.total || students.length}</h3>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          <Filter className="w-4 h-4 text-slate-400" />
+        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
+          <div className="p-3 bg-emerald-950/80 border border-emerald-800/80 rounded-xl text-emerald-400">
+            <CheckCircle2 className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Active Students</p>
+            <h3 className="text-xl font-black text-emerald-400">{stats.activeStudents || 0}</h3>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
+          <div className="p-3 bg-amber-950/80 border border-amber-800/80 rounded-xl text-amber-400">
+            <CreditCard className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Pending Dues ({stats.pendingDuesCount || 0})</p>
+            <h3 className="text-xl font-black text-amber-400">₹{(stats.totalPendingDuesAmount || 0).toLocaleString("en-IN")}</h3>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
+          <div className="p-3 bg-purple-950/80 border border-purple-800/80 rounded-xl text-purple-400">
+            <GraduationCap className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Completed Passout</p>
+            <h3 className="text-xl font-black text-purple-300">{stats.completedStudents || 0}</h3>
+          </div>
+        </div>
+      </div>
+
+      {/* Filter and Google-Style Search Bar with Multi-Filters & Auto-Complete */}
+      <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col gap-4 relative z-20">
+        <div className="flex flex-col md:flex-row gap-4 justify-between items-center w-full">
+          <div ref={searchContainerRef} className="flex-1 w-full relative">
+            <form onSubmit={handleSearchSubmit} className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={handleSearchChange}
+                  onFocus={() => search.trim().length >= 2 && setShowSuggestions(true)}
+                  placeholder="Search student by name, mobile, ID, course or admission number..."
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-xs focus:outline-none focus:border-cyan-500 font-medium"
+                />
+              </div>
+              <button
+                type="submit"
+                className="px-4 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs rounded-xl shadow-lg transition-colors"
+              >
+                Search
+              </button>
+            </form>
+
+            {/* AUTO-COMPLETE SUGGESTIONS DROPDOWN */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute left-0 right-0 top-12 bg-slate-950 border border-cyan-800/80 rounded-2xl shadow-2xl overflow-hidden z-50 divide-y divide-slate-800/60">
+                <div className="px-3.5 py-2 bg-slate-900 text-[10px] uppercase font-bold text-slate-400 flex items-center justify-between">
+                  <span className="flex items-center space-x-1.5">
+                    <Search className="w-3 h-3 text-cyan-400" />
+                    <span>Matching Student Results</span>
+                  </span>
+                  <span className="text-slate-500 font-normal">Click student to view profile</span>
+                </div>
+                {suggestions.map((s) => {
+                  const st = s.status || "ACTIVE";
+                  return (
+                    <div
+                      key={s.id}
+                      onClick={() => handleSelectSuggestion(s)}
+                      className="p-3 hover:bg-slate-900/80 cursor-pointer flex items-center justify-between transition"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800 flex items-center justify-center font-bold text-xs shrink-0">
+                          {(s.fullName || "S")[0]?.toUpperCase()}
+                        </div>
+                        <div>
+                          <div className="flex items-center space-x-2">
+                            <p className="text-xs font-bold text-white">{toTitleCase(s.fullName)}</p>
+                            <span
+                              className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold border ${
+                                st === "ACTIVE"
+                                  ? "bg-emerald-950 text-emerald-400 border-emerald-800"
+                                  : st === "ON_HOLD"
+                                  ? "bg-amber-950 text-amber-300 border-amber-800"
+                                  : st === "COMPLETED"
+                                  ? "bg-blue-950 text-blue-300 border-blue-800"
+                                  : "bg-rose-950 text-rose-400 border-rose-800"
+                              }`}
+                            >
+                              {st === "ACTIVE"
+                                ? "🟢 ACTIVE"
+                                : st === "ON_HOLD"
+                                ? "🟡 ON HOLD"
+                                : st === "COMPLETED"
+                                ? "🔵 COMPLETED"
+                                : "🔴 INACTIVE"}
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-slate-400">
+                            Mobile: {s.mobile} • Course: {s.admission?.courseNameSnapshot || "N/A"}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="font-mono text-[10px] font-bold text-cyan-400 bg-cyan-950 px-2 py-0.5 rounded border border-cyan-800 shrink-0">
+                        {s.studentId}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Multi-Filters & Sorting Controls Row */}
+        <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-slate-800/80">
+          <div className="flex items-center space-x-1 text-slate-400 text-xs font-semibold">
+            <Filter className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Filters:</span>
+          </div>
+
+          {/* Academic Status Filter */}
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-cyan-500 font-semibold"
+            className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-cyan-500 font-semibold"
           >
-            <option value="">All Statuses</option>
-            <option value="ACTIVE">ACTIVE</option>
-            <option value="ON_HOLD">ON_HOLD</option>
-            <option value="COMPLETED">COMPLETED</option>
-            <option value="DROPPED">DROPPED</option>
+            <option value="">All Academic Statuses</option>
+            <option value="ACTIVE">🟢 ACTIVE</option>
+            <option value="ON_HOLD">🟡 ON HOLD</option>
+            <option value="COMPLETED">🔵 COMPLETED</option>
+            <option value="DROPPED">🔴 DROPPED</option>
             <option value="TRANSFERRED">TRANSFERRED</option>
           </select>
 
-          {/* DYNAMIC COLUMN / FIELD CUSTOMIZER POPOVER */}
-          <div ref={columnCustomizerRef} className="relative">
-            <button
-              type="button"
-              onClick={() => setShowColumnCustomizer(!showColumnCustomizer)}
-              className={`px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition ${
-                showColumnCustomizer ? "border-cyan-500 text-cyan-400 bg-cyan-950/40" : "text-slate-300 hover:text-white"
-              }`}
-              title="Customize Display Columns & Fields"
+          {/* Course Filter */}
+          <select
+            value={courseFilter}
+            onChange={(e) => setCourseFilter(e.target.value)}
+            className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-cyan-500 font-semibold max-w-[200px] truncate"
+          >
+            <option value="">All Courses / Programs</option>
+            {coursesList.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name} ({c.code})
+              </option>
+            ))}
+          </select>
+
+          {/* Payment / Dues Filter */}
+          <select
+            value={paymentFilter}
+            onChange={(e) => setPaymentFilter(e.target.value)}
+            className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-cyan-500 font-semibold"
+          >
+            <option value="">All Payment Statuses</option>
+            <option value="PENDING">⚠️ Has Pending Dues</option>
+            <option value="CLEARED">✓ Fees Fully Cleared</option>
+          </select>
+
+          {/* Sort By Dropdown */}
+          <div className="flex items-center space-x-1.5 ml-auto">
+            <span className="text-slate-400 text-xs font-semibold hidden sm:inline">Sort:</span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-cyan-400 text-xs focus:outline-none focus:border-cyan-500 font-bold"
             >
-              <SlidersHorizontal className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Show Fields ({Object.values(columns).filter(Boolean).length})</span>
-            </button>
+              <option value="newest">Newest Registrations</option>
+              <option value="oldest">Oldest Registrations</option>
+              <option value="pending_desc">Highest Pending Dues (₹)</option>
+              <option value="pending_asc">Lowest Pending Dues (₹)</option>
+              <option value="name_asc">Student Name (A - Z)</option>
+              <option value="name_desc">Student Name (Z - A)</option>
+            </select>
 
-            {showColumnCustomizer && (
-              <div className="absolute right-0 top-12 w-64 bg-slate-950 border border-cyan-800/80 rounded-2xl shadow-2xl p-4 z-50 space-y-3 font-sans text-xs">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                  <span className="font-bold text-cyan-400 uppercase text-[10px] tracking-wider">
-                    Display Columns / Fields
-                  </span>
-                  <button onClick={() => setShowColumnCustomizer(false)} className="text-slate-400 hover:text-white">
-                    <X className="w-4 h-4" />
-                  </button>
+            {/* DYNAMIC COLUMN / FIELD CUSTOMIZER POPOVER */}
+            <div ref={columnCustomizerRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setShowColumnCustomizer(!showColumnCustomizer)}
+                className={`px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold flex items-center space-x-1 transition ${
+                  showColumnCustomizer ? "border-cyan-500 text-cyan-400 bg-cyan-950/40" : "text-slate-300 hover:text-white"
+                }`}
+                title="Customize Display Columns & Fields"
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="hidden sm:inline">Fields ({Object.values(columns).filter(Boolean).length})</span>
+              </button>
+
+              {showColumnCustomizer && (
+                <div className="absolute right-0 top-11 w-64 bg-slate-950 border border-cyan-800/80 rounded-2xl shadow-2xl p-4 z-50 space-y-3 font-sans text-xs">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                    <span className="font-bold text-cyan-400 uppercase text-[10px] tracking-wider">
+                      Display Columns / Fields
+                    </span>
+                    <button onClick={() => setShowColumnCustomizer(false)} className="text-slate-400 hover:text-white">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                    <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={columns.fullName}
+                        onChange={(e) => setColumns({ ...columns, fullName: e.target.checked })}
+                        className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
+                      />
+                      <span className="text-slate-200 font-bold">Student Name & Contact</span>
+                    </label>
+
+                    <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={columns.course}
+                        onChange={(e) => setColumns({ ...columns, course: e.target.checked })}
+                        className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
+                      />
+                      <span className="text-slate-200 font-bold">Enrolled Course(s)</span>
+                    </label>
+
+                    <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={columns.pendingAmount}
+                        onChange={(e) => setColumns({ ...columns, pendingAmount: e.target.checked })}
+                        className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
+                      />
+                      <span className="text-amber-400 font-bold">Pending Dues Balance (₹)</span>
+                    </label>
+
+                    <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={columns.status}
+                        onChange={(e) => setColumns({ ...columns, status: e.target.checked })}
+                        className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
+                      />
+                      <span className="text-slate-200 font-bold">Academic Status</span>
+                    </label>
+                  </div>
                 </div>
-
-                <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-                  <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={columns.studentId}
-                      onChange={(e) => setColumns({ ...columns, studentId: e.target.checked })}
-                      className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
-                    />
-                    <span className="text-slate-200 font-bold">Student ID</span>
-                  </label>
-
-                  <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={columns.fullName}
-                      onChange={(e) => setColumns({ ...columns, fullName: e.target.checked })}
-                      className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
-                    />
-                    <span className="text-slate-200 font-bold">Student Name</span>
-                  </label>
-
-                  <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={columns.mobile}
-                      onChange={(e) => setColumns({ ...columns, mobile: e.target.checked })}
-                      className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
-                    />
-                    <span className="text-slate-200 font-bold">Mobile Number</span>
-                  </label>
-
-                  <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={columns.course}
-                      onChange={(e) => setColumns({ ...columns, course: e.target.checked })}
-                      className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
-                    />
-                    <span className="text-slate-200 font-bold">Enrolled Course(s)</span>
-                  </label>
-
-                  <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={columns.totalFees}
-                      onChange={(e) => setColumns({ ...columns, totalFees: e.target.checked })}
-                      className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
-                    />
-                    <span className="text-slate-200 font-bold">Total Course Fees (₹)</span>
-                  </label>
-
-                  <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={columns.paidAmount}
-                      onChange={(e) => setColumns({ ...columns, paidAmount: e.target.checked })}
-                      className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
-                    />
-                    <span className="text-emerald-400 font-bold">Paid Fees Amount (₹)</span>
-                  </label>
-
-                  <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={columns.pendingAmount}
-                      onChange={(e) => setColumns({ ...columns, pendingAmount: e.target.checked })}
-                      className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
-                    />
-                    <span className="text-amber-400 font-bold">Pending Dues Balance (₹)</span>
-                  </label>
-
-                  <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={columns.joiningDate}
-                      onChange={(e) => setColumns({ ...columns, joiningDate: e.target.checked })}
-                      className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
-                    />
-                    <span className="text-slate-200 font-bold">Joined / Admission Date</span>
-                  </label>
-
-                  <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={columns.guardian}
-                      onChange={(e) => setColumns({ ...columns, guardian: e.target.checked })}
-                      className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
-                    />
-                    <span className="text-slate-200 font-bold">Guardian Contact</span>
-                  </label>
-
-                  <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={columns.status}
-                      onChange={(e) => setColumns({ ...columns, status: e.target.checked })}
-                      className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
-                    />
-                    <span className="text-slate-200 font-bold">Academic Status</span>
-                  </label>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -793,10 +915,10 @@ export const Students = () => {
         ) : students.length === 0 ? (
           <EmptyState
             title="No Students Found"
-            description="Try adjusting your search criteria or register a new student."
+            description="Try adjusting your search criteria or filter options."
           />
         ) : viewMode === "table" ? (
-          /* TABLE LIST VIEW WITH QUICK COLLECT FEE BUTTON */
+          /* TABLE LIST VIEW WITH THE 4 REQUESTED DISPLAY COLUMNS PROMINENTLY HIGHLIGHTED */
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-slate-300">
               <thead className="bg-slate-950/80 text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800">
@@ -809,30 +931,26 @@ export const Students = () => {
                       className="w-4 h-4 rounded border-slate-700 bg-slate-950 text-cyan-600 focus:ring-cyan-500 cursor-pointer"
                     />
                   </th>
-                  {columns.studentId && <th className="p-3.5">Student ID</th>}
-                  {columns.fullName && <th className="p-3.5">Student Name</th>}
-                  {columns.mobile && <th className="p-3.5">Mobile</th>}
-                  {columns.course && <th className="p-3.5">Enrolled Course(s)</th>}
-                  {columns.totalFees && <th className="p-3.5 text-right">Total Fees</th>}
-                  {columns.paidAmount && <th className="p-3.5 text-right">Paid Fees</th>}
-                  {columns.pendingAmount && <th className="p-3.5 text-right">Pending Dues</th>}
-                  {columns.joiningDate && <th className="p-3.5">Joined Date</th>}
-                  {columns.guardian && <th className="p-3.5">Guardian Contact</th>}
-                  {columns.status && <th className="p-3.5">Status</th>}
-                  <th className="p-3.5 text-right">Actions</th>
+                  <th className="p-3.5">Student Name</th>
+                  <th className="p-3.5">Enrolled Course(s)</th>
+                  <th className="p-3.5 text-right">Pending Dues Balance (₹)</th>
+                  <th className="p-3.5 text-center">Academic Status</th>
+                  <th className="p-3.5 text-center">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-slate-800/60 font-sans">
                 {students.map((student) => {
                   const totalFees = Number(student.admission?.finalFees || student.admission?.courseFees || 0);
                   const paidAmount = Number(student.admission?.paidAmount || 0);
                   const pendingAmount = Number(student.admission?.pendingAmount || 0);
+                  const isSelected = selectedStudentIds.includes(student.id);
+                  const st = student.status || "ACTIVE";
 
                   return (
                     <tr
                       key={student.id}
-                      className={`hover:bg-slate-800/40 transition-colors ${
-                        selectedStudentIds.includes(student.id) ? "bg-cyan-950/30" : ""
+                      className={`hover:bg-slate-800/40 transition ${
+                        isSelected ? "bg-cyan-950/20" : ""
                       }`}
                     >
                       <td className="p-3.5 text-center">
@@ -844,127 +962,130 @@ export const Students = () => {
                         />
                       </td>
 
-                      {columns.studentId && (
-                        <td className="p-3.5 font-mono text-xs font-bold text-cyan-400">
-                          {student.studentId}
-                        </td>
-                      )}
-
-                      {columns.fullName && (
-                        <td className="p-3.5 font-bold text-slate-100">
-                          {toTitleCase(student.fullName)}
-                        </td>
-                      )}
-
-                      {columns.mobile && (
-                        <td className="p-3.5 text-slate-300 text-xs">{student.mobile}</td>
-                      )}
-
-                      {columns.course && (
-                        <td className="p-3.5 text-xs">
-                          <div className="flex items-center space-x-1.5 flex-wrap gap-y-1">
-                            <span
-                              className="px-2.5 py-1 bg-cyan-950 text-cyan-300 border border-cyan-800 rounded-lg text-xs font-bold truncate max-w-[210px]"
-                              title={student.courseInfo?.primaryCourse || student.admission?.courseNameSnapshot}
-                            >
-                              {student.courseInfo?.primaryCourse || student.admission?.courseNameSnapshot || "General Course"}
-                            </span>
-                            {student.courseInfo?.extraCoursesCount > 0 && (
-                              <span
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedStudent(student);
-                                }}
-                                className="px-2 py-0.5 bg-purple-950 hover:bg-purple-900 text-purple-300 border border-purple-800 rounded-lg text-[10px] font-extrabold cursor-pointer transition shadow hover:scale-105 inline-flex items-center space-x-0.5"
-                                title="Click to view all enrolled courses"
-                              >
-                                <span>+ {student.courseInfo.extraCoursesCount} more</span>
-                              </span>
-                            )}
+                      {/* 1. STUDENT NAME & CONTACT */}
+                      <td className="p-3.5">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-9 h-9 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800 flex items-center justify-center font-bold text-sm shrink-0">
+                            {student.fullName[0]?.toUpperCase()}
                           </div>
-                        </td>
-                      )}
+                          <div>
+                            <button
+                              onClick={() => setSelectedStudent(student)}
+                              className="font-bold text-white hover:text-cyan-400 text-sm text-left transition"
+                            >
+                              {toTitleCase(student.fullName)}
+                            </button>
+                            <div className="flex items-center space-x-2 mt-0.5">
+                              <span className="font-mono text-[10px] font-bold text-cyan-400 bg-cyan-950 px-1.5 py-0.5 rounded border border-cyan-800/80">
+                                {student.studentId}
+                              </span>
+                              <span className="text-slate-500 text-xs font-mono">
+                                📞 {student.mobile}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
 
-                      {columns.totalFees && (
-                        <td className="p-3.5 text-right font-extrabold text-white text-xs">
-                          ₹{totalFees.toLocaleString("en-IN")}
-                        </td>
-                      )}
-
-                      {columns.paidAmount && (
-                        <td className="p-3.5 text-right font-extrabold text-emerald-400 text-xs">
-                          ₹{paidAmount.toLocaleString("en-IN")}
-                        </td>
-                      )}
-
-                      {columns.pendingAmount && (
-                        <td className="p-3.5 text-right font-extrabold text-amber-400 text-xs">
-                          ₹{pendingAmount.toLocaleString("en-IN")}
-                        </td>
-                      )}
-
-                      {columns.joiningDate && (
-                        <td className="p-3.5 font-mono text-slate-400 text-xs">
-                          {formatDate(student.joinedDate || student.createdAt)}
-                        </td>
-                      )}
-
-                      {columns.guardian && (
-                        <td className="p-3.5 text-slate-300 text-xs">
-                          {student.admission?.guardianName || "N/A"}{" "}
-                          {student.admission?.guardianMobile && `(${student.admission.guardianMobile})`}
-                        </td>
-                      )}
-
-                      {columns.status && (
-                        <td className="p-3.5">
+                      {/* 2. ENROLLED COURSE(S) */}
+                      <td className="p-3.5 text-xs">
+                        <div className="flex items-center space-x-1.5 flex-wrap gap-y-1">
                           <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                              student.status === "ACTIVE"
-                                ? "bg-emerald-950 text-emerald-400 border border-emerald-800/60"
-                                : student.status === "COMPLETED"
-                                ? "bg-blue-950 text-blue-300 border border-blue-800/60"
-                                : student.status === "DROPPED"
-                                ? "bg-rose-950 text-rose-400 border border-rose-800/60"
-                                : "bg-slate-800 text-slate-400 border border-slate-700"
-                            }`}
+                            className="px-2.5 py-1 bg-cyan-950 text-cyan-300 border border-cyan-800 rounded-lg text-xs font-bold truncate max-w-[220px]"
+                            title={student.courseInfo?.primaryCourse || student.admission?.courseNameSnapshot}
                           >
-                            {student.status}
+                            {student.courseInfo?.primaryCourse || student.admission?.courseNameSnapshot || "General Course"}
                           </span>
-                        </td>
-                      )}
-                    <td className="p-3.5 text-right space-x-2">
-                      <button
-                        onClick={() => handleOpenCollectFee(student)}
-                        className="px-2.5 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white text-xs font-bold transition-colors inline-flex items-center space-x-1"
-                        title="Collect Fee & Issue Receipt"
-                      >
-                        <CreditCard className="w-3.5 h-3.5" />
-                        <span>Pay Fee</span>
-                      </button>
-                      <button
-                        onClick={() => handleOpenAddCourse(student)}
-                        className="p-1.5 rounded-lg bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white transition-colors"
-                        title="Enroll in New Course & Set Fees"
-                      >
-                        <BookOpen className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => setSelectedStudent(student)}
-                        className="p-1.5 rounded-lg bg-slate-800 hover:bg-cyan-600 text-slate-300 hover:text-white transition-colors"
-                        title="View Full History & Details"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleOpenEdit(student)}
-                        className="p-1.5 rounded-lg bg-slate-800 hover:bg-amber-600 text-slate-300 hover:text-white transition-colors"
-                        title="Edit Details, Fees & Status"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
+                          {student.courseInfo?.extraCoursesCount > 0 && (
+                            <span
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedStudent(student);
+                              }}
+                              className="px-2 py-0.5 bg-purple-950 hover:bg-purple-900 text-purple-300 border border-purple-800 rounded-lg text-[10px] font-extrabold cursor-pointer transition shadow hover:scale-105 inline-flex items-center space-x-0.5"
+                              title="Click to view all enrolled courses"
+                            >
+                              <span>+ {student.courseInfo.extraCoursesCount} more</span>
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* 3. PENDING DUES BALANCE (₹) */}
+                      <td className="p-3.5 text-right">
+                        {pendingAmount > 0 ? (
+                          <div>
+                            <span className="font-extrabold text-amber-400 text-sm bg-amber-950/60 border border-amber-800/60 px-2.5 py-1 rounded-lg inline-block">
+                              ₹{pendingAmount.toLocaleString("en-IN")} Due
+                            </span>
+                            <div className="text-[10px] text-slate-400 mt-1 font-mono">
+                              Paid: ₹{paidAmount.toLocaleString("en-IN")} / Total: ₹{totalFees.toLocaleString("en-IN")}
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            <span className="font-bold text-emerald-400 text-xs bg-emerald-950/80 border border-emerald-800/80 px-2.5 py-1 rounded-lg inline-flex items-center gap-1">
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Cleared
+                            </span>
+                            <div className="text-[10px] text-slate-500 mt-1 font-mono">
+                              Total Paid: ₹{paidAmount.toLocaleString("en-IN")}
+                            </div>
+                          </div>
+                        )}
+                      </td>
+
+                      {/* 4. ACADEMIC STATUS */}
+                      <td className="p-3.5 text-center">
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-xl text-xs font-bold border ${
+                            st === "ACTIVE"
+                              ? "bg-emerald-950 text-emerald-400 border-emerald-800"
+                              : st === "ON_HOLD"
+                              ? "bg-amber-950 text-amber-300 border-amber-800"
+                              : st === "COMPLETED"
+                              ? "bg-blue-950 text-blue-300 border-blue-800"
+                              : "bg-rose-950 text-rose-400 border-rose-800"
+                          }`}
+                        >
+                          {st === "ACTIVE"
+                            ? "🟢 ACTIVE"
+                            : st === "ON_HOLD"
+                            ? "🟡 ON HOLD"
+                            : st === "COMPLETED"
+                            ? "🔵 COMPLETED"
+                            : "🔴 DROPPED"}
+                        </span>
+                      </td>
+
+                      {/* ACTIONS */}
+                      <td className="p-3.5 text-center space-x-1.5">
+                        <button
+                          onClick={() => setSelectedStudent(student)}
+                          className="px-2.5 py-1 bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white rounded-lg font-bold text-xs inline-flex items-center space-x-1 transition"
+                          title="View Complete Student Profile & History"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>View</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleOpenCollectFee(student)}
+                          className="px-2.5 py-1 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white rounded-lg font-bold text-xs inline-flex items-center space-x-1 transition"
+                          title="Quick Fee Collection"
+                        >
+                          <CreditCard className="w-3.5 h-3.5" />
+                          <span>Fee</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleOpenEdit(student)}
+                          className="p-1.5 text-slate-400 hover:text-amber-400 hover:bg-slate-800 rounded-lg transition"
+                          title="Edit Student Profile"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    </tr>
                 );
               })}
               </tbody>
@@ -1244,7 +1365,7 @@ export const Students = () => {
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 flex-wrap gap-y-2">
                 <button
                   onClick={() => {
                     const s = selectedStudent;
@@ -1278,6 +1399,16 @@ export const Students = () => {
                   <Edit className="w-3.5 h-3.5" />
                   <span>Edit Profile</span>
                 </button>
+                {isSuperAdmin && (
+                  <button
+                    onClick={() => handleDeleteStudent(selectedStudent.id, selectedStudent.fullName)}
+                    className="px-3 py-1.5 bg-rose-950/80 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-800 rounded-xl text-xs font-bold flex items-center space-x-1 transition"
+                    title="Delete student record (Super Admin)"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Delete Record</span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -1412,14 +1543,16 @@ export const Students = () => {
                                   </button>
                                 )}
 
-                                <button
-                                  type="button"
-                                  onClick={() => handleDeleteCourseAdmission(adm.id, adm.courseNameSnapshot || adm.course?.name || "Course")}
-                                  className="px-2 py-1 bg-slate-900 hover:bg-red-950 text-slate-400 hover:text-red-400 border border-slate-800 hover:border-red-800 rounded-lg text-[11px] transition font-bold"
-                                  title="Delete this course enrollment record"
-                                >
-                                  🗑️ Delete
-                                </button>
+                                {isSuperAdmin && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteCourseAdmission(adm.id, adm.courseNameSnapshot || adm.course?.name || "Course")}
+                                    className="px-2 py-1 bg-slate-900 hover:bg-red-950 text-slate-400 hover:text-red-400 border border-slate-800 hover:border-red-800 rounded-lg text-[11px] transition font-bold"
+                                    title="Delete this course enrollment record"
+                                  >
+                                    🗑️ Delete
+                                  </button>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -1455,7 +1588,7 @@ export const Students = () => {
                             {fullStudentData.allPayments.map((p) => (
                               <tr key={p.id} className="hover:bg-slate-800/30">
                                 <td className="py-2.5 px-3 font-mono font-bold text-cyan-400">
-                                  {p.transactionReference || `REC-${p.id.slice(-6).toUpperCase()}`}
+                                  {p.transactionReference || `REC-${p.id ? p.id.slice(-6).toUpperCase() : "PAYMENT"}`}
                                 </td>
                                 <td className="py-2.5 px-3 font-semibold text-white truncate max-w-[150px]">
                                   {p.courseName || "Course"}
@@ -1558,34 +1691,50 @@ export const Students = () => {
               </>
             )}
 
-            {/* PERSONAL INFO CARD */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-2 border-t border-slate-800">
-              <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/60 space-y-1">
-                <span className="text-slate-500 uppercase font-semibold text-[10px]">Mobile Contact</span>
+            {/* EXPANDED PERSONAL INFO CARD GRID */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs pt-3 border-t border-slate-800">
+              <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/60 space-y-1">
+                <span className="text-slate-500 uppercase font-semibold text-[10px]">Father / Guardian</span>
                 <p className="font-medium text-slate-200 flex items-center gap-1.5">
-                  <Phone className="w-3.5 h-3.5 text-cyan-400" /> {selectedStudent.mobile}
+                  <User className="w-3.5 h-3.5 text-cyan-400" /> {selectedStudent.fatherName || selectedStudent.guardianName || "N/A"}
                 </p>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/60 space-y-1">
+              <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/60 space-y-1">
+                <span className="text-slate-500 uppercase font-semibold text-[10px]">Mobile & WhatsApp</span>
+                <p className="font-medium text-slate-200 flex items-center gap-1.5 font-mono">
+                  <Phone className="w-3.5 h-3.5 text-emerald-400" /> {selectedStudent.mobile} {selectedStudent.whatsapp ? `(${selectedStudent.whatsapp})` : ""}
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/60 space-y-1">
                 <span className="text-slate-500 uppercase font-semibold text-[10px]">Email Address</span>
                 <p className="font-medium text-slate-200 flex items-center gap-1.5 truncate">
                   <Mail className="w-3.5 h-3.5 text-cyan-400" /> {selectedStudent.email || "N/A"}
                 </p>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/60 space-y-1">
-                <span className="text-slate-500 uppercase font-semibold text-[10px]">Address</span>
+              <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/60 space-y-1">
+                <span className="text-slate-500 uppercase font-semibold text-[10px]">Gender & DOB</span>
                 <p className="font-medium text-slate-200 flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-cyan-400" /> {selectedStudent.address || "N/A"}
+                  <Calendar className="w-3.5 h-3.5 text-indigo-400" />
+                  {selectedStudent.gender || "N/A"} {selectedStudent.dob ? `• ${formatDate(selectedStudent.dob)}` : ""}
                 </p>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/60 space-y-1">
-                <span className="text-slate-500 uppercase font-semibold text-[10px]">Registration Date</span>
-                <p className="font-medium text-slate-200 flex items-center gap-1.5 font-mono">
-                  <Calendar className="w-3.5 h-3.5 text-cyan-400" />
-                  {formatDate(selectedStudent.joinedDate || selectedStudent.createdAt)}
+              <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/60 space-y-1">
+                <span className="text-slate-500 uppercase font-semibold text-[10px]">Qualification & School/College</span>
+                <p className="font-medium text-slate-200 flex items-center gap-1.5 truncate">
+                  <GraduationCap className="w-3.5 h-3.5 text-purple-400" />
+                  {selectedStudent.qualification || "N/A"} {selectedStudent.schoolCollege ? `(${selectedStudent.schoolCollege})` : ""}
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/60 space-y-1">
+                <span className="text-slate-500 uppercase font-semibold text-[10px]">Full Address</span>
+                <p className="font-medium text-slate-200 flex items-center gap-1.5 truncate">
+                  <MapPin className="w-3.5 h-3.5 text-rose-400" />
+                  {[selectedStudent.address, selectedStudent.city, selectedStudent.state].filter(Boolean).join(", ") || "N/A"}
                 </p>
               </div>
             </div>

@@ -9,6 +9,7 @@ import {
   updateAdmission,
   updateAdmissionStatusService,
   deleteAdmissionService,
+  bulkUpdateAdmissionStatusService,
 } from "./admission.service.js";
 import {
   createAdmissionSchema,
@@ -120,4 +121,10 @@ export const updateAdmissionStatusController = asyncHandler(async (req, res) => 
 export const deleteAdmissionController = asyncHandler(async (req, res) => {
   const result = await deleteAdmissionService(req.params.id);
   return successResponse(res, "Course enrollment deleted successfully", result, 200);
+});
+
+export const bulkUpdateAdmissionStatusController = asyncHandler(async (req, res) => {
+  const { admissionIds, status } = req.body;
+  const result = await bulkUpdateAdmissionStatusService(admissionIds, status);
+  return successResponse(res, "Bulk course status updated successfully", result, 200);
 });
