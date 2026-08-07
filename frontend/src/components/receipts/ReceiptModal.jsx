@@ -1,9 +1,12 @@
-import React from "react";
-import { X, Printer, CheckCircle2, ShieldCheck, CreditCard, Calendar, Receipt } from "lucide-react";
+import React, { useState } from "react";
+import { X, Printer, Download, CheckCircle2, ShieldCheck, CreditCard, Calendar, Receipt, FileText } from "lucide-react";
 import { formatDate } from "../../utils/formatters";
+import html2pdf from "html2pdf.js";
 
 export const ReceiptModal = ({ payment, student, admission, onClose }) => {
   if (!payment) return null;
+
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   const currentAdm = admission || payment.admission || student?.admission;
   const pastPayments = currentAdm?.payments || student?.allPayments || [];
@@ -15,6 +18,34 @@ export const ReceiptModal = ({ payment, student, admission, onClose }) => {
   const handlePrint = () => {
     window.print();
   };
+
+  const handleDownloadPdf = async () => {
+    const element = document.getElementById("printable-receipt-card");
+    if (!element) return;
+
+    setDownloadingPdf(true);
+    try {
+      const receiptRef = payment.transactionReference || `REC-${payment.id?.slice(-6).toUpperCase()}`;
+      const studentName = (student?.fullName || currentAdm?.student?.fullName || payment.studentName || "Student").replace(/\s+/g, "_");
+      const filename = `Fee_Receipt_${receiptRef}_${studentName}.pdf`;
+
+      const opt = {
+        margin: [6, 6, 6, 6],
+        filename,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      };
+
+      await html2pdf().set(opt).from(element).save();
+    } catch (err) {
+      console.error("PDF Download error:", err);
+      window.print();
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
+
 
   const formattedDate = formatDate(payment.paymentDate || payment.createdAt);
 
@@ -214,19 +245,33 @@ export const ReceiptModal = ({ payment, student, admission, onClose }) => {
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl text-xs transition"
+                className="px-3.5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl text-xs transition"
               >
                 Close
               </button>
+
+              <button
+                type="button"
+                disabled={downloadingPdf}
+                onClick={handleDownloadPdf}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-lg flex items-center space-x-1.5 transition disabled:opacity-50"
+                title="Download high quality PDF file directly"
+              >
+                <Download className="w-4 h-4" />
+                <span>{downloadingPdf ? "Generating PDF..." : "Download PDF Receipt"}</span>
+              </button>
+
               <button
                 type="button"
                 onClick={handlePrint}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-lg flex items-center space-x-1.5 transition"
+                title="Print clean receipt using browser print"
               >
                 <Printer className="w-4 h-4" />
-                <span>Print Clean Receipt</span>
+                <span>Print PDF</span>
               </button>
             </div>
+
           </div>
         </div>
       </div>
