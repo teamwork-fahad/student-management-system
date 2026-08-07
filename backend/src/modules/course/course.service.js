@@ -41,13 +41,43 @@ export const createCourse = async (courseData) => {
 };
 
 export const getAllCourses = async () => {
-  return prisma.course.findMany({
+  const courses = await prisma.course.findMany({
     where: {
       isActive: true,
+    },
+    include: {
+      admissions: {
+        where: {
+          deletedAt: null,
+        },
+        select: {
+          id: true,
+          status: true,
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",
     },
+  });
+
+  return courses.map((c) => {
+    const admissions = c.admissions || [];
+    const activeStudents = admissions.filter((a) => a.status === "ACTIVE").length;
+    const completedStudents = admissions.filter((a) => a.status === "COMPLETED").length;
+    const cancelledStudents = admissions.filter((a) => a.status === "CANCELLED").length;
+    const totalStudents = admissions.length;
+
+    const { admissions: _, ...courseData } = c;
+    return {
+      ...courseData,
+      stats: {
+        activeStudents,
+        completedStudents,
+        cancelledStudents,
+        totalStudents,
+      },
+    };
   });
 };
 

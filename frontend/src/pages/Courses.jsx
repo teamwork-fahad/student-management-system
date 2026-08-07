@@ -15,6 +15,9 @@ import {
   Save,
   Tag,
   Zap,
+  Users,
+  UserCheck,
+  GraduationCap,
 } from "lucide-react";
 import api from "../api/axios";
 
@@ -197,6 +200,20 @@ export const Courses = () => {
     return matchesSearch && matchesCategory;
   });
 
+  const totalCourses = courses.length;
+  const totalActiveStudents = courses.reduce(
+    (sum, c) => sum + (c.stats?.activeStudents || 0),
+    0
+  );
+  const totalCompletedStudents = courses.reduce(
+    (sum, c) => sum + (c.stats?.completedStudents || 0),
+    0
+  );
+  const totalEnrolledStudents = courses.reduce(
+    (sum, c) => sum + (c.stats?.totalStudents || 0),
+    0
+  );
+
   const getCategoryBadgeClass = (cat) => {
     switch (cat) {
       case "School Course":
@@ -263,6 +280,49 @@ export const Courses = () => {
         </div>
       </div>
 
+      {/* KPI Stats Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
+          <div className="p-3 bg-cyan-950/80 border border-cyan-800/80 rounded-xl text-cyan-400">
+            <BookOpen className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Courses</p>
+            <h3 className="text-xl font-black text-white">{totalCourses}</h3>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
+          <div className="p-3 bg-emerald-950/80 border border-emerald-800/80 rounded-xl text-emerald-400">
+            <UserCheck className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Active Students</p>
+            <h3 className="text-xl font-black text-emerald-400">{totalActiveStudents}</h3>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
+          <div className="p-3 bg-purple-950/80 border border-purple-800/80 rounded-xl text-purple-400">
+            <GraduationCap className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Completed / Passout</p>
+            <h3 className="text-xl font-black text-purple-300">{totalCompletedStudents}</h3>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
+          <div className="p-3 bg-blue-950/80 border border-blue-800/80 rounded-xl text-blue-400">
+            <Users className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Enrolled</p>
+            <h3 className="text-xl font-black text-blue-400">{totalEnrolledStudents}</h3>
+          </div>
+        </div>
+      </div>
+
       {/* Search & Department Category Filter Bar */}
       <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row gap-4 justify-between items-center">
         <div className="relative flex-1 w-full">
@@ -309,6 +369,7 @@ export const Courses = () => {
                   <th className="py-3.5 px-4">Course Name</th>
                   <th className="py-3.5 px-4">Category / Department</th>
                   <th className="py-3.5 px-4">Duration</th>
+                  <th className="py-3.5 px-4 text-center">Enrolled Students</th>
                   <th className="py-3.5 px-4 text-right">Tuition Fees</th>
                   <th className="py-3.5 px-4 text-center">Status</th>
                   <th className="py-3.5 px-4 text-center">Actions</th>
@@ -326,6 +387,18 @@ export const Courses = () => {
                     </td>
                     <td className="py-3.5 px-4 text-slate-400 font-semibold">
                       {c.duration} {c.durationType.toLowerCase()}
+                    </td>
+                    <td className="py-3.5 px-4 text-center">
+                      <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                        <span className="px-2 py-0.5 rounded-md bg-emerald-950/80 text-emerald-400 border border-emerald-800/80 text-[10px] font-bold inline-flex items-center gap-1" title="Active Students">
+                          <UserCheck className="w-3 h-3" />
+                          {c.stats?.activeStudents || 0} Active
+                        </span>
+                        <span className="px-2 py-0.5 rounded-md bg-purple-950/80 text-purple-300 border border-purple-800/80 text-[10px] font-bold inline-flex items-center gap-1" title="Completed Students">
+                          <GraduationCap className="w-3 h-3" />
+                          {c.stats?.completedStudents || 0} Done
+                        </span>
+                      </div>
                     </td>
                     <td className="py-3.5 px-4 text-right font-extrabold text-emerald-400 text-sm">
                       ₹{Number(c.fees).toLocaleString("en-IN")}
@@ -377,6 +450,32 @@ export const Courses = () => {
                 {c.description && (
                   <p className="text-xs text-slate-400 mt-1 line-clamp-2">{c.description}</p>
                 )}
+              </div>
+
+              {/* Student Stats Summary for Card */}
+              <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 space-y-2 my-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-400 font-medium flex items-center gap-1.5">
+                    <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
+                    Active Students
+                  </span>
+                  <span className="font-extrabold text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800/80 text-xs">
+                    {c.stats?.activeStudents || 0}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-400 font-medium flex items-center gap-1.5">
+                    <GraduationCap className="w-3.5 h-3.5 text-purple-400" />
+                    Completed Passout
+                  </span>
+                  <span className="font-extrabold text-purple-300 bg-purple-950/80 px-2 py-0.5 rounded border border-purple-800/80 text-xs">
+                    {c.stats?.completedStudents || 0}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-[10px] pt-1.5 border-t border-slate-800/60 text-slate-400">
+                  <span>Total Admissions:</span>
+                  <span className="font-bold text-slate-200">{c.stats?.totalStudents || 0}</span>
+                </div>
               </div>
 
               <div className="pt-4 border-t border-slate-800 space-y-3">
