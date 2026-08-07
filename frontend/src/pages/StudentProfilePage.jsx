@@ -140,15 +140,81 @@ export const StudentProfilePage = () => {
     }
   };
 
-  // Delete Course Admission
-  const handleDeleteCourseAdmission = async (admissionId, courseName) => {
-    if (!window.confirm(`Are you sure you want to delete course enrollment for "${courseName}"?`)) return;
+  // Delete Course Admission with detailed fee info loss warning
+  const handleDeleteCourseAdmission = async (admissionId, courseName, admDetails = {}) => {
+    const studentName = studentData?.fullName || "Student";
+    const paidAmt = admDetails.paidAmount ? Number(admDetails.paidAmount).toLocaleString("en-IN") : "0";
+    const pendingAmt = admDetails.pendingAmount ? Number(admDetails.pendingAmount).toLocaleString("en-IN") : "0";
+
+    const confirmMsg =
+      `⚠️ WARNING: ARE YOU SURE YOU WANT TO DELETE THIS COURSE ENROLLMENT?\n\n` +
+      `Student Name: ${studentName}\n` +
+      `Course Name: "${courseName}"\n` +
+      `Paid Amount Recorded: ₹${paidAmt}\n` +
+      `Pending Dues Balance: ₹${pendingAmt}\n\n` +
+      `Deleting this course enrollment will ERASE all fee information, discount data, and payment receipt history recorded for "${courseName}"!\n\n` +
+      `Do you want to proceed and permanently remove this course entry from the database?`;
+
+    if (!window.confirm(confirmMsg)) return;
 
     try {
       await api.delete(`/admissions/${admissionId}`);
+      alert(`Course enrollment for "${courseName}" has been deleted from the database.`);
       fetchStudentProfile();
     } catch (err) {
       alert(err.response?.data?.message || "Failed to delete course enrollment");
+    }
+  };
+
+  // Edit Enrolled Course Modal State & Handlers (Super Admin)
+  const [editingAdmission, setEditingAdmission] = useState(null);
+  const [editCourseForm, setEditCourseForm] = useState({
+    courseId: "",
+    courseFees: "",
+    discount: "0",
+    finalFees: "",
+    remarks: "",
+  });
+  const [editCourseSubmitting, setEditCourseSubmitting] = useState(false);
+  const [editCourseError, setEditCourseError] = useState("");
+
+  const handleOpenEditCourseModal = (adm) => {
+    setEditingAdmission(adm);
+    const initialFees = adm.courseFees !== undefined ? String(adm.courseFees) : String(adm.course?.fees || 0);
+    const initialDiscount = adm.discount !== undefined ? String(adm.discount) : "0";
+    const initialFinal = adm.finalFees !== undefined ? String(adm.finalFees) : String(Math.max(0, Number(initialFees) - Number(initialDiscount)));
+
+    setEditCourseForm({
+      courseId: adm.courseId || adm.course?.id || "",
+      courseFees: initialFees,
+      discount: initialDiscount,
+      finalFees: initialFinal,
+      remarks: adm.remarks || "",
+    });
+    setEditCourseError("");
+  };
+
+  const handleEditCourseSubmit = async (e) => {
+    e.preventDefault();
+    if (!editingAdmission) return;
+
+    setEditCourseSubmitting(true);
+    setEditCourseError("");
+    try {
+      await api.put(`/admissions/${editingAdmission.id}`, {
+        courseId: editCourseForm.courseId,
+        courseFees: Number(editCourseForm.courseFees),
+        discount: Number(editCourseForm.discount),
+        finalFees: Number(editCourseForm.finalFees),
+        remarks: editCourseForm.remarks,
+      });
+
+      setEditingAdmission(null);
+      fetchStudentProfile();
+    } catch (err) {
+      setEditCourseError(err.response?.data?.message || "Failed to update course details.");
+    } finally {
+      setEditCourseSubmitting(false);
     }
   };
 
@@ -637,14 +703,26 @@ export const StudentProfilePage = () => {
                         )}
 
                         {isSuperAdmin && (
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteCourseAdmission(adm.id, adm.courseNameSnapshot || adm.course?.name || "Course")}
-                            className="px-3 py-1.5 bg-slate-900 hover:bg-red-950 text-slate-400 hover:text-red-400 border border-slate-800 hover:border-red-800 rounded-xl transition font-bold"
-                            title="Delete this course enrollment record"
-                          >
-                            🗑️ Delete Course
-                          </button>
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEditCourseModal(adm)}
+                              className="px-3 py-1.5 bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-800 rounded-xl font-bold transition flex items-center space-x-1"
+                              title="Edit course fees, discount or transfer course"
+                            >
+                              <Edit className="w-3.5 h-3.5" />
+                              <span>Edit Course</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteCourseAdmission(adm.id, adm.courseNameSnapshot || adm.course?.name || "Course", adm)}
+                              className="px-3 py-1.5 bg-slate-900 hover:bg-red-950 text-slate-400 hover:text-red-400 border border-slate-800 hover:border-red-800 rounded-xl transition font-bold"
+                              title="Delete this course enrollment record"
+                            >
+                              🗑️ Delete Course
+                            </button>
+                          </>
                         )}
                       </div>
                     </div>
@@ -1130,6 +1208,156 @@ export const StudentProfilePage = () => {
               >
                 <PlusCircle className="w-4 h-4" />
                 <span>{addCourseSubmitting ? "Enrolling..." : "Enroll Student"}</span>
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* EDIT ENROLLED COURSE MODAL (SUPER ADMIN) */}
+      {editingAdmission && (
+        <Modal
+          isOpen={!!editingAdmission}
+          onClose={() => setEditingAdmission(null)}
+          title={`Edit Course Details & Fee Info`}
+        >
+          <form onSubmit={handleEditCourseSubmit} className="space-y-4 text-xs font-sans">
+            {editCourseError && (
+              <div className="p-3 bg-rose-950/80 border border-rose-800 rounded-xl text-rose-300">
+                {editCourseError}
+              </div>
+            )}
+
+            <div>
+              <label className="text-slate-400 block mb-1 font-semibold">
+                Transfer / Reassign Course
+              </label>
+              <select
+                value={editCourseForm.courseId}
+                onChange={(e) => {
+                  const targetCourseId = e.target.value;
+                  const foundCourse = coursesList.find((c) => c.id === targetCourseId);
+                  const newBaseFees = foundCourse ? String(foundCourse.fees) : editCourseForm.courseFees;
+                  const discountVal = Number(editCourseForm.discount || 0);
+                  const finalVal = Math.max(0, Number(newBaseFees) - discountVal);
+                  setEditCourseForm({
+                    ...editCourseForm,
+                    courseId: targetCourseId,
+                    courseFees: newBaseFees,
+                    finalFees: String(finalVal),
+                  });
+                }}
+                required
+                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-cyan-400 focus:outline-none focus:border-cyan-500 font-bold text-xs"
+              >
+                {coursesList.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name} ({c.code}) - ₹{c.fees}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="text-slate-400 block mb-1 font-semibold">Course Fees (₹)</label>
+                <input
+                  type="number"
+                  value={editCourseForm.courseFees}
+                  onChange={(e) => {
+                    const newFees = e.target.value;
+                    const discountVal = Number(editCourseForm.discount || 0);
+                    const finalVal = Math.max(0, Number(newFees) - discountVal);
+                    setEditCourseForm({
+                      ...editCourseForm,
+                      courseFees: newFees,
+                      finalFees: String(finalVal),
+                    });
+                  }}
+                  required
+                  min={0}
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-bold"
+                />
+              </div>
+
+              <div>
+                <label className="text-slate-400 block mb-1 font-semibold">Discount (₹)</label>
+                <input
+                  type="number"
+                  value={editCourseForm.discount}
+                  onChange={(e) => {
+                    const newDiscount = e.target.value;
+                    const baseFeesVal = Number(editCourseForm.courseFees || 0);
+                    const finalVal = Math.max(0, baseFeesVal - Number(newDiscount));
+                    setEditCourseForm({
+                      ...editCourseForm,
+                      discount: newDiscount,
+                      finalFees: String(finalVal),
+                    });
+                  }}
+                  min={0}
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-bold text-amber-400"
+                />
+              </div>
+
+              <div>
+                <label className="text-slate-400 block mb-1 font-semibold">Final Agreed Fees (₹)</label>
+                <input
+                  type="number"
+                  value={editCourseForm.finalFees}
+                  onChange={(e) =>
+                    setEditCourseForm({ ...editCourseForm, finalFees: e.target.value })
+                  }
+                  required
+                  min={0}
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-extrabold text-emerald-400"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-slate-400 block mb-1 font-semibold">Remarks / Batch Notes</label>
+              <textarea
+                rows={2}
+                value={editCourseForm.remarks}
+                onChange={(e) =>
+                  setEditCourseForm({ ...editCourseForm, remarks: e.target.value })
+                }
+                placeholder="Fee installment plan, transfer reason..."
+                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 resize-none"
+              />
+            </div>
+
+            <div className="p-3 bg-slate-950/80 border border-slate-800 rounded-xl space-y-1 text-[11px]">
+              <div className="flex justify-between text-slate-400">
+                <span>Already Paid Amount:</span>
+                <span className="font-mono font-bold text-emerald-400">
+                  ₹{Number(editingAdmission.paidAmount || 0).toLocaleString("en-IN")}
+                </span>
+              </div>
+              <div className="flex justify-between text-slate-300 font-bold pt-1 border-t border-slate-900">
+                <span>Updated Dues Balance:</span>
+                <span className="font-mono text-amber-400">
+                  ₹{Math.max(0, Number(editCourseForm.finalFees || 0) - Number(editingAdmission.paidAmount || 0)).toLocaleString("en-IN")}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setEditingAdmission(null)}
+                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-slate-400 rounded-xl font-bold"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={editCourseSubmitting}
+                className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl font-bold shadow flex items-center space-x-1 disabled:opacity-50"
+              >
+                <Save className="w-4 h-4" />
+                <span>{editCourseSubmitting ? "Updating..." : "Save Course & Fee Changes"}</span>
               </button>
             </div>
           </form>

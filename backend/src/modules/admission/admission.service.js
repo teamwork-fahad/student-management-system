@@ -755,6 +755,10 @@ export const updateAdmission = async (id, updateData, updatedBy) => {
   const existingAdmission = await getAdmissionById(id);
 
   const {
+    courseId,
+    courseFees,
+    discount,
+    finalFees,
     remarks,
     batchId,
     guardianName,
@@ -775,6 +779,30 @@ export const updateAdmission = async (id, updateData, updatedBy) => {
     const admissionUpdate = {
       updatedBy,
     };
+
+    // 1. Course Transfer / Reassign
+    if (courseId && courseId !== existingAdmission.courseId) {
+      const targetCourse = await tx.course.findUnique({ where: { id: courseId } });
+      if (!targetCourse) throw createHttpError("Target course not found", 404);
+
+      admissionUpdate.courseId = targetCourse.id;
+      admissionUpdate.courseNameSnapshot = targetCourse.name;
+      admissionUpdate.courseFeesSnapshot = targetCourse.fees;
+    }
+
+    // 2. Fees / Discount / Final Dues Recalculations
+    if (courseFees !== undefined || discount !== undefined || finalFees !== undefined) {
+      const newCourseFees = courseFees !== undefined ? Number(courseFees) : Number(existingAdmission.courseFees);
+      const newDiscount = discount !== undefined ? Number(discount) : Number(existingAdmission.discount);
+      const calculatedFinalFees = finalFees !== undefined ? Number(finalFees) : Math.max(0, newCourseFees - newDiscount);
+      const currentPaid = Number(existingAdmission.paidAmount || 0);
+      const newPendingAmount = Math.max(0, calculatedFinalFees - currentPaid);
+
+      admissionUpdate.courseFees = newCourseFees;
+      admissionUpdate.discount = newDiscount;
+      admissionUpdate.finalFees = calculatedFinalFees;
+      admissionUpdate.pendingAmount = newPendingAmount;
+    }
 
     if (remarks !== undefined) admissionUpdate.remarks = remarks;
     if (batchId !== undefined) admissionUpdate.batchId = batchId;

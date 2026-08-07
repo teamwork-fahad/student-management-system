@@ -146,6 +146,10 @@ export const createAdmissionSchema = z.object({
  */
 export const updateAdmissionSchema = z
   .object({
+    courseId: z.string().trim().optional(),
+    courseFees: z.union([z.string(), z.number()]).optional(),
+    discount: z.union([z.string(), z.number()]).optional(),
+    finalFees: z.union([z.string(), z.number()]).optional(),
     remarks: optionalStringSchema,
     batchId: optionalStringSchema,
     guardianName: z.string().trim().min(2, "Guardian name must be at least 2 characters").optional(),

@@ -1330,8 +1330,30 @@ export const Courses = () => {
             {loadingStudents ? (
               <div className="text-center py-12 text-xs text-slate-400">Loading student details...</div>
             ) : filteredModalStudents.length === 0 ? (
-              <div className="text-center py-12 text-xs text-slate-500 bg-slate-950/50 rounded-2xl border border-slate-800">
-                No {studentsModalFilter !== "ALL" ? studentsModalFilter.toLowerCase() : ""} students found for this course.
+              <div className="text-center py-10 px-6 bg-slate-950/60 border border-slate-800/80 rounded-2xl space-y-3">
+                <div className="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 text-slate-500 flex items-center justify-center mx-auto">
+                  <Users className="w-6 h-6" />
+                </div>
+                <div className="text-sm font-bold text-slate-300">
+                  No {studentsModalFilter !== "ALL" ? studentsModalFilter.toLowerCase() : ""} students found.
+                </div>
+                <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
+                  {studentsModalFilter === "ACTIVE"
+                    ? "There are currently 0 active students enrolled in this course. Click the 'Completed' or 'All' tab above to view passout/previous student records."
+                    : studentsModalFilter === "COMPLETED"
+                    ? "There are 0 completed passout students recorded for this course."
+                    : "No student records found under this course."}
+                </p>
+                {studentsModalFilter === "ACTIVE" && (selectedCourseForStudents.stats?.completedStudents || 0) > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => handleStatusFilterChange("COMPLETED")}
+                    className="px-4 py-2 bg-purple-950 hover:bg-purple-900 text-purple-300 border border-purple-800 rounded-xl text-xs font-bold transition inline-flex items-center space-x-1.5 shadow-md cursor-pointer"
+                  >
+                    <GraduationCap className="w-4 h-4" />
+                    <span>View Completed Passout Students ({selectedCourseForStudents.stats.completedStudents})</span>
+                  </button>
+                )}
               </div>
             ) : (
               <div className="bg-slate-950/70 border border-slate-800 rounded-2xl overflow-hidden max-h-[380px] overflow-y-auto">
