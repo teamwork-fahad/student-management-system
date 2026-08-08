@@ -40,6 +40,11 @@ export const deduplicateStudents = (studentRows) => {
 
   const result = Array.from(map.values()).map((s) => {
     if (s.allAdmissions && s.allAdmissions.length > 0) {
+      const hasActiveAdmission = s.allAdmissions.some((a) => a.status === "ACTIVE" && a.deletedAt === null);
+      if (hasActiveAdmission) {
+        s.status = "ACTIVE";
+      }
+
       const courseList = s.allAdmissions.map((a) => ({
         id: a.id,
         admissionNumber: a.admissionNumber,
@@ -109,8 +114,10 @@ export const getAllStudents = async (queryParams = {}) => {
     search,
     status,
     courseId,
+    departmentId,
+    category,
     paymentFilter,
-    sortBy = "newest",
+    sortBy = "name_asc",
   } = queryParams;
 
   const pageNum = Math.max(1, parseInt(page, 10) || 1);
@@ -127,6 +134,13 @@ export const getAllStudents = async (queryParams = {}) => {
   if (courseId) {
     where.admission = {
       courseId,
+    };
+  } else if (departmentId || category) {
+    where.admission = {
+      course: {
+        ...(departmentId && { departmentId }),
+        ...(category && { category }),
+      },
     };
   }
 
@@ -197,7 +211,7 @@ export const getAllStudents = async (queryParams = {}) => {
     );
   }
 
-  // Sorting
+  // Sorting: ACTIVE students first, then secondary sort criteria
   if (sortBy === "pending_desc") {
     uniqueStudents.sort(
       (a, b) => Number(b.admission?.pendingAmount || 0) - Number(a.admission?.pendingAmount || 0)
@@ -207,18 +221,43 @@ export const getAllStudents = async (queryParams = {}) => {
       (a, b) => Number(a.admission?.pendingAmount || 0) - Number(b.admission?.pendingAmount || 0)
     );
   } else if (sortBy === "name_asc") {
-    uniqueStudents.sort((a, b) => (a.fullName || "").localeCompare(b.fullName || ""));
+    uniqueStudents.sort((a, b) => {
+      const aActive = a.status === "ACTIVE" ? 0 : 1;
+      const bActive = b.status === "ACTIVE" ? 0 : 1;
+      if (aActive !== bActive) return aActive - bActive;
+      return (a.fullName || "").localeCompare(b.fullName || "");
+    });
   } else if (sortBy === "name_desc") {
-    uniqueStudents.sort((a, b) => (b.fullName || "").localeCompare(a.fullName || ""));
+    uniqueStudents.sort((a, b) => {
+      const aActive = a.status === "ACTIVE" ? 0 : 1;
+      const bActive = b.status === "ACTIVE" ? 0 : 1;
+      if (aActive !== bActive) return aActive - bActive;
+      return (b.fullName || "").localeCompare(a.fullName || "");
+    });
   } else if (sortBy === "oldest") {
-    uniqueStudents.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    uniqueStudents.sort((a, b) => {
+      const aActive = a.status === "ACTIVE" ? 0 : 1;
+      const bActive = b.status === "ACTIVE" ? 0 : 1;
+      if (aActive !== bActive) return aActive - bActive;
+      return new Date(a.createdAt) - new Date(b.createdAt);
+    });
   } else if (sortBy === "newest") {
-    uniqueStudents.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    uniqueStudents.sort((a, b) => {
+      const aActive = a.status === "ACTIVE" ? 0 : 1;
+      const bActive = b.status === "ACTIVE" ? 0 : 1;
+      if (aActive !== bActive) return aActive - bActive;
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
   }
 
   // Aggregate Stats
   const activeStudents = uniqueStudents.filter((s) => s.status === "ACTIVE").length;
   const completedStudents = uniqueStudents.filter((s) => s.status === "COMPLETED").length;
+  const onHoldStudents = uniqueStudents.filter((s) => s.status === "ON_HOLD").length;
+  const droppedStudents = uniqueStudents.filter((s) => s.status === "DROPPED").length;
+  const transferredStudents = uniqueStudents.filter((s) => s.status === "TRANSFERRED").length;
+  const revisionStudents = uniqueStudents.filter((s) => s.status === "REVISION").length;
+
   const pendingDuesStudents = uniqueStudents.filter(
     (s) => Number(s.admission?.pendingAmount || 0) > 0
   );
@@ -249,6 +288,14 @@ export const getAllStudents = async (queryParams = {}) => {
       completedStudents,
       pendingDuesCount: pendingDuesStudents.length,
       totalPendingDuesAmount,
+      statusCounts: {
+        ACTIVE: activeStudents,
+        ON_HOLD: onHoldStudents,
+        COMPLETED: completedStudents,
+        DROPPED: droppedStudents,
+        TRANSFERRED: transferredStudents,
+        REVISION: revisionStudents,
+      },
     },
   };
 };

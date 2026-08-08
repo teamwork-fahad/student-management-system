@@ -5,9 +5,9 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 export const ReceiptModal = ({ payment, student, admission, onClose }) => {
-  if (!payment) return null;
-
   const [downloadingPdf, setDownloadingPdf] = useState(false);
+
+  if (!payment) return null;
 
   const currentAdm = admission || payment.admission || student?.admission;
   const pastPayments = currentAdm?.payments || student?.allPayments || [];

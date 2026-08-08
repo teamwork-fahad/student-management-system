@@ -142,3 +142,55 @@ export const getAttendanceStats = async () => {
     todayUnmarked: Math.max(0, totalStudents - (todayPresent + todayAbsent + todayLate)),
   };
 };
+
+/**
+ * Get detailed attendance history & percentage for a specific student (for mobile app / profile view).
+ */
+export const getStudentAttendanceHistory = async (studentId) => {
+  const student = await prisma.student.findFirst({
+    where: {
+      OR: [
+        { id: studentId },
+        { studentId: studentId },
+      ],
+    },
+    include: {
+      admission: { include: { course: true } },
+      attendances: {
+        orderBy: { date: "desc" },
+      },
+    },
+  });
+
+  if (!student) {
+    throw createHttpError("Student not found", 404);
+  }
+
+  const total = student.attendances.length;
+  const present = student.attendances.filter((a) => a.status === "PRESENT").length;
+  const absent = student.attendances.filter((a) => a.status === "ABSENT").length;
+  const late = student.attendances.filter((a) => a.status === "LATE").length;
+  const percentage = total > 0 ? Math.round(((present + late * 0.5) / total) * 100) : 100;
+
+  return {
+    studentId: student.id,
+    displayId: student.studentId,
+    fullName: student.fullName,
+    mobile: student.mobile,
+    courseName: student.admission?.courseNameSnapshot || student.admission?.course?.name || "N/A",
+    stats: {
+      total,
+      present,
+      absent,
+      late,
+      percentage,
+    },
+    history: student.attendances.map((a) => ({
+      id: a.id,
+      date: a.date,
+      status: a.status,
+      remarks: a.remarks,
+      markedBy: a.markedBy,
+    })),
+  };
+};

@@ -7,6 +7,7 @@ import {
   createInquiryController,
   createLeadSourceController,
   deleteInquiryController,
+  bulkDeleteInquiriesController,
   getAllInquiriesController,
   getAllLeadSourcesController,
   getFollowUpHistoryController,
@@ -62,6 +63,13 @@ router.put(
   authenticate,
   authorize("SUPER_ADMIN", "FACULTY"),
   updateInquiryController
+);
+
+router.post(
+  "/bulk-delete",
+  authenticate,
+  authorize("SUPER_ADMIN"),
+  bulkDeleteInquiriesController
 );
 
 router.delete(

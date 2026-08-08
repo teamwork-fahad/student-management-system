@@ -6,6 +6,7 @@ import { LoadingSpinner } from "../components/common/LoadingSpinner";
 import { Modal } from "../components/common/Modal";
 import { ReceiptModal } from "../components/receipts/ReceiptModal";
 import { SearchableSelect } from "../components/common/SearchableSelect";
+import { formatDate } from "../utils/formatters";
 import {
   ArrowLeft,
   GraduationCap,
@@ -38,6 +39,17 @@ export const toTitleCase = (str) => {
     .split(/\s+/)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
+};
+
+export const notifyStudentUpdated = () => {
+  try {
+    const channel = new BroadcastChannel("student_directory_sync");
+    channel.postMessage({ type: "STUDENT_UPDATED", timestamp: Date.now() });
+    channel.close();
+  } catch (e) {}
+  try {
+    localStorage.setItem("student_directory_last_updated", String(Date.now()));
+  } catch (e) {}
 };
 
 export const StudentProfilePage = () => {
@@ -148,6 +160,7 @@ export const StudentProfilePage = () => {
   const handleCourseStatusChange = async (admissionId, newStatus) => {
     try {
       await api.patch(`/admissions/${admissionId}/status`, { status: newStatus });
+      notifyStudentUpdated();
       fetchStudentProfile();
     } catch (err) {
       alert(err.response?.data?.message || "Failed to update course status");
@@ -174,6 +187,7 @@ export const StudentProfilePage = () => {
     try {
       await api.delete(`/admissions/${admissionId}`);
       alert(`Course enrollment for "${courseName}" has been deleted from the database.`);
+      notifyStudentUpdated();
       fetchStudentProfile();
     } catch (err) {
       alert(err.response?.data?.message || "Failed to delete course enrollment");
@@ -224,6 +238,7 @@ export const StudentProfilePage = () => {
       });
 
       setEditingAdmission(null);
+      notifyStudentUpdated();
       fetchStudentProfile();
     } catch (err) {
       setEditCourseError(err.response?.data?.message || "Failed to update course details.");
@@ -246,6 +261,7 @@ export const StudentProfilePage = () => {
     try {
       await api.delete(`/students/${studentData.id}`);
       alert(`Student record for ${studentData.fullName} deleted successfully.`);
+      notifyStudentUpdated();
       navigate(-1);
     } catch (err) {
       alert(err.response?.data?.message || "Failed to delete student record");
@@ -278,6 +294,7 @@ export const StudentProfilePage = () => {
     try {
       await api.patch(`/students/${studentData.id}`, editForm);
       setShowEditModal(false);
+      notifyStudentUpdated();
       fetchStudentProfile();
     } catch (err) {
       setEditError(err.response?.data?.message || "Failed to update student profile.");
@@ -325,6 +342,7 @@ export const StudentProfilePage = () => {
         remarks: feeForm.remarks,
       });
       setShowFeeModal(false);
+      notifyStudentUpdated();
       fetchStudentProfile();
     } catch (err) {
       setFeeError(err.response?.data?.message || "Failed to record payment.");
@@ -382,6 +400,7 @@ export const StudentProfilePage = () => {
         remarks: addCourseForm.remarks,
       });
       setShowAddCourseModal(false);
+      notifyStudentUpdated();
       fetchStudentProfile();
     } catch (err) {
       setAddCourseError(err.response?.data?.message || "Failed to add course.");

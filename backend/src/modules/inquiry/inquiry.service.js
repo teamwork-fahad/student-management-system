@@ -286,7 +286,14 @@ export const getAllInquiries = async (queryParams = {}) => {
   };
 
   if (status) {
-    where.status = status;
+    if (status === "EXCLUDE_ADMISSION_DONE") {
+      where.status = { not: "ADMISSION_DONE" };
+    } else if (status !== "ALL") {
+      where.status = status;
+    }
+  } else {
+    // By default, show active pending inquiries (exclude ADMISSION_DONE)
+    where.status = { not: "ADMISSION_DONE" };
   }
 
   if (courseId) {
@@ -348,6 +355,23 @@ export const softDeleteInquiry = async (id) => {
     },
     include: inquiryInclude,
   });
+};
+
+export const bulkDeleteInquiries = async (inquiryIds = []) => {
+  if (!Array.isArray(inquiryIds) || inquiryIds.length === 0) {
+    throw createHttpError("No inquiry IDs provided for deletion", 400);
+  }
+
+  const result = await prisma.inquiry.updateMany({
+    where: {
+      id: { in: inquiryIds },
+    },
+    data: {
+      isActive: false,
+    },
+  });
+
+  return result;
 };
 
 export const addFollowUp = async (id, followUpData, createdById) => {

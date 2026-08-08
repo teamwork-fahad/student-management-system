@@ -4,6 +4,7 @@ import {
   markBatchAttendance,
   getAttendanceByDate,
   getAttendanceStats,
+  getStudentAttendanceHistory,
 } from "./attendance.service.js";
 
 export const markAttendanceController = asyncHandler(async (req, res) => {
@@ -26,4 +27,11 @@ export const getAttendanceStatsController = asyncHandler(async (req, res) => {
   const stats = await getAttendanceStats();
 
   return successResponse(res, "Attendance statistics fetched successfully", stats, 200);
+});
+
+export const getStudentAttendanceHistoryController = asyncHandler(async (req, res) => {
+  const { studentId } = req.params;
+  const data = await getStudentAttendanceHistory(studentId);
+
+  return successResponse(res, "Student attendance history fetched successfully", data, 200);
 });

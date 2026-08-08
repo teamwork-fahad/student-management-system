@@ -936,10 +936,32 @@ export const updateAdmissionStatusService = async (admissionId, status) => {
   const admission = await prisma.admission.findUnique({ where: { id: admissionId } });
   if (!admission) throw createHttpError("Admission record not found", 404);
 
-  return prisma.admission.update({
+  const updatedAdm = await prisma.admission.update({
     where: { id: admissionId },
     data: { status },
   });
+
+  // Sync primary Student status with updated course admission status
+  const student = await prisma.student.findFirst({
+    where: {
+      OR: [
+        { admissionId },
+        { id: admission.studentId || "" },
+        { mobile: admission.guardianMobile || "" },
+      ],
+    },
+  });
+
+  if (student) {
+    let newStudentStatus = status;
+    if (status === "CANCELLED") newStudentStatus = "DROPPED";
+    await prisma.student.update({
+      where: { id: student.id },
+      data: { status: newStudentStatus },
+    });
+  }
+
+  return updatedAdm;
 };
 
 /**
@@ -971,7 +993,7 @@ export const deleteAdmissionService = async (admissionId) => {
         OR: [
           { studentId: student.id },
           { guardianMobile: student.mobile },
-          { mobile: student.mobile },
+          { inquiry: { mobile: student.mobile } },
         ],
         deletedAt: null,
       },

@@ -28,6 +28,7 @@ import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 
 const STATIC_COURSE_CATEGORIES = [
+  "College Syllabus",
   "School Course",
   "IT Course",
   "AI Related",
@@ -44,7 +45,9 @@ export const Courses = () => {
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("");
+  const [departmentFilter, setDepartmentFilter] = useState("");
+  const [programFilter, setProgramFilter] = useState("");
+  const [courseFilter, setCourseFilter] = useState("");
   const [sortBy, setSortBy] = useState("name_asc");
 
   // Default View Mode: 'table' (List View by default)
@@ -58,7 +61,7 @@ export const Courses = () => {
   const [category, setCategory] = useState("IT Course");
   const [duration, setDuration] = useState(3);
   const [durationType, setDurationType] = useState("MONTHS");
-  const [fees, setFees] = useState(5000);
+  const [fees, setFees] = useState(15000);
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -94,7 +97,7 @@ export const Courses = () => {
   useEffect(() => {
     fetchCourses();
     fetchDepartments();
-  }, [sortBy, categoryFilter]);
+  }, [sortBy]);
 
   const fetchDepartments = async () => {
     try {
@@ -152,7 +155,6 @@ export const Courses = () => {
       const res = await api.get("/courses", {
         params: {
           sortBy,
-          category: categoryFilter || undefined,
           search: search || undefined,
         },
       });
@@ -377,7 +379,7 @@ export const Courses = () => {
     setCategory("IT Course");
     setDuration(3);
     setDurationType("MONTHS");
-    setFees(5000);
+    setFees(15000);
     setDescription("");
     setIsModalOpen(true);
   };
@@ -404,7 +406,7 @@ export const Courses = () => {
       setCourseName("");
       setCourseCode("");
       setCategory("IT Course");
-      setFees(5000);
+      setFees(15000);
       setDescription("");
     } catch (err) {
       alert(err.response?.data?.message || "Failed to create course");
@@ -450,17 +452,51 @@ export const Courses = () => {
     }
   };
 
+  // 3-Level Cascading Calculations for Courses page
+  const coursesInDept = courses.filter((c) => {
+    if (!departmentFilter) return true;
+    return (
+      c.departmentId === departmentFilter ||
+      c.department?.id === departmentFilter ||
+      c.department?.name === departmentFilter
+    );
+  });
+
+  const availablePrograms = Array.from(
+    new Set(
+      coursesInDept
+        .map((c) => c.category)
+        .filter((cat) => cat && cat !== "IT Course" && cat !== "General")
+    )
+  ).sort();
+
+  const coursesInProgram = coursesInDept.filter((c) => {
+    if (!programFilter) return true;
+    return c.category === programFilter;
+  });
+
   const filteredCourses = courses
     .filter((c) => {
+      const q = search.toLowerCase().trim();
       const matchesSearch =
-        (c.name || "").toLowerCase().includes(search.toLowerCase()) ||
-        (c.code || "").toLowerCase().includes(search.toLowerCase()) ||
-        (c.category || "").toLowerCase().includes(search.toLowerCase());
+        !q ||
+        (c.name || "").toLowerCase().includes(q) ||
+        (c.code || "").toLowerCase().includes(q) ||
+        (c.category || "").toLowerCase().includes(q) ||
+        (c.department?.name || "").toLowerCase().includes(q);
 
-      const matchesCategory =
-        !categoryFilter || (c.category || "IT Course") === categoryFilter;
+      const matchesDept =
+        !departmentFilter ||
+        c.departmentId === departmentFilter ||
+        c.department?.id === departmentFilter ||
+        c.department?.name === departmentFilter;
 
-      return matchesSearch && matchesCategory;
+      const matchesProgram =
+        !programFilter || (c.category || "") === programFilter;
+
+      const matchesCourse = !courseFilter || c.id === courseFilter;
+
+      return matchesSearch && matchesDept && matchesProgram && matchesCourse;
     })
     .sort((a, b) => {
       if (sortBy === "name_asc") {
@@ -680,25 +716,64 @@ export const Courses = () => {
             </select>
           </div>
 
-          <div className="flex items-center space-x-2 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2">
-            <Filter className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+          {/* Level 1: Department Filter */}
+          <div className="flex items-center space-x-1.5 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2">
+            <Filter className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
             <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="bg-transparent text-slate-200 text-xs focus:outline-none font-bold cursor-pointer"
+              value={departmentFilter}
+              onChange={(e) => {
+                setDepartmentFilter(e.target.value);
+                setProgramFilter("");
+                setCourseFilter("");
+              }}
+              className="bg-transparent text-slate-200 text-xs focus:outline-none font-bold cursor-pointer max-w-[160px] truncate"
             >
-              <option value="" className="bg-slate-950">All Departments / Categories</option>
-              {departments.length > 0
-                ? departments.map((d) => (
-                    <option key={d.id} value={d.name} className="bg-slate-950">
-                      {d.name} {d.code ? `(${d.code})` : ""}
-                    </option>
-                  ))
-                : STATIC_COURSE_CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat} className="bg-slate-950">
-                      {cat}
-                    </option>
-                  ))}
+              <option value="" className="bg-slate-950">🏛️ All Departments</option>
+              {departments.map((d) => (
+                <option key={d.id} value={d.id} className="bg-slate-950">
+                  {d.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Level 2: Program / Degree Filter */}
+          <div className="flex items-center space-x-1.5 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2">
+            <select
+              value={programFilter}
+              onChange={(e) => {
+                setProgramFilter(e.target.value);
+                setCourseFilter("");
+              }}
+              className="bg-transparent text-slate-200 text-xs focus:outline-none font-bold cursor-pointer max-w-[150px] truncate"
+            >
+              <option value="" className="bg-slate-950">🎓 All Programs</option>
+              {availablePrograms.map((prog) => (
+                <option key={prog} value={prog} className="bg-slate-950">
+                  {prog}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Level 3: Semester / Specific Course Filter */}
+          <div className="flex items-center space-x-1.5 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2">
+            <select
+              value={courseFilter}
+              onChange={(e) => setCourseFilter(e.target.value)}
+              className="bg-transparent text-slate-200 text-xs focus:outline-none font-bold cursor-pointer max-w-[200px] truncate"
+            >
+              <option value="" className="bg-slate-950">
+                📖 All Courses ({coursesInProgram.length})
+              </option>
+              {coursesInProgram
+                .slice()
+                .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
+                .map((c) => (
+                  <option key={c.id} value={c.id} className="bg-slate-950">
+                    {c.name} ({c.stats?.totalStudents || 0})
+                  </option>
+                ))}
             </select>
           </div>
         </div>

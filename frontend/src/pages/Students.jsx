@@ -39,6 +39,7 @@ import {
   SlidersHorizontal,
   Trash2,
   User,
+  ExternalLink,
 } from "lucide-react";
 
 export const toTitleCase = (str) => {
@@ -144,16 +145,109 @@ export const Students = () => {
     remarks: "",
   });
 
+  const [departmentsList, setDepartmentsList] = useState([]);
+  const [departmentFilter, setDepartmentFilter] = useState("");
+  const [programFilter, setProgramFilter] = useState("");
   const [courseFilter, setCourseFilter] = useState("");
   const [paymentFilter, setPaymentFilter] = useState("");
-  const [sortBy, setSortBy] = useState("newest");
+  const [sortBy, setSortBy] = useState("name_asc");
   const [stats, setStats] = useState({
     totalStudents: 0,
     activeStudents: 0,
     completedStudents: 0,
     pendingDuesCount: 0,
     totalPendingDuesAmount: 0,
+    statusCounts: {},
   });
+
+  const filtersRef = useRef({
+    page: 1,
+    search: "",
+    statusFilter: "",
+    departmentFilter: "",
+    programFilter: "",
+    courseFilter: "",
+    paymentFilter: "",
+    sortBy: "name_asc",
+  });
+
+  useEffect(() => {
+    filtersRef.current = {
+      page: pagination.page || 1,
+      search,
+      statusFilter,
+      departmentFilter,
+      programFilter,
+      courseFilter,
+      paymentFilter,
+      sortBy,
+    };
+  }, [pagination.page, search, statusFilter, departmentFilter, programFilter, courseFilter, paymentFilter, sortBy]);
+
+  const refreshCurrentView = () => {
+    const { page, search: s, statusFilter: st, departmentFilter: dept, programFilter: prog, courseFilter: c, paymentFilter: p, sortBy: sb } = filtersRef.current;
+    api.get("/students", {
+      params: {
+        page,
+        limit: 12,
+        search: s || undefined,
+        status: st || undefined,
+        departmentId: dept || undefined,
+        category: prog || undefined,
+        courseId: c || undefined,
+        paymentFilter: p || undefined,
+        sortBy: sb || "name_asc",
+      },
+    })
+      .then((res) => {
+        const data = res.data?.data;
+        if (data) {
+          setStudents(data.students || []);
+          setPagination(data.pagination || { total: 0, page: 1, limit: 12, totalPages: 1 });
+          if (data.stats) setStats(data.stats);
+        }
+      })
+      .catch((err) => console.error("Auto refresh error:", err));
+
+    fetchCoursesForFilter();
+    fetchDepartmentsForFilter();
+  };
+
+  // Auto-refresh student list when returning to tab or when changes occur in child profile tab
+  useEffect(() => {
+    let channel;
+    try {
+      channel = new BroadcastChannel("student_directory_sync");
+      channel.onmessage = (event) => {
+        if (event.data?.type === "STUDENT_UPDATED") {
+          refreshCurrentView();
+        }
+      };
+    } catch (e) {}
+
+    const handleFocusOrVisibility = () => {
+      if (document.visibilityState === "visible") {
+        refreshCurrentView();
+      }
+    };
+
+    const handleStorageChange = (e) => {
+      if (e.key === "student_directory_last_updated") {
+        refreshCurrentView();
+      }
+    };
+
+    window.addEventListener("focus", handleFocusOrVisibility);
+    document.addEventListener("visibilitychange", handleFocusOrVisibility);
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      if (channel) channel.close();
+      window.removeEventListener("focus", handleFocusOrVisibility);
+      document.removeEventListener("visibilitychange", handleFocusOrVisibility);
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
 
   const queryFromUrl = searchParams.get("search") || searchParams.get("studentId") || "";
 
@@ -166,7 +260,8 @@ export const Students = () => {
     }
     fetchAllStudentsForSuggestions();
     fetchCoursesForFilter();
-  }, [queryFromUrl, statusFilter, courseFilter, paymentFilter, sortBy]);
+    fetchDepartmentsForFilter();
+  }, [queryFromUrl, statusFilter, departmentFilter, programFilter, courseFilter, paymentFilter, sortBy]);
 
   const fetchCoursesForFilter = async () => {
     try {
@@ -174,6 +269,15 @@ export const Students = () => {
       setCoursesList(res.data?.data || []);
     } catch (err) {
       console.error("Fetch courses for filter error:", err);
+    }
+  };
+
+  const fetchDepartmentsForFilter = async () => {
+    try {
+      const res = await api.get("/departments");
+      setDepartmentsList(res.data?.data || []);
+    } catch (err) {
+      console.error("Fetch departments for filter error:", err);
     }
   };
 
@@ -268,9 +372,11 @@ export const Students = () => {
           limit: 12,
           search: searchQuery || undefined,
           status: statusFilter || undefined,
+          departmentId: departmentFilter || undefined,
+          category: programFilter || undefined,
           courseId: courseFilter || undefined,
           paymentFilter: paymentFilter || undefined,
-          sortBy: sortBy || "newest",
+          sortBy: sortBy || "name_asc",
         },
       });
 
@@ -542,6 +648,25 @@ export const Students = () => {
     }
   };
 
+  // 3-Level Cascading Filter Calculations
+  const coursesInDept = coursesList.filter((c) => {
+    if (!departmentFilter) return true;
+    return (c.departmentId === departmentFilter) || (c.department?.id === departmentFilter);
+  });
+
+  const availablePrograms = Array.from(
+    new Set(
+      coursesInDept
+        .map((c) => c.category)
+        .filter((cat) => cat && cat !== "IT Course" && cat !== "General")
+    )
+  ).sort();
+
+  const coursesInProgram = coursesInDept.filter((c) => {
+    if (!programFilter) return true;
+    return c.category === programFilter;
+  });
+
   return (
     <div className="space-y-6 font-sans">
       {/* Printable Receipt Modal */}
@@ -735,26 +860,69 @@ export const Students = () => {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-cyan-500 font-semibold"
           >
-            <option value="">All Academic Statuses</option>
-            <option value="ACTIVE">🟢 ACTIVE</option>
-            <option value="ON_HOLD">🟡 ON HOLD</option>
-            <option value="COMPLETED">🔵 COMPLETED</option>
-            <option value="DROPPED">🔴 DROPPED</option>
-            <option value="TRANSFERRED">TRANSFERRED</option>
+            <option value="">All Academic Statuses ({stats.totalStudents || 0})</option>
+            <option value="ACTIVE">🟢 ACTIVE ({stats.statusCounts?.ACTIVE ?? stats.activeStudents ?? 0})</option>
+            <option value="ON_HOLD">🟡 ON HOLD ({stats.statusCounts?.ON_HOLD ?? 0})</option>
+            <option value="COMPLETED">🔵 COMPLETED ({stats.statusCounts?.COMPLETED ?? stats.completedStudents ?? 0})</option>
+            <option value="DROPPED">🔴 DROPPED ({stats.statusCounts?.DROPPED ?? 0})</option>
+            <option value="TRANSFERRED">TRANSFERRED ({stats.statusCounts?.TRANSFERRED ?? 0})</option>
           </select>
 
-          {/* Course Filter */}
+          {/* Level 1: Department Filter */}
+          <select
+            value={departmentFilter}
+            onChange={(e) => {
+              setDepartmentFilter(e.target.value);
+              setProgramFilter("");
+              setCourseFilter("");
+            }}
+            className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-cyan-500 font-semibold max-w-[180px] truncate"
+          >
+            <option value="">🏛️ All Departments</option>
+            {departmentsList.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name}
+              </option>
+            ))}
+          </select>
+
+          {/* Level 2: Program / Degree Filter */}
+          <select
+            value={programFilter}
+            onChange={(e) => {
+              setProgramFilter(e.target.value);
+              setCourseFilter("");
+            }}
+            className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-cyan-500 font-semibold max-w-[170px] truncate"
+          >
+            <option value="">🎓 All Programs</option>
+            {availablePrograms.map((prog) => (
+              <option key={prog} value={prog}>
+                {prog}
+              </option>
+            ))}
+          </select>
+
+          {/* Level 3: Semester / Specific Course Filter */}
           <select
             value={courseFilter}
             onChange={(e) => setCourseFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-cyan-500 font-semibold max-w-[200px] truncate"
+            className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-cyan-500 font-semibold max-w-[220px] truncate"
           >
-            <option value="">All Courses / Programs</option>
-            {coursesList.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name} ({c.code})
-              </option>
-            ))}
+            <option value="">
+              📖 All Courses ({coursesInProgram.reduce((acc, c) => acc + (c.stats?.totalStudents || c.stats?.activeStudents || 0), 0)})
+            </option>
+            {coursesInProgram
+              .slice()
+              .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
+              .map((c) => {
+                const count = c.stats?.totalStudents || c.stats?.activeStudents || 0;
+                return (
+                  <option key={c.id} value={c.id}>
+                    {c.name} ({count})
+                  </option>
+                );
+              })}
           </select>
 
           {/* Payment / Dues Filter */}
@@ -776,12 +944,12 @@ export const Students = () => {
               onChange={(e) => setSortBy(e.target.value)}
               className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-cyan-400 text-xs focus:outline-none focus:border-cyan-500 font-bold"
             >
+              <option value="name_asc">🟢 Active First & Name (A - Z)</option>
+              <option value="name_desc">🟢 Active First & Name (Z - A)</option>
               <option value="newest">Newest Registrations</option>
               <option value="oldest">Oldest Registrations</option>
               <option value="pending_desc">Highest Pending Dues (₹)</option>
               <option value="pending_asc">Lowest Pending Dues (₹)</option>
-              <option value="name_asc">Student Name (A - Z)</option>
-              <option value="name_desc">Student Name (Z - A)</option>
             </select>
 
             {/* DYNAMIC COLUMN / FIELD CUSTOMIZER POPOVER */}

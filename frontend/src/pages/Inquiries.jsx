@@ -16,12 +16,18 @@ import {
   LayoutGrid,
   List,
   AlertTriangle,
+  Trash2,
 } from "lucide-react";
 import api from "../api/axios";
+import { useAuth } from "../context/AuthContext";
 import { SearchableSelect } from "../components/common/SearchableSelect";
 
 export const Inquiries = () => {
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === "SUPER_ADMIN";
   const [inquiries, setInquiries] = useState([]);
+  const [selectedInquiryIds, setSelectedInquiryIds] = useState([]);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const [courses, setCourses] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [inqDeptId, setInqDeptId] = useState("");
@@ -127,6 +133,57 @@ export const Inquiries = () => {
       alert("Inquiry marked as Admission Done! Admin can now assign student details.");
     } catch (err) {
       alert(err.response?.data?.message || "Conversion failed");
+    }
+  };
+
+  const handleSelectAllInquiries = (e) => {
+    if (e.target.checked) {
+      setSelectedInquiryIds(inquiries.map((inq) => inq.id));
+    } else {
+      setSelectedInquiryIds([]);
+    }
+  };
+
+  const handleToggleSelectInquiry = (id) => {
+    setSelectedInquiryIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleSingleDeleteInquiry = async (inq) => {
+    if (!window.confirm(`Are you sure you want to delete inquiry for "${inq.fullName}"?`)) return;
+    try {
+      await api.delete(`/inquiries/${inq.id}`);
+      setSelectedInquiryIds((prev) => prev.filter((id) => id !== inq.id));
+      fetchInquiries();
+      alert(`Inquiry for "${inq.fullName}" deleted successfully.`);
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to delete inquiry");
+    }
+  };
+
+  const handleBulkDeleteInquiries = async () => {
+    if (selectedInquiryIds.length === 0) return;
+    if (
+      !window.confirm(
+        `CAUTION: Are you sure you want to delete ${selectedInquiryIds.length} selected inquiries?`
+      )
+    ) {
+      return;
+    }
+
+    setBulkDeleting(true);
+    try {
+      await api.post("/inquiries/bulk-delete", {
+        inquiryIds: selectedInquiryIds,
+      });
+      alert(`${selectedInquiryIds.length} inquiries deleted successfully.`);
+      setSelectedInquiryIds([]);
+      fetchInquiries();
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to delete selected inquiries.");
+    } finally {
+      setBulkDeleting(false);
     }
   };
 
@@ -244,17 +301,50 @@ export const Inquiries = () => {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-medium text-slate-200 outline-none"
+            className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-medium text-slate-200 outline-none cursor-pointer font-bold"
           >
-            <option value="">All Statuses</option>
-            <option value="NEW">NEW</option>
-            <option value="FOLLOW_UP">FOLLOW_UP</option>
-            <option value="INTERESTED">INTERESTED</option>
-            <option value="ADMISSION_DONE">ADMISSION_DONE</option>
-            <option value="CLOSED">CLOSED</option>
+            <option value="">⏳ Active Pending Inquiries (Excl. Admission Done)</option>
+            <option value="NEW">🆕 NEW Inquiries Only</option>
+            <option value="FOLLOW_UP">🔄 FOLLOW_UP</option>
+            <option value="INTERESTED">⭐ INTERESTED</option>
+            <option value="CLOSED">❌ CLOSED</option>
+            <option value="ADMISSION_DONE">✅ ADMISSION_DONE</option>
+            <option value="ALL">🌐 All Inquiries (Inc. Admission Done)</option>
           </select>
         </div>
       </div>
+
+      {/* BULK OPERATIONS TOOLBAR */}
+      {isSuperAdmin && selectedInquiryIds.length > 0 && (
+        <div className="p-4 bg-cyan-950/90 border border-cyan-800 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs shadow-xl">
+          <div className="flex items-center space-x-2">
+            <span className="font-bold text-white bg-cyan-900 px-3 py-1 rounded-xl">
+              {selectedInquiryIds.length} Inquiry(s) Selected
+            </span>
+          </div>
+
+          <div className="flex items-center space-x-3">
+            <button
+              type="button"
+              onClick={handleBulkDeleteInquiries}
+              disabled={bulkDeleting}
+              className="px-3.5 py-2 bg-rose-950 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-800 rounded-xl font-bold transition shadow flex items-center space-x-1.5"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>{bulkDeleting ? "Deleting..." : `Delete Selected (${selectedInquiryIds.length})`}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSelectedInquiryIds([])}
+              className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition"
+              title="Deselect All"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Inquiries Content Section */}
       <div className="bg-slate-900/60 border border-slate-800 rounded-3xl overflow-hidden shadow-xl p-6">
@@ -268,6 +358,19 @@ export const Inquiries = () => {
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
                 <tr>
+                  {isSuperAdmin && (
+                    <th className="py-3.5 px-3 w-10 text-center">
+                      <input
+                        type="checkbox"
+                        checked={
+                          inquiries.length > 0 &&
+                          inquiries.every((inq) => selectedInquiryIds.includes(inq.id))
+                        }
+                        onChange={handleSelectAllInquiries}
+                        className="w-4 h-4 rounded border-slate-700 bg-slate-950 text-cyan-600 focus:ring-cyan-500 cursor-pointer"
+                      />
+                    </th>
+                  )}
                   <th className="py-3.5 px-4">Inquiry No</th>
                   <th className="py-3.5 px-4">Student Name</th>
                   <th className="py-3.5 px-4">Contact Details</th>
@@ -280,6 +383,16 @@ export const Inquiries = () => {
               <tbody className="divide-y divide-slate-800/60 text-slate-300">
                 {inquiries.map((inq) => (
                   <tr key={inq.id} className="hover:bg-slate-800/30 transition">
+                    {isSuperAdmin && (
+                      <td className="py-3.5 px-3 text-center">
+                        <input
+                          type="checkbox"
+                          checked={selectedInquiryIds.includes(inq.id)}
+                          onChange={() => handleToggleSelectInquiry(inq.id)}
+                          className="w-4 h-4 rounded border-slate-700 bg-slate-950 text-cyan-600 focus:ring-cyan-500 cursor-pointer"
+                        />
+                      </td>
+                    )}
                     <td className="py-3.5 px-4 font-mono font-bold text-cyan-400">
                       {inq.inquiryNumber}
                     </td>
@@ -287,8 +400,13 @@ export const Inquiries = () => {
                       {inq.fullName}
                     </td>
                     <td className="py-3.5 px-4">
-                      <div>{inq.mobile}</div>
-                      {inq.email && <div className="text-[10px] text-slate-400">{inq.email}</div>}
+                      <div className="flex items-center space-x-1.5 font-mono font-bold text-emerald-400 text-xs">
+                        <Phone className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <a href={`tel:${inq.mobile}`} className="hover:underline hover:text-emerald-300">
+                          {inq.mobile}
+                        </a>
+                      </div>
+                      {inq.email && <div className="text-[10px] text-slate-400 truncate max-w-[160px]">{inq.email}</div>}
                     </td>
                     <td className="py-3.5 px-4 font-semibold text-slate-200">
                       {inq.course?.name || "General Course"}
@@ -324,6 +442,15 @@ export const Inquiries = () => {
                           Convert
                         </button>
                       )}
+                      {isSuperAdmin && (
+                        <button
+                          onClick={() => handleSingleDeleteInquiry(inq)}
+                          className="p-1.5 text-rose-400 hover:text-white hover:bg-rose-950 rounded-lg border border-rose-900/50 transition"
+                          title="Delete Inquiry"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -334,9 +461,19 @@ export const Inquiries = () => {
           /* GRID CARDS VIEW */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {inquiries.map((inq) => (
-              <div key={inq.id} className="p-5 bg-slate-950/80 border border-slate-800 rounded-2xl space-y-3">
+              <div key={inq.id} className="p-5 bg-slate-950/80 border border-slate-800 rounded-2xl space-y-3 relative">
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-bold text-cyan-400">{inq.inquiryNumber}</span>
+                  <div className="flex items-center space-x-2">
+                    {isSuperAdmin && (
+                      <input
+                        type="checkbox"
+                        checked={selectedInquiryIds.includes(inq.id)}
+                        onChange={() => handleToggleSelectInquiry(inq.id)}
+                        className="w-4 h-4 rounded border-slate-700 bg-slate-950 text-cyan-600 focus:ring-cyan-500 cursor-pointer"
+                      />
+                    )}
+                    <span className="font-mono text-xs font-bold text-cyan-400">{inq.inquiryNumber}</span>
+                  </div>
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
                     inq.status === "ADMISSION_DONE"
                       ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
@@ -353,14 +490,16 @@ export const Inquiries = () => {
                   <p className="text-xs text-slate-400 mt-0.5">{inq.course?.name || "General Course"}</p>
                 </div>
 
-                <div className="space-y-1 text-xs text-slate-400 pt-2 border-t border-slate-900">
-                  <div className="flex items-center space-x-2">
-                    <Phone className="w-3.5 h-3.5 text-blue-400" />
-                    <span>{inq.mobile}</span>
+                <div className="space-y-1.5 text-xs text-slate-400 pt-2 border-t border-slate-900">
+                  <div className="flex items-center space-x-2 bg-emerald-950/40 border border-emerald-900/60 rounded-xl px-3 py-1.5 text-emerald-400 font-mono font-bold">
+                    <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <a href={`tel:${inq.mobile}`} className="hover:underline hover:text-emerald-300">
+                      {inq.mobile}
+                    </a>
                   </div>
                   {inq.email && (
-                    <div className="flex items-center space-x-2 truncate">
-                      <Mail className="w-3.5 h-3.5 text-indigo-400" />
+                    <div className="flex items-center space-x-2 truncate text-slate-300">
+                      <Mail className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
                       <span className="truncate">{inq.email}</span>
                     </div>
                   )}
@@ -382,6 +521,15 @@ export const Inquiries = () => {
                       className="px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded-xl text-xs font-semibold transition"
                     >
                       Convert
+                    </button>
+                  )}
+                  {isSuperAdmin && (
+                    <button
+                      onClick={() => handleSingleDeleteInquiry(inq)}
+                      className="p-2 text-rose-400 hover:text-white hover:bg-rose-950 rounded-xl border border-rose-900/50 transition"
+                      title="Delete Inquiry"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>

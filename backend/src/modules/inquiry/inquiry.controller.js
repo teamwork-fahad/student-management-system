@@ -10,6 +10,7 @@ import {
   getFollowUpHistory,
   getInquiryById,
   softDeleteInquiry,
+  bulkDeleteInquiries,
   updateInquiry,
   createPublicInquiry,
 } from "./inquiry.service.js";
@@ -63,6 +64,18 @@ export const deleteInquiryController = asyncHandler(async (req, res) => {
   const inquiry = await softDeleteInquiry(req.params.id);
 
   return successResponse(res, "Inquiry deleted successfully", inquiry, 200);
+});
+
+export const bulkDeleteInquiriesController = asyncHandler(async (req, res) => {
+  const { inquiryIds } = req.body;
+  const result = await bulkDeleteInquiries(inquiryIds);
+
+  return successResponse(
+    res,
+    `${result.count} inquiry/inquiries deleted successfully`,
+    result,
+    200
+  );
 });
 
 export const addFollowUpController = asyncHandler(async (req, res) => {
