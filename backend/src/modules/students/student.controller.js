@@ -33,11 +33,14 @@ const bulkUpdateStudentStatusSchema = z.object({
 
 const addCourseToStudentSchema = z.object({
   courseId: z.string().trim().min(1, "Course ID is required"),
-  courseFees: z.union([z.string(), z.number()]).transform(val => Number(val)).refine(val => val >= 0, "Course fees must be non-negative"),
-  discount: z.union([z.string(), z.number()]).transform(val => Number(val)).refine(val => val >= 0, "Discount must be non-negative").optional(),
-  finalFees: z.union([z.string(), z.number()]).transform(val => Number(val)).refine(val => val >= 0, "Final fees must be non-negative"),
+  courseFees: z.union([z.string(), z.number()]).transform(val => Number(val)).refine(val => val >= 0, "Course fees must be non-negative").optional().default(0),
+  discount: z.union([z.string(), z.number()]).transform(val => Number(val)).refine(val => val >= 0, "Discount must be non-negative").optional().default(0),
+  finalFees: z.union([z.string(), z.number()]).transform(val => Number(val)).refine(val => val >= 0, "Final fees must be non-negative").optional(),
   initialPayment: z.union([z.string(), z.number()]).transform(val => Number(val)).refine(val => val >= 0, "Initial payment must be non-negative").optional(),
-  paymentMode: z.string().trim().optional(),
+  paymentAmount: z.union([z.string(), z.number()]).transform(val => Number(val)).refine(val => val >= 0, "Payment amount must be non-negative").optional().default(0),
+  paymentMode: z.string().trim().optional().default("CASH"),
+  paymentDate: z.string().trim().optional(),
+  transactionReference: z.string().trim().optional(),
   remarks: z.string().trim().optional(),
 });
 

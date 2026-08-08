@@ -135,38 +135,39 @@ export const AppLayout = () => {
       {/* Main Content Workspace */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Navbar */}
-        <header className="h-16 bg-slate-900/80 border-b border-slate-800/80 backdrop-blur-md flex items-center justify-between px-6 z-30">
-          <div className="flex items-center space-x-4">
+        <header className="h-16 bg-slate-900/80 border-b border-slate-800/80 backdrop-blur-md flex items-center justify-between px-3 sm:px-6 z-30 shrink-0">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <button
               onClick={() => setMobileOpen(true)}
-              className="md:hidden text-slate-400 hover:text-white p-2 rounded-lg bg-slate-800"
+              className="md:hidden text-slate-400 hover:text-white p-2 rounded-lg bg-slate-800 shrink-0"
+              title="Open Navigation Menu"
             >
               <Menu className="w-5 h-5" />
             </button>
-            <div className="hidden sm:flex items-center space-x-2 text-xs text-slate-400 bg-slate-950/60 px-3 py-1.5 rounded-lg border border-slate-800">
+            <div className="hidden sm:flex items-center space-x-2 text-xs text-slate-400 bg-slate-950/60 px-3 py-1.5 rounded-lg border border-slate-800 shrink-0">
               <Calendar className="w-4 h-4 text-cyan-400" />
-              <span>{currentDate}</span>
+              <span className="whitespace-nowrap">{currentDate}</span>
             </div>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
             <NotificationDropdown />
             <button
               onClick={() => navigate("/")}
-              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg transition"
+              className="px-2 sm:px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] sm:text-xs font-semibold rounded-lg transition whitespace-nowrap"
             >
               Public Website
             </button>
-            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-950/80 text-emerald-400 border border-emerald-800/60">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-2 animate-pulse" />
-              Super Admin ERP Active
+            <span className="inline-flex items-center px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-medium bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 whitespace-nowrap shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 sm:mr-2 animate-pulse shrink-0" />
+              <span className="hidden min-[380px]:inline">Super Admin ERP Active</span>
+              <span className="inline min-[380px]:hidden">ERP Active</span>
             </span>
           </div>
-
         </header>
 
         {/* Main Viewport */}
-        <main className="flex-1 overflow-y-auto p-6 space-y-6">
+        <main className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-6">
           <Outlet />
         </main>
       </div>

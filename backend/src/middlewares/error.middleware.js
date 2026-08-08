@@ -10,11 +10,15 @@ export const notFoundMiddleware = (req, res) => {
 
 export const errorMiddleware = (error, req, res, next) => {
   if (error instanceof ZodError) {
-    return errorResponse(
-      res,
-      error.issues[0]?.message || "Validation failed",
-      400
-    );
+    const firstIssue = error.issues[0];
+    const fieldName = firstIssue?.path?.filter(Boolean).join(".");
+    let msg = firstIssue?.message;
+
+    if (!msg || msg === "Invalid input" || msg === "Required") {
+      msg = fieldName ? `Invalid value provided for field: ${fieldName}` : "Validation failed";
+    }
+
+    return errorResponse(res, msg, 400);
   }
 
   if (

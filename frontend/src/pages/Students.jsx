@@ -1095,7 +1095,7 @@ export const Students = () => {
             <table className="w-full text-left text-sm text-slate-300">
               <thead className="bg-slate-950/80 text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800">
                 <tr>
-                  <th className="p-3.5 w-10 text-center">
+                  <th className="p-3.5 w-10 text-center whitespace-nowrap">
                     <input
                       type="checkbox"
                       checked={students.length > 0 && selectedStudentIds.length === students.length}
@@ -1103,11 +1103,11 @@ export const Students = () => {
                       className="w-4 h-4 rounded border-slate-700 bg-slate-950 text-cyan-600 focus:ring-cyan-500 cursor-pointer"
                     />
                   </th>
-                  <th className="p-3.5">Student Name</th>
-                  <th className="p-3.5">Enrolled Course(s)</th>
-                  <th className="p-3.5 text-right">Pending Dues Balance (₹)</th>
-                  <th className="p-3.5 text-center">Academic Status</th>
-                  <th className="p-3.5 text-center">Actions</th>
+                  <th className="p-3.5 whitespace-nowrap">Student Name</th>
+                  <th className="p-3.5 whitespace-nowrap">Enrolled Course(s)</th>
+                  <th className="p-3.5 text-right whitespace-nowrap">Pending Dues Balance (₹)</th>
+                  <th className="p-3.5 text-center whitespace-nowrap">Academic Status</th>
+                  <th className="p-3.5 text-center whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 font-sans">

@@ -446,14 +446,14 @@ export const Fees = () => {
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
                     <tr>
-                      <th className="py-3.5 px-4">Financial Year</th>
-                      <th className="py-3.5 px-4 text-center">Receipts Issued</th>
-                      <th className="py-3.5 px-4 text-right">Cash Volume</th>
-                      <th className="py-3.5 px-4 text-right">Digital / Online Volume</th>
-                      <th className="py-3.5 px-4 text-right">Total Annual Revenue</th>
-                      <th className="py-3.5 px-4 text-center">YoY Growth</th>
-                      <th className="py-3.5 px-4 text-right">Monthly Avg</th>
-                      <th className="py-3.5 px-4 text-center">Details</th>
+                      <th className="py-3.5 px-4 whitespace-nowrap">Financial Year</th>
+                      <th className="py-3.5 px-4 text-center whitespace-nowrap">Receipts Issued</th>
+                      <th className="py-3.5 px-4 text-right whitespace-nowrap">Cash Volume</th>
+                      <th className="py-3.5 px-4 text-right whitespace-nowrap">Digital / Online Volume</th>
+                      <th className="py-3.5 px-4 text-right whitespace-nowrap">Total Annual Revenue</th>
+                      <th className="py-3.5 px-4 text-center whitespace-nowrap">YoY Growth</th>
+                      <th className="py-3.5 px-4 text-right whitespace-nowrap">Monthly Avg</th>
+                      <th className="py-3.5 px-4 text-center whitespace-nowrap">Details</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60 text-slate-300">
@@ -595,12 +595,12 @@ export const Fees = () => {
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
                     <tr>
-                      <th className="py-3.5 px-4">Month & Year</th>
-                      <th className="py-3.5 px-4 text-center">Receipts Count</th>
-                      <th className="py-3.5 px-4 text-right">Cash Collection</th>
-                      <th className="py-3.5 px-4 text-right">Online / UPI Collection</th>
-                      <th className="py-3.5 px-4 text-right">Total Revenue</th>
-                      <th className="py-3.5 px-4 text-center">Details</th>
+                      <th className="py-3.5 px-4 whitespace-nowrap">Month & Year</th>
+                      <th className="py-3.5 px-4 text-center whitespace-nowrap">Receipts Count</th>
+                      <th className="py-3.5 px-4 text-right whitespace-nowrap">Cash Collection</th>
+                      <th className="py-3.5 px-4 text-right whitespace-nowrap">Online / UPI Collection</th>
+                      <th className="py-3.5 px-4 text-right whitespace-nowrap">Total Revenue</th>
+                      <th className="py-3.5 px-4 text-center whitespace-nowrap">Details</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60 text-slate-300">
@@ -847,12 +847,12 @@ export const Fees = () => {
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
                   <tr>
-                    <th className="py-3 px-4">Receipt / Ref</th>
-                    <th className="py-3 px-4">Student Name</th>
-                    <th className="py-3 px-4">Date</th>
-                    <th className="py-3 px-4">Mode</th>
-                    <th className="py-3 px-4 text-right">Amount</th>
-                    <th className="py-3 px-4 text-center">Actions</th>
+                    <th className="py-3 px-4 whitespace-nowrap">Receipt / Ref</th>
+                    <th className="py-3 px-4 whitespace-nowrap">Student Name</th>
+                    <th className="py-3 px-4 whitespace-nowrap">Date</th>
+                    <th className="py-3 px-4 whitespace-nowrap">Mode</th>
+                    <th className="py-3 px-4 text-right whitespace-nowrap">Amount</th>
+                    <th className="py-3 px-4 text-center whitespace-nowrap">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60 text-slate-300">

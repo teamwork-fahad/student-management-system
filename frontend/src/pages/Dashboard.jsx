@@ -73,29 +73,29 @@ export const Dashboard = () => {
   return (
     <div className="space-y-6 font-sans">
       {/* Welcome Banner */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-cyan-950/80 via-slate-900 to-slate-900 border border-cyan-800/40 relative overflow-hidden">
+      <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-cyan-950/80 via-slate-900 to-slate-900 border border-cyan-800/40 relative overflow-hidden">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-black text-white tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
               Institute Admin Overview
             </h1>
-            <p className="text-sm text-slate-400 mt-1">
+            <p className="text-xs sm:text-sm text-slate-400 mt-1">
               Real-time student onboarding, fee collections, and enrollment metrics.
             </p>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <Link
               to="/dashboard/admissions"
-              className="px-4 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-cyan-950 transition-all flex items-center space-x-2"
+              className="flex-1 sm:flex-initial px-3.5 sm:px-4 py-2 sm:py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-cyan-950 transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
             >
-              <UserPlus className="w-4 h-4" />
+              <UserPlus className="w-4 h-4 shrink-0" />
               <span>Admit New Student</span>
             </Link>
             <Link
               to="/dashboard/fees"
-              className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl border border-slate-700 transition-all flex items-center space-x-2"
+              className="flex-1 sm:flex-initial px-3.5 sm:px-4 py-2 sm:py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl border border-slate-700 transition-all flex items-center justify-center space-x-2 whitespace-nowrap"
             >
-              <CreditCard className="w-4 h-4 text-emerald-400" />
+              <CreditCard className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>Record Fee</span>
             </Link>
           </div>
@@ -115,90 +115,90 @@ export const Dashboard = () => {
       )}
 
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
         {/* Total Students */}
-        <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between shadow-xl">
+        <div className="p-4 sm:p-5 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between shadow-xl">
           <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <p className="text-[11px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">
               Total Students
             </p>
-            <h3 className="text-3xl font-black text-white mt-1">
+            <h3 className="text-2xl sm:text-3xl font-black text-white mt-1 whitespace-nowrap">
               {stats?.totalAdmissions || 0}
             </h3>
-            <p className="text-[11px] text-emerald-400 font-medium mt-1 flex items-center">
-              <TrendingUp className="w-3 h-3 mr-1" /> Active Enrolled
+            <p className="text-[10px] sm:text-[11px] text-emerald-400 font-medium mt-1 flex items-center whitespace-nowrap">
+              <TrendingUp className="w-3 h-3 mr-1 shrink-0" /> Active Enrolled
             </p>
           </div>
-          <div className="p-3.5 rounded-2xl bg-cyan-950 border border-cyan-800/40 text-cyan-400">
-            <Users className="w-7 h-7" />
+          <div className="p-3 sm:p-3.5 rounded-2xl bg-cyan-950 border border-cyan-800/40 text-cyan-400 shrink-0">
+            <Users className="w-6 h-6 sm:w-7 sm:h-7" />
           </div>
         </div>
 
         {/* Active Admissions */}
-        <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between shadow-xl">
+        <div className="p-4 sm:p-5 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between shadow-xl">
           <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <p className="text-[11px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">
               Active Admissions
             </p>
-            <h3 className="text-3xl font-black text-cyan-400 mt-1">
+            <h3 className="text-2xl sm:text-3xl font-black text-cyan-400 mt-1 whitespace-nowrap">
               {stats?.statusBreakdown?.ACTIVE || 0}
             </h3>
-            <p className="text-[11px] text-slate-400 font-medium mt-1">
+            <p className="text-[10px] sm:text-[11px] text-slate-400 font-medium mt-1 whitespace-nowrap">
               Verified Enrollments
             </p>
           </div>
-          <div className="p-3.5 rounded-2xl bg-blue-950 border border-blue-800/40 text-blue-400">
-            <UserCheck className="w-7 h-7" />
+          <div className="p-3 sm:p-3.5 rounded-2xl bg-blue-950 border border-blue-800/40 text-blue-400 shrink-0">
+            <UserCheck className="w-6 h-6 sm:w-7 sm:h-7" />
           </div>
         </div>
 
         {/* Total Fees Collected */}
-        <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between shadow-xl">
+        <div className="p-4 sm:p-5 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between shadow-xl">
           <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <p className="text-[11px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">
               Fees Collected
             </p>
-            <h3 className="text-2xl font-black text-emerald-400 mt-1">
+            <h3 className="text-xl sm:text-2xl font-black text-emerald-400 mt-1 whitespace-nowrap">
               {formatCurrency(financial?.totalPaidAmount)}
             </h3>
-            <p className="text-[11px] text-slate-400 font-medium mt-1">
+            <p className="text-[10px] sm:text-[11px] text-slate-400 font-medium mt-1 whitespace-nowrap">
               Realized Revenue
             </p>
           </div>
-          <div className="p-3.5 rounded-2xl bg-emerald-950 border border-emerald-800/40 text-emerald-400">
-            <CircleDollarSign className="w-7 h-7" />
+          <div className="p-3 sm:p-3.5 rounded-2xl bg-emerald-950 border border-emerald-800/40 text-emerald-400 shrink-0">
+            <CircleDollarSign className="w-6 h-6 sm:w-7 sm:h-7" />
           </div>
         </div>
 
         {/* Pending Fees */}
-        <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between shadow-xl">
+        <div className="p-4 sm:p-5 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between shadow-xl">
           <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <p className="text-[11px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">
               Pending Fees
             </p>
-            <h3 className="text-2xl font-black text-amber-400 mt-1">
+            <h3 className="text-xl sm:text-2xl font-black text-amber-400 mt-1 whitespace-nowrap">
               {formatCurrency(financial?.totalPendingAmount)}
             </h3>
-            <p className="text-[11px] text-amber-400/80 font-medium mt-1">
+            <p className="text-[10px] sm:text-[11px] text-amber-400/80 font-medium mt-1 whitespace-nowrap">
               Outstanding Dues
             </p>
           </div>
-          <div className="p-3.5 rounded-2xl bg-amber-950 border border-amber-800/40 text-amber-400">
-            <Clock className="w-7 h-7" />
+          <div className="p-3 sm:p-3.5 rounded-2xl bg-amber-950 border border-amber-800/40 text-amber-400 shrink-0">
+            <Clock className="w-6 h-6 sm:w-7 sm:h-7" />
           </div>
         </div>
       </div>
 
       {/* Recent Admissions Section */}
-      <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="p-4 sm:p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h3 className="text-lg font-bold text-slate-100">Recent Student Admissions</h3>
+            <h3 className="text-base sm:text-lg font-bold text-slate-100">Recent Student Admissions</h3>
             <p className="text-xs text-slate-400">Click on any student row to view complete profile and fee structure.</p>
           </div>
           <Link
             to="/dashboard/students"
-            className="text-xs font-semibold text-cyan-400 hover:text-cyan-300 flex items-center space-x-1"
+            className="text-xs font-semibold text-cyan-400 hover:text-cyan-300 flex items-center space-x-1 whitespace-nowrap shrink-0 self-start sm:self-auto"
           >
             <span>View All Directory</span>
             <ArrowRight className="w-4 h-4" />
@@ -208,17 +208,17 @@ export const Dashboard = () => {
         {recentAdmissions.length === 0 ? (
           <p className="text-sm text-slate-500 py-6 text-center">No admissions created yet.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-300">
+          <div className="overflow-x-auto border border-slate-800/80 rounded-xl">
+            <table className="w-full text-left text-xs text-slate-300 min-w-[700px]">
               <thead className="bg-slate-950/80 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
                 <tr>
-                  <th className="p-3.5">Admission No</th>
-                  <th className="p-3.5">Student Name</th>
-                  <th className="p-3.5">Course</th>
-                  <th className="p-3.5 text-right">Paid Amount</th>
-                  <th className="p-3.5 text-right">Pending Amount</th>
-                  <th className="p-3.5 text-center">Admission Date</th>
-                  <th className="p-3.5 text-center">Action</th>
+                  <th className="p-3 sm:p-3.5 whitespace-nowrap">Admission No</th>
+                  <th className="p-3 sm:p-3.5 whitespace-nowrap">Student Name</th>
+                  <th className="p-3 sm:p-3.5 whitespace-nowrap">Course</th>
+                  <th className="p-3 sm:p-3.5 text-right whitespace-nowrap">Paid Amount</th>
+                  <th className="p-3 sm:p-3.5 text-right whitespace-nowrap">Pending Amount</th>
+                  <th className="p-3 sm:p-3.5 text-center whitespace-nowrap">Admission Date</th>
+                  <th className="p-3 sm:p-3.5 text-center whitespace-nowrap">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
@@ -233,7 +233,7 @@ export const Dashboard = () => {
                       className="hover:bg-slate-800/50 transition-colors cursor-pointer"
                       title="Click to view full student profile in new tab"
                     >
-                      <td className="p-3.5 font-mono text-cyan-400 font-bold">
+                      <td className="p-3 sm:p-3.5 font-mono text-cyan-400 font-bold whitespace-nowrap">
                         <a
                           href={profileUrl}
                           target="_blank"
@@ -243,7 +243,7 @@ export const Dashboard = () => {
                           <span>{adm.admissionNumber}</span>
                         </a>
                       </td>
-                      <td className="p-3.5 font-bold text-white">
+                      <td className="p-3 sm:p-3.5 font-bold text-white whitespace-nowrap">
                         <a
                           href={profileUrl}
                           target="_blank"
@@ -251,36 +251,35 @@ export const Dashboard = () => {
                           className="hover:text-cyan-400 hover:underline transition inline-flex items-center space-x-1"
                         >
                           <span>{adm.student?.fullName || "N/A"}</span>
-                          <ExternalLink className="w-3 h-3 text-cyan-400/80 inline" />
+                          <ExternalLink className="w-3 h-3 text-cyan-400/80 inline shrink-0" />
                         </a>
                       </td>
-                      <td className="p-3.5 text-slate-300">{adm.courseNameSnapshot}</td>
-                      <td className="p-3.5 text-right font-bold text-emerald-400">
+                      <td className="p-3 sm:p-3.5 text-slate-300 whitespace-nowrap">{adm.courseNameSnapshot}</td>
+                      <td className="p-3 sm:p-3.5 text-right font-bold text-emerald-400 whitespace-nowrap">
                         {formatCurrency(adm.paidAmount)}
                       </td>
-                      <td className="p-3.5 text-right font-bold text-amber-400">
+                      <td className="p-3 sm:p-3.5 text-right font-bold text-amber-400 whitespace-nowrap">
                         {formatCurrency(adm.pendingAmount)}
                       </td>
-                      <td className="p-3.5 text-center text-slate-400 font-mono">
+                      <td className="p-3 sm:p-3.5 text-center text-slate-400 font-mono whitespace-nowrap">
                         {formatDate(adm.admissionDate)}
                       </td>
-                      <td className="p-3.5 text-center">
+                      <td className="p-3 sm:p-3.5 text-center whitespace-nowrap">
                         <a
                           href={profileUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={(e) => e.stopPropagation()}
-                          className="px-2.5 py-1 bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white rounded-lg font-semibold text-[11px] inline-flex items-center space-x-1 transition cursor-pointer"
+                          className="px-2.5 py-1 bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white rounded-lg font-semibold text-[11px] inline-flex items-center space-x-1 transition cursor-pointer whitespace-nowrap"
                           title="Open Full Student Profile Page in new tab"
                         >
-                          <Eye className="w-3.5 h-3.5" />
+                          <Eye className="w-3.5 h-3.5 shrink-0" />
                           <span>View Profile ↗</span>
                         </a>
                       </td>
                     </tr>
                   );
                 })}
-
               </tbody>
             </table>
           </div>
