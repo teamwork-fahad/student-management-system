@@ -27,7 +27,7 @@ import {
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 
-const STATIC_COURSE_CATEGORIES = [
+export const COURSE_CATEGORIES = [
   "College Syllabus",
   "School Course",
   "IT Course",
@@ -36,6 +36,8 @@ const STATIC_COURSE_CATEGORIES = [
   "Professional Course",
   "Other",
 ];
+
+const STATIC_COURSE_CATEGORIES = COURSE_CATEGORIES;
 
 export const Courses = () => {
   const navigate = useNavigate();
@@ -530,9 +532,11 @@ export const Courses = () => {
     });
 
   const filteredModalStudents = courseStudents.filter((s) => {
-    // Strictly filter by tab status (ACTIVE | COMPLETED | DROPPED | CANCELLED | ALL)
+    // Filter by tab status (ACTIVE | COMPLETED | DROPPED | CANCELLED | ALL)
     const matchesStatus =
-      studentsModalFilter === "ALL" || s.status === studentsModalFilter;
+      studentsModalFilter === "ALL" ||
+      s.status === studentsModalFilter ||
+      s.studentStatus === studentsModalFilter;
     if (!matchesStatus) return false;
 
     if (!modalStudentSearch.trim()) return true;

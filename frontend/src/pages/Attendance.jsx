@@ -530,11 +530,35 @@ export const Attendance = () => {
               ✗ Mark Absent
             </button>
             <button
-              onClick={() => handleBulkStatusChange("EXEMPTED")}
+              onClick={() => handleBulkStatusChange("LATE")}
+              disabled={saving}
+              className="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition shadow"
+            >
+              ⏳ Mark Late
+            </button>
+            <button
+              onClick={() => handleBulkStatusChange("EARLY_LEAVE")}
+              disabled={saving}
+              className="px-3 py-1.5 bg-amber-900 hover:bg-amber-800 text-amber-100 rounded-xl text-xs font-bold transition shadow"
+              title="Student left before class ended"
+            >
+              🟤 Mark Early Leave
+            </button>
+            <button
+              onClick={() => handleBulkStatusChange("NO_CLASS")}
               disabled={saving}
               className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition shadow"
+              title="No class scheduled for student today"
             >
-              ☕ Mark Off
+              ☕ Mark No Class
+            </button>
+            <button
+              onClick={() => handleBulkStatusChange("HOLIDAY")}
+              disabled={saving}
+              className="px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-bold transition shadow"
+              title="Institute / batch official holiday"
+            >
+              🌴 Mark Holiday
             </button>
             <button
               onClick={() => handleBulkStatusChange("UNMARKED")}
@@ -579,8 +603,14 @@ export const Attendance = () => {
                       <span className="px-2.5 py-0.5 bg-rose-950 text-rose-400 border border-rose-800 rounded-full font-bold text-[10px]">ABSENT</span>
                     ) : currentStatus === "LATE" ? (
                       <span className="px-2.5 py-0.5 bg-amber-950 text-amber-400 border border-amber-800 rounded-full font-bold text-[10px]">LATE</span>
+                    ) : currentStatus === "EARLY_LEAVE" ? (
+                      <span className="px-2.5 py-0.5 bg-amber-950/80 text-amber-300 border border-amber-700 rounded-full font-bold text-[10px]">🟤 EARLY LEAVE</span>
+                    ) : currentStatus === "NO_CLASS" ? (
+                      <span className="px-2.5 py-0.5 bg-indigo-950 text-indigo-300 border border-indigo-800 rounded-full font-bold text-[10px]">☕ NO CLASS</span>
+                    ) : currentStatus === "HOLIDAY" ? (
+                      <span className="px-2.5 py-0.5 bg-teal-950 text-teal-300 border border-teal-800 rounded-full font-bold text-[10px]">🌴 HOLIDAY</span>
                     ) : currentStatus === "EXEMPTED" ? (
-                      <span className="px-2.5 py-0.5 bg-indigo-950 text-indigo-300 border border-indigo-800 rounded-full font-bold text-[10px]">☕ OFF / EXEMPT</span>
+                      <span className="px-2.5 py-0.5 bg-indigo-950 text-indigo-300 border border-indigo-800 rounded-full font-bold text-[10px]">☕ EXEMPT</span>
                     ) : (
                       <span className="px-2.5 py-0.5 bg-slate-950 text-slate-500 border border-slate-800 rounded-full font-bold text-[10px]">UNMARKED</span>
                     )}
@@ -629,15 +659,53 @@ export const Attendance = () => {
 
                     <button
                       type="button"
-                      onClick={() => handleStatusChange(s.studentId, "EXEMPTED")}
-                      className={`flex-1 py-2 rounded-xl font-bold text-[11px] transition active:scale-95 ${
-                        currentStatus === "EXEMPTED"
+                      onClick={() => handleStatusChange(s.studentId, "LATE")}
+                      className={`px-2.5 py-2 rounded-xl font-bold text-[11px] transition active:scale-95 ${
+                        currentStatus === "LATE"
+                          ? "bg-amber-600 text-white shadow border border-amber-400"
+                          : "bg-slate-900 text-amber-400 hover:bg-amber-950 border border-slate-800"
+                      }`}
+                    >
+                      <span>Late</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleStatusChange(s.studentId, "EARLY_LEAVE")}
+                      className={`px-2.5 py-2 rounded-xl font-bold text-[11px] transition active:scale-95 ${
+                        currentStatus === "EARLY_LEAVE"
+                          ? "bg-amber-900 text-white shadow border border-amber-600"
+                          : "bg-slate-900 text-amber-300 hover:bg-amber-950 border border-slate-800"
+                      }`}
+                      title="Student left before class ended"
+                    >
+                      <span>🟤 Early Leave</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleStatusChange(s.studentId, "NO_CLASS")}
+                      className={`px-2.5 py-2 rounded-xl font-bold text-[11px] transition active:scale-95 ${
+                        currentStatus === "NO_CLASS"
                           ? "bg-indigo-600 text-white shadow border border-indigo-400"
                           : "bg-slate-900 text-indigo-300 hover:bg-indigo-950 border border-slate-800"
                       }`}
-                      title="No Lecture Today (Irregular/Revision Student)"
+                      title="Us din class scheduled hi nahi thi"
                     >
-                      <span>☕ Off</span>
+                      <span>☕ No Class</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleStatusChange(s.studentId, "HOLIDAY")}
+                      className={`px-2.5 py-2 rounded-xl font-bold text-[11px] transition active:scale-95 ${
+                        currentStatus === "HOLIDAY"
+                          ? "bg-teal-600 text-white shadow border border-teal-400"
+                          : "bg-slate-900 text-teal-300 hover:bg-teal-950 border border-slate-800"
+                      }`}
+                      title="Institute/class holiday"
+                    >
+                      <span>🌴 Holiday</span>
                     </button>
 
                     {currentStatus !== "UNMARKED" && (
@@ -738,9 +806,21 @@ export const Attendance = () => {
                           <span className="px-2.5 py-0.5 bg-amber-950 text-amber-400 border border-amber-800 rounded-full font-bold text-[10px]">
                             LATE
                           </span>
+                        ) : currentStatus === "EARLY_LEAVE" ? (
+                          <span className="px-2.5 py-0.5 bg-amber-950/80 text-amber-300 border border-amber-700 rounded-full font-bold text-[10px]">
+                            🟤 EARLY LEAVE
+                          </span>
+                        ) : currentStatus === "NO_CLASS" ? (
+                          <span className="px-2.5 py-0.5 bg-indigo-950 text-indigo-300 border border-indigo-800 rounded-full font-bold text-[10px]">
+                            ☕ NO CLASS
+                          </span>
+                        ) : currentStatus === "HOLIDAY" ? (
+                          <span className="px-2.5 py-0.5 bg-teal-950 text-teal-300 border border-teal-800 rounded-full font-bold text-[10px]">
+                            🌴 HOLIDAY
+                          </span>
                         ) : currentStatus === "EXEMPTED" ? (
                           <span className="px-2.5 py-0.5 bg-indigo-950 text-indigo-300 border border-indigo-800 rounded-full font-bold text-[10px]">
-                            ☕ OFF / EXEMPT
+                            ☕ EXEMPT
                           </span>
                         ) : (
                           <span className="px-2.5 py-0.5 bg-slate-950 text-slate-500 border border-slate-800 rounded-full font-bold text-[10px]">
@@ -776,15 +856,53 @@ export const Attendance = () => {
 
                           <button
                             type="button"
-                            onClick={() => handleStatusChange(s.studentId, "EXEMPTED")}
-                            className={`px-3 py-1.5 rounded-xl font-bold text-[11px] transition ${
-                              currentStatus === "EXEMPTED"
-                                ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                            onClick={() => handleStatusChange(s.studentId, "LATE")}
+                            className={`px-2.5 py-1.5 rounded-xl font-bold text-[11px] transition ${
+                              currentStatus === "LATE"
+                                ? "bg-amber-600 text-white shadow-md shadow-amber-600/30"
                                 : "bg-slate-950 text-slate-400 hover:text-slate-200 border border-slate-800"
                             }`}
-                            title="Mark Off / Exempt for students with no lecture today"
                           >
-                            ☕ Off
+                            Late
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleStatusChange(s.studentId, "EARLY_LEAVE")}
+                            className={`px-2.5 py-1.5 rounded-xl font-bold text-[11px] transition ${
+                              currentStatus === "EARLY_LEAVE"
+                                ? "bg-amber-900 text-white shadow-md shadow-amber-900/30"
+                                : "bg-slate-950 text-amber-300 hover:text-amber-100 border border-slate-800"
+                            }`}
+                            title="Student class khatam hone se pehle chala gaya"
+                          >
+                            🟤 Early Leave
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleStatusChange(s.studentId, "NO_CLASS")}
+                            className={`px-2.5 py-1.5 rounded-xl font-bold text-[11px] transition ${
+                              currentStatus === "NO_CLASS"
+                                ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                                : "bg-slate-950 text-indigo-300 hover:text-indigo-100 border border-slate-800"
+                            }`}
+                            title="Us din class scheduled hi nahi thi"
+                          >
+                            ☕ No Class
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleStatusChange(s.studentId, "HOLIDAY")}
+                            className={`px-2.5 py-1.5 rounded-xl font-bold text-[11px] transition ${
+                              currentStatus === "HOLIDAY"
+                                ? "bg-teal-600 text-white shadow-md shadow-teal-600/30"
+                                : "bg-slate-950 text-teal-300 hover:text-teal-100 border border-slate-800"
+                            }`}
+                            title="Institute/class holiday"
+                          >
+                            🌴 Holiday
                           </button>
 
                           {currentStatus !== "UNMARKED" && (

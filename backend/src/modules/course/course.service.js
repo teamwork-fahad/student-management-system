@@ -87,6 +87,12 @@ export const getAllCourses = async (query = {}) => {
         select: {
           id: true,
           status: true,
+          student: {
+            select: {
+              id: true,
+              status: true,
+            },
+          },
         },
       },
     },
@@ -94,10 +100,26 @@ export const getAllCourses = async (query = {}) => {
 
   const formatted = courses.map((c) => {
     const admissions = c.admissions || [];
-    const activeStudents = admissions.filter((a) => a.status === "ACTIVE").length;
-    const completedStudents = admissions.filter((a) => a.status === "COMPLETED").length;
-    const droppedStudents = admissions.filter((a) => a.status === "DROPPED").length;
-    const cancelledStudents = admissions.filter((a) => a.status === "CANCELLED").length;
+    const completedStudents = admissions.filter(
+      (a) => a.status === "COMPLETED" || a.student?.status === "COMPLETED"
+    ).length;
+    const droppedStudents = admissions.filter(
+      (a) =>
+        a.status === "DROPPED" ||
+        a.status === "CANCELLED" ||
+        a.student?.status === "DROPPED" ||
+        a.student?.status === "CANCELLED"
+    ).length;
+    const activeStudents = admissions.filter(
+      (a) =>
+        (a.status === "ACTIVE" || !a.status) &&
+        a.student?.status !== "COMPLETED" &&
+        a.student?.status !== "DROPPED" &&
+        a.student?.status !== "CANCELLED"
+    ).length;
+    const cancelledStudents = admissions.filter(
+      (a) => a.status === "CANCELLED" || a.student?.status === "CANCELLED"
+    ).length;
     const totalStudents = admissions.length;
 
     const { admissions: _, ...courseData } = c;
@@ -201,7 +223,30 @@ export const getCourseStudents = async (courseId, status) => {
   };
 
   if (status && status !== "ALL") {
-    where.status = status;
+    if (status === "COMPLETED") {
+      where.OR = [
+        { status: "COMPLETED" },
+        { student: { status: "COMPLETED" } },
+      ];
+    } else if (status === "DROPPED" || status === "CANCELLED") {
+      where.OR = [
+        { status: "DROPPED" },
+        { status: "CANCELLED" },
+        { student: { status: "DROPPED" } },
+        { student: { status: "CANCELLED" } },
+      ];
+    } else if (status === "ACTIVE") {
+      where.AND = [
+        { OR: [{ status: "ACTIVE" }, { status: null }] },
+        {
+          student: {
+            status: { notIn: ["COMPLETED", "DROPPED", "CANCELLED"] },
+          },
+        },
+      ];
+    } else {
+      where.status = status;
+    }
   }
 
   const admissions = await prisma.admission.findMany({
@@ -231,21 +276,27 @@ export const getCourseStudents = async (courseId, status) => {
     },
   });
 
-  return admissions.map((adm) => ({
-    id: adm.student?.id || adm.id,
-    admissionId: adm.id,
-    admissionNumber: adm.admissionNumber,
-    studentId: adm.student?.studentId || adm.admissionNumber,
-    fullName: adm.student?.fullName || adm.inquiry?.fullName || "N/A",
-    mobile: adm.student?.mobile || adm.inquiry?.mobile || "N/A",
-    email: adm.student?.email || adm.inquiry?.email || "N/A",
-    status: adm.status,
-    studentStatus: adm.student?.status || "ACTIVE",
-    admissionDate: adm.admissionDate,
-    finalFees: Number(adm.finalFees || 0),
-    paidAmount: Number(adm.paidAmount || 0),
-    pendingAmount: Number(adm.pendingAmount || 0),
-  }));
+  return admissions.map((adm) => {
+    const isCompleted = adm.status === "COMPLETED" || adm.student?.status === "COMPLETED";
+    const isDropped = adm.status === "DROPPED" || adm.status === "CANCELLED" || adm.student?.status === "DROPPED" || adm.student?.status === "CANCELLED";
+    const computedStatus = isCompleted ? "COMPLETED" : isDropped ? "DROPPED" : "ACTIVE";
+
+    return {
+      id: adm.student?.id || adm.id,
+      admissionId: adm.id,
+      admissionNumber: adm.admissionNumber,
+      studentId: adm.student?.studentId || adm.admissionNumber,
+      fullName: adm.student?.fullName || adm.inquiry?.fullName || "N/A",
+      mobile: adm.student?.mobile || adm.inquiry?.mobile || "N/A",
+      email: adm.student?.email || adm.inquiry?.email || "N/A",
+      status: computedStatus,
+      studentStatus: adm.student?.status || "ACTIVE",
+      admissionDate: adm.admissionDate,
+      finalFees: Number(adm.finalFees || 0),
+      paidAmount: Number(adm.paidAmount || 0),
+      pendingAmount: Number(adm.pendingAmount || 0),
+    };
+  });
 };
 
 /**

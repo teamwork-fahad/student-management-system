@@ -58,7 +58,7 @@ export default function AttendanceActiveScreen() {
   // Date state: YYYY-MM-DD
   const todayStr = new Date().toISOString().split('T')[0];
   const [attendanceDate, setAttendanceDate] = useState<string>(todayStr);
-  const [attendanceMap, setAttendanceMap] = useState<Record<string, 'PRESENT' | 'ABSENT' | 'LATE' | 'EXEMPTED' | 'UNMARKED'>>({});
+  const [attendanceMap, setAttendanceMap] = useState<Record<string, 'PRESENT' | 'ABSENT' | 'LATE' | 'EARLY_LEAVE' | 'NO_CLASS' | 'HOLIDAY' | 'EXEMPTED' | 'UNMARKED'>>({});
   const [savingAttendance, setSavingAttendance] = useState(false);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
 
@@ -306,7 +306,7 @@ export default function AttendanceActiveScreen() {
     }
   };
 
-  const toggleStudentAttendance = async (studentId: string, status: 'PRESENT' | 'ABSENT' | 'LATE' | 'EXEMPTED' | 'UNMARKED') => {
+  const toggleStudentAttendance = async (studentId: string, status: 'PRESENT' | 'ABSENT' | 'LATE' | 'EARLY_LEAVE' | 'NO_CLASS' | 'HOLIDAY' | 'EXEMPTED' | 'UNMARKED') => {
     setAttendanceMap((prev) => ({
       ...prev,
       [studentId]: status,
@@ -398,8 +398,14 @@ export default function AttendanceActiveScreen() {
                 ? '✗ ABSENT'
                 : currentAtt === 'LATE'
                 ? '⏳ LATE'
+                : currentAtt === 'EARLY_LEAVE'
+                ? '🟤 EARLY LEAVE'
+                : currentAtt === 'NO_CLASS'
+                ? '☕ NO CLASS'
+                : currentAtt === 'HOLIDAY'
+                ? '🌴 HOLIDAY'
                 : currentAtt === 'EXEMPTED'
-                ? '☕ OFF / EXEMPT'
+                ? '☕ EXEMPT'
                 : '⏳ UNMARKED'}
             </Text>
           </View>
@@ -463,12 +469,36 @@ export default function AttendanceActiveScreen() {
           <TouchableOpacity
             style={[
               styles.attBtn,
-              currentAtt === 'EXEMPTED' ? styles.exemptedBtnActive : styles.attBtnInactive,
+              currentAtt === 'EARLY_LEAVE' ? styles.exemptedBtnActive : styles.attBtnInactive,
             ]}
-            onPress={() => toggleStudentAttendance(item.id, 'EXEMPTED')}
+            onPress={() => toggleStudentAttendance(item.id, 'EARLY_LEAVE')}
           >
-            <Text style={currentAtt === 'EXEMPTED' ? styles.attTextActive : styles.attTextInactive}>
-              ☕ OFF
+            <Text style={currentAtt === 'EARLY_LEAVE' ? styles.attTextActive : styles.attTextInactive}>
+              🟤 EARLY
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.attBtn,
+              currentAtt === 'NO_CLASS' ? styles.exemptedBtnActive : styles.attBtnInactive,
+            ]}
+            onPress={() => toggleStudentAttendance(item.id, 'NO_CLASS')}
+          >
+            <Text style={currentAtt === 'NO_CLASS' ? styles.attTextActive : styles.attTextInactive}>
+              ☕ NO CLASS
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.attBtn,
+              currentAtt === 'HOLIDAY' ? styles.exemptedBtnActive : styles.attBtnInactive,
+            ]}
+            onPress={() => toggleStudentAttendance(item.id, 'HOLIDAY')}
+          >
+            <Text style={currentAtt === 'HOLIDAY' ? styles.attTextActive : styles.attTextInactive}>
+              🌴 HOLIDAY
             </Text>
           </TouchableOpacity>
 

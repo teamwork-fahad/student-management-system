@@ -138,7 +138,7 @@ export const getAttendanceByDate = async (dateStr, courseId) => {
 export const getAttendanceStats = async () => {
   const today = parseDateToUTC(new Date().toISOString().split("T")[0]);
 
-  const [totalStudents, todayPresent, todayAbsent, todayLate, todayExempted] = await Promise.all([
+  const [totalStudents, todayPresent, todayAbsent, todayLate, todayEarlyLeave, todayNoClass, todayHoliday, todayExempted] = await Promise.all([
     prisma.student.count({
       where: {
         deletedAt: null,
@@ -149,16 +149,24 @@ export const getAttendanceStats = async () => {
     prisma.attendance.count({ where: { date: today, status: "PRESENT" } }),
     prisma.attendance.count({ where: { date: today, status: "ABSENT" } }),
     prisma.attendance.count({ where: { date: today, status: "LATE" } }),
+    prisma.attendance.count({ where: { date: today, status: "EARLY_LEAVE" } }),
+    prisma.attendance.count({ where: { date: today, status: "NO_CLASS" } }),
+    prisma.attendance.count({ where: { date: today, status: "HOLIDAY" } }),
     prisma.attendance.count({ where: { date: today, status: "EXEMPTED" } }),
   ]);
+
+  const markedTotal = todayPresent + todayAbsent + todayLate + todayEarlyLeave + todayNoClass + todayHoliday + todayExempted;
 
   return {
     totalStudents,
     todayPresent,
     todayAbsent,
     todayLate,
+    todayEarlyLeave,
+    todayNoClass,
+    todayHoliday,
     todayExempted,
-    todayUnmarked: Math.max(0, totalStudents - (todayPresent + todayAbsent + todayLate + todayExempted)),
+    todayUnmarked: Math.max(0, totalStudents - markedTotal),
   };
 };
 
@@ -189,7 +197,10 @@ export const getStudentAttendanceHistory = async (studentId) => {
   const present = student.attendances.filter((a) => a.status === "PRESENT").length;
   const absent = student.attendances.filter((a) => a.status === "ABSENT").length;
   const late = student.attendances.filter((a) => a.status === "LATE").length;
-  const percentage = total > 0 ? Math.round(((present + late * 0.5) / total) * 100) : 100;
+  const earlyLeave = student.attendances.filter((a) => a.status === "EARLY_LEAVE").length;
+  const noClass = student.attendances.filter((a) => a.status === "NO_CLASS").length;
+  const holiday = student.attendances.filter((a) => a.status === "HOLIDAY").length;
+  const percentage = total > 0 ? Math.round(((present + late * 0.5 + earlyLeave * 0.75) / total) * 100) : 100;
 
   return {
     studentId: student.id,
@@ -202,6 +213,9 @@ export const getStudentAttendanceHistory = async (studentId) => {
       present,
       absent,
       late,
+      earlyLeave,
+      noClass,
+      holiday,
       percentage,
     },
     history: student.attendances.map((a) => ({
@@ -225,7 +239,7 @@ export const getAttendanceWhatsAppReport = async (dateStr) => {
     year: "numeric",
   });
 
-  const [totalStudents, presentCount, absentCount, lateCount, exemptedCount] = await Promise.all([
+  const [totalStudents, presentCount, absentCount, lateCount, earlyLeaveCount, noClassCount, holidayCount, exemptedCount] = await Promise.all([
     prisma.student.count({
       where: {
         deletedAt: null,
@@ -236,12 +250,16 @@ export const getAttendanceWhatsAppReport = async (dateStr) => {
     prisma.attendance.count({ where: { date: targetDate, status: "PRESENT" } }),
     prisma.attendance.count({ where: { date: targetDate, status: "ABSENT" } }),
     prisma.attendance.count({ where: { date: targetDate, status: "LATE" } }),
+    prisma.attendance.count({ where: { date: targetDate, status: "EARLY_LEAVE" } }),
+    prisma.attendance.count({ where: { date: targetDate, status: "NO_CLASS" } }),
+    prisma.attendance.count({ where: { date: targetDate, status: "HOLIDAY" } }),
     prisma.attendance.count({ where: { date: targetDate, status: "EXEMPTED" } }),
   ]);
 
-  const unmarkedCount = Math.max(0, totalStudents - (presentCount + absentCount + lateCount + exemptedCount));
-  const markedTotal = presentCount + absentCount + lateCount;
-  const attendanceRate = markedTotal > 0 ? Math.round(((presentCount + lateCount * 0.5) / markedTotal) * 100) : 0;
+  const markedTotalCount = presentCount + absentCount + lateCount + earlyLeaveCount + noClassCount + holidayCount + exemptedCount;
+  const unmarkedCount = Math.max(0, totalStudents - markedTotalCount);
+  const activeMarkedTotal = presentCount + absentCount + lateCount + earlyLeaveCount;
+  const attendanceRate = activeMarkedTotal > 0 ? Math.round(((presentCount + lateCount * 0.5 + earlyLeaveCount * 0.75) / activeMarkedTotal) * 100) : 0;
 
   const text = `📊 *DAILY STUDENT ATTENDANCE REPORT*
 📅 *Date:* ${formattedDate}
@@ -250,7 +268,9 @@ export const getAttendanceWhatsAppReport = async (dateStr) => {
 ✅ *Present:* ${presentCount}
 ❌ *Absent:* ${absentCount}
 ⏳ *Late:* ${lateCount}
-☕ *Off / No Class:* ${exemptedCount} (Exempted)
+🟤 *Early Leave:* ${earlyLeaveCount}
+☕ *No Class:* ${noClassCount}
+🌴 *Holiday:* ${holidayCount}
 ❓ *Unmarked:* ${unmarkedCount}
 
 📈 *Attendance Rate:* ${attendanceRate}%
@@ -267,6 +287,9 @@ _Sent via Student Management System_`;
       presentCount,
       absentCount,
       lateCount,
+      earlyLeaveCount,
+      noClassCount,
+      holidayCount,
       exemptedCount,
       unmarkedCount,
       attendanceRate,

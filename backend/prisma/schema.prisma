@@ -314,6 +314,9 @@ enum AttendanceStatus {
   PRESENT
   ABSENT
   LATE
+  EARLY_LEAVE
+  NO_CLASS
+  HOLIDAY
   EXEMPTED
 }
 
