@@ -136,61 +136,61 @@ export const Expenses = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-white tracking-tight">Expense Management</h1>
+          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">Expense Management ERP</h1>
           <p className="text-xs text-slate-400">Track institute operational expenses, vendor payments, and monthly outflows.</p>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2 sm:space-x-3 flex-wrap gap-y-2">
           {/* View Mode Toggle Switch */}
           <div className="flex items-center space-x-1 p-1 bg-slate-900 border border-slate-800 rounded-xl">
             <button
               type="button"
               onClick={() => setViewMode("table")}
-              className={`p-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
                 viewMode === "table" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
               }`}
               title="Table List View"
             >
-              <List className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">List View</span>
+              <List className="w-3.5 h-3.5 shrink-0" />
+              <span>List View</span>
             </button>
             <button
               type="button"
               onClick={() => setViewMode("grid")}
-              className={`p-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
                 viewMode === "grid" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
               }`}
               title="Grid Cards View"
             >
-              <LayoutGrid className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Grid View</span>
+              <LayoutGrid className="w-3.5 h-3.5 shrink-0" />
+              <span>Grid View</span>
             </button>
           </div>
 
           <button
             onClick={() => setIsModalOpen(true)}
-            className="px-4 py-2.5 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-bold text-xs rounded-xl shadow-lg flex items-center space-x-2 transition"
+            className="px-3.5 sm:px-4 py-2.5 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-bold text-xs rounded-xl shadow-lg flex items-center space-x-2 transition whitespace-nowrap"
           >
-            <PlusCircle className="w-4 h-4" />
+            <PlusCircle className="w-4 h-4 shrink-0" />
             <span>Add New Expense</span>
           </button>
         </div>
       </div>
 
       {/* STATS CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl">
-          <span className="text-[10px] uppercase font-bold text-rose-400 block mb-1">Total Expenses Recorded</span>
-          <span className="text-xl font-extrabold text-rose-400">₹{Number(stats.totalExpense || 0).toLocaleString("en-IN")}</span>
+      <div className="grid grid-cols-1 min-[420px]:grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+        <div className="bg-slate-900/60 border border-slate-800 p-4 sm:p-5 rounded-2xl">
+          <span className="text-[10px] uppercase font-bold text-rose-400 block mb-1 whitespace-nowrap">Total Expenses Recorded</span>
+          <span className="text-lg sm:text-xl font-extrabold text-rose-400 whitespace-nowrap">₹{Number(stats.totalExpense || 0).toLocaleString("en-IN")}</span>
         </div>
 
-        <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl">
-          <span className="text-[10px] uppercase font-bold text-cyan-400 block mb-1">Total Expense Transactions</span>
-          <span className="text-xl font-extrabold text-white">{stats.totalCount || 0} Records</span>
+        <div className="bg-slate-900/60 border border-slate-800 p-4 sm:p-5 rounded-2xl">
+          <span className="text-[10px] uppercase font-bold text-cyan-400 block mb-1 whitespace-nowrap">Total Expense Transactions</span>
+          <span className="text-lg sm:text-xl font-extrabold text-white whitespace-nowrap">{stats.totalCount || 0} Records</span>
         </div>
 
-        <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl">
-          <span className="text-[10px] uppercase font-bold text-amber-400 block mb-1">Top Category</span>
+        <div className="bg-slate-900/60 border border-slate-800 p-4 sm:p-5 rounded-2xl col-span-1 min-[420px]:col-span-2 sm:col-span-1">
+          <span className="text-[10px] uppercase font-bold text-amber-400 block mb-1 whitespace-nowrap">Top Category</span>
           <span className="text-sm font-bold text-slate-200 truncate block mt-1">
             {Object.keys(stats.categoryStats || {})[0] || "General Outflow"}
           </span>
@@ -198,9 +198,9 @@ export const Expenses = () => {
       </div>
 
       {/* FILTER AND SEARCH BAR */}
-      <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row gap-4 justify-between items-center">
+      <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col sm:flex-row gap-3 justify-between items-center">
         <div className="relative flex-1 w-full">
-          <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             value={search}
@@ -210,68 +210,68 @@ export const Expenses = () => {
           />
         </div>
 
-        <div className="flex items-center space-x-3 w-full md:w-auto">
-          <Filter className="w-4 h-4 text-slate-400" />
+        <div className="flex items-center space-x-2 w-full sm:w-auto bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-xl text-xs">
+          <Filter className="w-4 h-4 text-slate-400 shrink-0" />
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-medium text-slate-200 outline-none"
+            className="w-full sm:w-auto bg-transparent border-none text-xs font-medium text-slate-200 outline-none cursor-pointer truncate"
           >
-            <option value="">All Categories</option>
+            <option value="" className="bg-slate-950">All Categories</option>
             {categories.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
+              <option key={c.id} value={c.id} className="bg-slate-950">{c.name}</option>
             ))}
           </select>
         </div>
       </div>
 
       {/* CONTENT VIEW */}
-      <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 shadow-xl">
+      <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-4 sm:p-6 shadow-xl">
         {loading ? (
           <div className="text-center py-16 text-xs text-slate-500">Loading expenses...</div>
         ) : filteredExpenses.length === 0 ? (
           <div className="text-center py-16 text-xs text-slate-500">No expense records found.</div>
         ) : viewMode === "table" ? (
           /* TABLE LIST VIEW */
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+          <div className="overflow-x-auto border border-slate-800/80 rounded-xl">
+            <table className="w-full text-left text-xs min-w-[750px]">
               <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
                 <tr>
-                  <th className="py-3.5 px-4">Date</th>
-                  <th className="py-3.5 px-4">Expense Title</th>
-                  <th className="py-3.5 px-4">Category</th>
-                  <th className="py-3.5 px-4">Mode</th>
-                  <th className="py-3.5 px-4">Paid To / Remarks</th>
-                  <th className="py-3.5 px-4 text-right">Amount</th>
-                  <th className="py-3.5 px-4 text-center">Action</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Date</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Expense Title</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Category</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Mode</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Paid To / Remarks</th>
+                  <th className="py-3.5 px-4 text-right whitespace-nowrap">Amount</th>
+                  <th className="py-3.5 px-4 text-center whitespace-nowrap">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 text-slate-300">
                 {filteredExpenses.map((exp) => (
                   <tr key={exp.id} className="hover:bg-slate-800/30 transition">
-                    <td className="py-3.5 px-4 text-slate-400 font-mono">
+                    <td className="py-3.5 px-4 text-slate-400 font-mono whitespace-nowrap">
                       {formatDate(exp.expenseDate)}
                     </td>
-                    <td className="py-3.5 px-4 font-bold text-white">
+                    <td className="py-3.5 px-4 font-bold text-white whitespace-nowrap">
                       {exp.title}
                     </td>
-                    <td className="py-3.5 px-4">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       <span className="px-2 py-0.5 bg-rose-950 text-rose-300 border border-rose-800 rounded font-semibold text-[10px]">
                         {exp.category?.name || "General"}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       <span className="px-2 py-0.5 bg-slate-800 text-slate-300 rounded font-bold uppercase text-[10px]">
                         {exp.paymentMode || "CASH"}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-slate-400 truncate max-w-xs">
+                    <td className="py-3.5 px-4 text-slate-400 truncate max-w-xs whitespace-nowrap">
                       {exp.paidTo ? `Paid to ${exp.paidTo} - ` : ""}{exp.remarks || "N/A"}
                     </td>
-                    <td className="py-3.5 px-4 text-right font-extrabold text-rose-400 text-sm">
+                    <td className="py-3.5 px-4 text-right font-extrabold text-rose-400 text-sm whitespace-nowrap">
                       ₹{Number(exp.amount).toLocaleString("en-IN")}
                     </td>
-                    <td className="py-3.5 px-4 text-center">
+                    <td className="py-3.5 px-4 text-center whitespace-nowrap">
                       <button
                         onClick={() => handleDeleteExpense(exp.id)}
                         className="p-1.5 bg-rose-950/40 hover:bg-rose-900 text-rose-400 hover:text-white rounded-lg transition"
@@ -289,7 +289,7 @@ export const Expenses = () => {
           /* GRID CARDS VIEW */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredExpenses.map((exp) => (
-              <div key={exp.id} className="p-4 bg-slate-950/80 border border-slate-800 rounded-2xl space-y-3">
+              <div key={exp.id} className="p-4 bg-slate-950/80 border border-slate-800 rounded-2xl space-y-3 shadow-md">
                 <div className="flex items-center justify-between">
                   <span className="px-2 py-0.5 bg-rose-950 text-rose-300 border border-rose-800 rounded font-semibold text-[10px]">
                     {exp.category?.name || "General"}
