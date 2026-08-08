@@ -645,50 +645,51 @@ export const Courses = () => {
       </div>
 
       {/* KPI Stats Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
-          <div className="p-3 bg-cyan-950/80 border border-cyan-800/80 rounded-xl text-cyan-400">
+      <div className="grid grid-cols-1 min-[420px]:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
+          <div className="p-2.5 sm:p-3 bg-cyan-950/80 border border-cyan-800/80 rounded-xl text-cyan-400 shrink-0">
             <BookOpen className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Courses</p>
-            <h3 className="text-xl font-black text-white">{totalCourses}</h3>
+            <p className="text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Total Courses</p>
+            <h3 className="text-lg sm:text-xl font-black text-white whitespace-nowrap">{totalCourses}</h3>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
-          <div className="p-3 bg-emerald-950/80 border border-emerald-800/80 rounded-xl text-emerald-400">
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
+          <div className="p-2.5 sm:p-3 bg-emerald-950/80 border border-emerald-800/80 rounded-xl text-emerald-400 shrink-0">
             <UserCheck className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Active Students</p>
-            <h3 className="text-xl font-black text-emerald-400">{totalActiveStudents}</h3>
+            <p className="text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Active Students</p>
+            <h3 className="text-lg sm:text-xl font-black text-emerald-400 whitespace-nowrap">{totalActiveStudents}</h3>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
-          <div className="p-3 bg-purple-950/80 border border-purple-800/80 rounded-xl text-purple-400">
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
+          <div className="p-2.5 sm:p-3 bg-purple-950/80 border border-purple-800/80 rounded-xl text-purple-400 shrink-0">
             <GraduationCap className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Completed / Passout</p>
-            <h3 className="text-xl font-black text-purple-300">{totalCompletedStudents}</h3>
+            <p className="text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Completed / Passout</p>
+            <h3 className="text-lg sm:text-xl font-black text-purple-300 whitespace-nowrap">{totalCompletedStudents}</h3>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
-          <div className="p-3 bg-blue-950/80 border border-blue-800/80 rounded-xl text-blue-400">
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
+          <div className="p-2.5 sm:p-3 bg-blue-950/80 border border-blue-800/80 rounded-xl text-blue-400 shrink-0">
             <Users className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Enrolled</p>
-            <h3 className="text-xl font-black text-blue-400">{totalEnrolledStudents}</h3>
+            <p className="text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Total Enrolled</p>
+            <h3 className="text-lg sm:text-xl font-black text-blue-400 whitespace-nowrap">{totalEnrolledStudents}</h3>
           </div>
         </div>
       </div>
 
       {/* Search & Department Category Filter Bar */}
-      <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row gap-4 justify-between items-center">
+      <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3.5 shadow-xl">
+        {/* Search Bar Input */}
         <div className="relative flex-1 w-full">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
@@ -700,15 +701,43 @@ export const Courses = () => {
           />
         </div>
 
-        <div className="flex items-center gap-3 w-full md:w-auto flex-wrap sm:flex-nowrap">
-          <div className="flex items-center space-x-2 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sort By:</span>
+        {/* Organized Filter Controls Grid */}
+        <div className="pt-3 border-t border-slate-800/80 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2 text-slate-300 text-xs font-bold uppercase tracking-wider">
+              <Filter className="w-4 h-4 text-cyan-400 shrink-0" />
+              <span>Catalog Filters</span>
+              {(departmentFilter || programFilter || courseFilter || sortBy !== "name_asc") && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-cyan-950 text-cyan-400 border border-cyan-800">
+                  Filtered
+                </span>
+              )}
+            </div>
+
+            {(departmentFilter || programFilter || courseFilter || sortBy !== "name_asc") && (
+              <button
+                type="button"
+                onClick={() => {
+                  setDepartmentFilter("");
+                  setProgramFilter("");
+                  setCourseFilter("");
+                  setSortBy("name_asc");
+                }}
+                className="text-[11px] font-bold text-rose-400 hover:text-rose-300 transition flex items-center space-x-1"
+              >
+                <span>Reset Filters ✕</span>
+              </button>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
+            {/* Sort By Dropdown */}
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="bg-transparent text-slate-200 text-xs focus:outline-none font-bold cursor-pointer"
+              className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-cyan-400 text-xs focus:outline-none focus:border-cyan-500 font-bold truncate"
             >
-              <option value="name_asc" className="bg-slate-950">🔤 Name (A to Z) [Default]</option>
+              <option value="name_asc" className="bg-slate-950">🔤 Name (A to Z)</option>
               <option value="name_desc" className="bg-slate-950">🔤 Name (Z to A)</option>
               <option value="students_desc" className="bg-slate-950">👥 Most Enrolled Students</option>
               <option value="students_asc" className="bg-slate-950">👥 Least Enrolled Students</option>
@@ -718,11 +747,8 @@ export const Courses = () => {
               <option value="oldest" className="bg-slate-950">🕒 Oldest Added First</option>
               <option value="duration_desc" className="bg-slate-950">⏱️ Longest Duration</option>
             </select>
-          </div>
 
-          {/* Level 1: Department Filter */}
-          <div className="flex items-center space-x-1.5 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2">
-            <Filter className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+            {/* Level 1: Department Filter */}
             <select
               value={departmentFilter}
               onChange={(e) => {
@@ -730,7 +756,7 @@ export const Courses = () => {
                 setProgramFilter("");
                 setCourseFilter("");
               }}
-              className="bg-transparent text-slate-200 text-xs focus:outline-none font-bold cursor-pointer max-w-[160px] truncate"
+              className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-cyan-500 font-semibold truncate"
             >
               <option value="" className="bg-slate-950">🏛️ All Departments</option>
               {departments.map((d) => (
@@ -739,17 +765,15 @@ export const Courses = () => {
                 </option>
               ))}
             </select>
-          </div>
 
-          {/* Level 2: Program / Degree Filter */}
-          <div className="flex items-center space-x-1.5 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2">
+            {/* Level 2: Program / Degree Filter */}
             <select
               value={programFilter}
               onChange={(e) => {
                 setProgramFilter(e.target.value);
                 setCourseFilter("");
               }}
-              className="bg-transparent text-slate-200 text-xs focus:outline-none font-bold cursor-pointer max-w-[150px] truncate"
+              className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-cyan-500 font-semibold truncate"
             >
               <option value="" className="bg-slate-950">🎓 All Programs</option>
               {availablePrograms.map((prog) => (
@@ -758,14 +782,12 @@ export const Courses = () => {
                 </option>
               ))}
             </select>
-          </div>
 
-          {/* Level 3: Semester / Specific Course Filter */}
-          <div className="flex items-center space-x-1.5 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2">
+            {/* Level 3: Semester / Specific Course Filter */}
             <select
               value={courseFilter}
               onChange={(e) => setCourseFilter(e.target.value)}
-              className="bg-transparent text-slate-200 text-xs focus:outline-none font-bold cursor-pointer max-w-[200px] truncate"
+              className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-cyan-500 font-semibold truncate"
             >
               <option value="" className="bg-slate-950">
                 📖 All Courses ({coursesInProgram.length})
@@ -846,13 +868,13 @@ export const Courses = () => {
         <div className="text-center py-16 text-xs text-slate-500">No courses matching your criteria.</div>
       ) : viewMode === "table" ? (
         /* TABLE LIST VIEW (DEFAULT VIEW) */
-        <div className="bg-slate-900/60 border border-slate-800 rounded-3xl overflow-hidden shadow-xl p-6">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+        <div className="bg-slate-900/60 border border-slate-800 rounded-3xl overflow-hidden shadow-xl p-4 sm:p-6">
+          <div className="overflow-x-auto border border-slate-800/80 rounded-xl">
+            <table className="w-full text-left text-xs min-w-[850px]">
               <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
                 <tr>
                   {isSuperAdmin && (
-                    <th className="py-3.5 px-3 w-10 text-center">
+                    <th className="py-3.5 px-3 w-10 text-center whitespace-nowrap">
                       <input
                         type="checkbox"
                         checked={
@@ -864,12 +886,12 @@ export const Courses = () => {
                       />
                     </th>
                   )}
-                  <th className="py-3.5 px-4">Course Details</th>
-                  <th className="py-3.5 px-4 text-center">Enrolled Breakdown</th>
-                  <th className="py-3.5 px-4 text-center">Total Students</th>
-                  <th className="py-3.5 px-4 text-right">Tuition Fees</th>
-                  <th className="py-3.5 px-4 text-center">Status</th>
-                  <th className="py-3.5 px-4 text-center">Actions</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Course Details</th>
+                  <th className="py-3.5 px-4 text-center whitespace-nowrap">Enrolled Breakdown</th>
+                  <th className="py-3.5 px-4 text-center whitespace-nowrap">Total Students</th>
+                  <th className="py-3.5 px-4 text-right whitespace-nowrap">Tuition Fees</th>
+                  <th className="py-3.5 px-4 text-center whitespace-nowrap">Status</th>
+                  <th className="py-3.5 px-4 text-center whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 text-slate-300">
@@ -881,7 +903,7 @@ export const Courses = () => {
                     }`}
                   >
                     {isSuperAdmin && (
-                      <td className="py-3.5 px-3 text-center">
+                      <td className="py-3.5 px-3 text-center whitespace-nowrap">
                         <input
                           type="checkbox"
                           checked={selectedCourseIds.includes(c.id)}
@@ -890,7 +912,7 @@ export const Courses = () => {
                         />
                       </td>
                     )}
-                    <td className="py-3.5 px-4">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       <div className="space-y-1">
                         <div className="font-bold text-white text-sm">{c.name}</div>
                         <div className="flex items-center space-x-2 flex-wrap gap-y-1">
@@ -903,30 +925,30 @@ export const Courses = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 text-center">
-                      <div className="flex items-center justify-center gap-1.5 flex-wrap max-w-[260px] mx-auto">
+                    <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                      <div className="flex items-center justify-center gap-1.5 flex-nowrap max-w-full mx-auto">
                         <button
                           type="button"
                           onClick={() => openCourseStudentsModal(c, "ACTIVE")}
-                          className="px-2 py-0.5 rounded-md bg-emerald-950/80 hover:bg-emerald-900 text-emerald-400 border border-emerald-800/80 text-[10px] font-bold inline-flex items-center gap-1 transition cursor-pointer hover:scale-105 shadow-sm"
+                          className="px-2 py-0.5 rounded-md bg-emerald-950/80 hover:bg-emerald-900 text-emerald-400 border border-emerald-800/80 text-[10px] font-bold inline-flex items-center gap-1 transition cursor-pointer hover:scale-105 shadow-sm whitespace-nowrap"
                           title="View Active Students"
                         >
-                          <UserCheck className="w-3 h-3" />
+                          <UserCheck className="w-3 h-3 shrink-0" />
                           <span>Active: {c.stats?.activeStudents || 0}</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => openCourseStudentsModal(c, "COMPLETED")}
-                          className="px-2 py-0.5 rounded-md bg-purple-950/80 hover:bg-purple-900 text-purple-300 border border-purple-800/80 text-[10px] font-bold inline-flex items-center gap-1 transition cursor-pointer hover:scale-105 shadow-sm"
+                          className="px-2 py-0.5 rounded-md bg-purple-950/80 hover:bg-purple-900 text-purple-300 border border-purple-800/80 text-[10px] font-bold inline-flex items-center gap-1 transition cursor-pointer hover:scale-105 shadow-sm whitespace-nowrap"
                           title="View Completed Students"
                         >
-                          <GraduationCap className="w-3 h-3" />
+                          <GraduationCap className="w-3 h-3 shrink-0" />
                           <span>Done: {c.stats?.completedStudents || 0}</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => openCourseStudentsModal(c, "DROPPED")}
-                          className="px-2 py-0.5 rounded-md bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800/80 text-[10px] font-bold inline-flex items-center gap-1 transition cursor-pointer hover:scale-105 shadow-sm"
+                          className="px-2 py-0.5 rounded-md bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800/80 text-[10px] font-bold inline-flex items-center gap-1 transition cursor-pointer hover:scale-105 shadow-sm whitespace-nowrap"
                           title="View Dropped Students"
                         >
                           <span>Dropped: {c.stats?.droppedStudents || 0}</span>
@@ -934,28 +956,28 @@ export const Courses = () => {
                         <button
                           type="button"
                           onClick={() => openCourseStudentsModal(c, "CANCELLED")}
-                          className="px-2 py-0.5 rounded-md bg-slate-950 hover:bg-slate-900 text-slate-400 border border-slate-800 text-[10px] font-bold inline-flex items-center gap-1 transition cursor-pointer hover:scale-105 shadow-sm"
+                          className="px-2 py-0.5 rounded-md bg-slate-950 hover:bg-slate-900 text-slate-400 border border-slate-800 text-[10px] font-bold inline-flex items-center gap-1 transition cursor-pointer hover:scale-105 shadow-sm whitespace-nowrap"
                           title="View Cancelled Students"
                         >
                           <span>Cancel: {c.stats?.cancelledStudents || 0}</span>
                         </button>
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 text-center">
+                    <td className="py-3.5 px-4 text-center whitespace-nowrap">
                       <button
                         type="button"
                         onClick={() => openCourseStudentsModal(c, "ALL")}
-                        className="px-3 py-1 bg-slate-950 hover:bg-cyan-950/80 text-white hover:text-cyan-300 border border-slate-800 hover:border-cyan-800 rounded-xl font-extrabold text-xs transition cursor-pointer inline-flex items-center space-x-1 shadow"
+                        className="px-3 py-1 bg-slate-950 hover:bg-cyan-950/80 text-white hover:text-cyan-300 border border-slate-800 hover:border-cyan-800 rounded-xl font-extrabold text-xs transition cursor-pointer inline-flex items-center space-x-1 shadow whitespace-nowrap"
                         title="Click to view all enrolled students"
                       >
-                        <Users className="w-3.5 h-3.5 text-cyan-400" />
+                        <Users className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
                         <span>{c.stats?.totalStudents || 0}</span>
                       </button>
                     </td>
-                    <td className="py-3.5 px-4 text-right font-extrabold text-emerald-400 text-sm">
+                    <td className="py-3.5 px-4 text-right font-extrabold text-emerald-400 text-sm whitespace-nowrap">
                       ₹{Number(c.fees).toLocaleString("en-IN")}
                     </td>
-                    <td className="py-3.5 px-4 text-center">
+                    <td className="py-3.5 px-4 text-center whitespace-nowrap">
                       <span
                         className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${
                           c.isActive
@@ -966,23 +988,23 @@ export const Courses = () => {
                         {c.isActive ? "ACTIVE" : "INACTIVE"}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-center space-x-1.5">
+                    <td className="py-3.5 px-4 text-center space-x-1.5 whitespace-nowrap">
                       <button
                         onClick={() => handleOpenEditModal(c)}
-                        className="px-2.5 py-1 bg-amber-600/20 hover:bg-amber-600 text-amber-300 hover:text-white rounded-lg font-semibold text-[11px] inline-flex items-center space-x-1 transition"
+                        className="px-2.5 py-1 bg-amber-600/20 hover:bg-amber-600 text-amber-300 hover:text-white rounded-lg font-semibold text-[11px] inline-flex items-center space-x-1 transition whitespace-nowrap"
                         title="Edit Course Details"
                       >
-                        <Edit className="w-3.5 h-3.5" />
+                        <Edit className="w-3.5 h-3.5 shrink-0" />
                         <span>Edit</span>
                       </button>
 
                       {isSuperAdmin && (
                         <button
                           onClick={() => handleDeleteCourse(c)}
-                          className="px-2.5 py-1 bg-rose-950/80 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-800 rounded-lg font-semibold text-[11px] inline-flex items-center space-x-1 transition"
+                          className="px-2.5 py-1 bg-rose-950/80 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-800 rounded-lg font-semibold text-[11px] inline-flex items-center space-x-1 transition whitespace-nowrap"
                           title="Delete Course"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-3.5 h-3.5 shrink-0" />
                           <span>Delete</span>
                         </button>
                       )}
