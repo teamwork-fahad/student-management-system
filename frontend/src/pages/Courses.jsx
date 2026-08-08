@@ -55,6 +55,10 @@ export const Courses = () => {
   // Default View Mode: 'table' (List View by default)
   const [viewMode, setViewMode] = useState("table");
 
+  // Pagination State (10 courses per page)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
   // Create Course Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [departmentId, setDepartmentId] = useState("");
@@ -100,6 +104,10 @@ export const Courses = () => {
     fetchCourses();
     fetchDepartments();
   }, [sortBy]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, departmentFilter, programFilter, courseFilter, sortBy]);
 
   const fetchDepartments = async () => {
     try {
@@ -531,6 +539,13 @@ export const Courses = () => {
       return (a.name || "").localeCompare(b.name || "");
     });
 
+  // Pagination calculation
+  const totalPages = Math.ceil(filteredCourses.length / itemsPerPage) || 1;
+  const validCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+  const indexOfLastItem = validCurrentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const paginatedCourses = filteredCourses.slice(indexOfFirstItem, indexOfLastItem);
+
   const filteredModalStudents = courseStudents.filter((s) => {
     // Filter by tab status (ACTIVE | COMPLETED | DROPPED | CANCELLED | ALL)
     const matchesStatus =
@@ -895,7 +910,7 @@ export const Courses = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 text-slate-300">
-                {filteredCourses.map((c) => (
+                {paginatedCourses.map((c) => (
                   <tr
                     key={c.id}
                     className={`hover:bg-slate-800/30 transition ${
@@ -1018,7 +1033,7 @@ export const Courses = () => {
       ) : (
         /* GRID CARDS VIEW */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCourses.map((c) => (
+          {paginatedCourses.map((c) => (
             <div
               key={c.id}
               className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4 hover:border-cyan-500/50 transition-colors flex flex-col justify-between"
@@ -1117,6 +1132,78 @@ export const Courses = () => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* PAGINATION CONTROLS BAR (10 COURSES PER PAGE) */}
+      {filteredCourses.length > 0 && (
+        <div className="p-4 bg-slate-900/80 border border-slate-800 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400 font-medium shadow-xl">
+          <div className="flex flex-wrap items-center gap-2">
+            <span>Show</span>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="bg-slate-950 border border-slate-800 text-white rounded-xl px-2.5 py-1 font-bold focus:outline-none focus:border-cyan-500 cursor-pointer"
+            >
+              <option value={10}>10 courses per page</option>
+              <option value={20}>20 courses per page</option>
+              <option value={50}>50 courses per page</option>
+              <option value={100}>100 courses per page</option>
+            </select>
+            <span>
+              Showing <strong className="text-white">{indexOfFirstItem + 1}</strong> to{" "}
+              <strong className="text-white">{Math.min(indexOfLastItem, filteredCourses.length)}</strong> of{" "}
+              <strong className="text-cyan-400">{filteredCourses.length}</strong> courses
+            </span>
+          </div>
+
+          <div className="flex items-center space-x-1.5">
+            <button
+              type="button"
+              disabled={validCurrentPage === 1}
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              className="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 hover:text-white hover:border-cyan-500 font-bold transition disabled:opacity-40 disabled:hover:border-slate-800 disabled:hover:text-slate-300 cursor-pointer"
+            >
+              ◀ Prev
+            </button>
+
+            <div className="flex items-center space-x-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter((p) => p === 1 || p === totalPages || Math.abs(p - validCurrentPage) <= 1)
+                .map((p, idx, arr) => {
+                  const prevP = arr[idx - 1];
+                  const showEllipsis = prevP && p - prevP > 1;
+                  return (
+                    <React.Fragment key={p}>
+                      {showEllipsis && <span className="px-1 text-slate-600 font-bold">...</span>}
+                      <button
+                        type="button"
+                        onClick={() => setCurrentPage(p)}
+                        className={`px-3 py-1.5 rounded-xl font-extrabold text-xs transition cursor-pointer ${
+                          p === validCurrentPage
+                            ? "bg-cyan-600 text-white shadow"
+                            : "bg-slate-950 border border-slate-800 text-slate-400 hover:text-white"
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    </React.Fragment>
+                  );
+                })}
+            </div>
+
+            <button
+              type="button"
+              disabled={validCurrentPage >= totalPages}
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              className="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 hover:text-white hover:border-cyan-500 font-bold transition disabled:opacity-40 disabled:hover:border-slate-800 disabled:hover:text-slate-300 cursor-pointer"
+            >
+              Next ▶
+            </button>
+          </div>
         </div>
       )}
 
