@@ -24,6 +24,8 @@ export const Attendance = () => {
   const [courses, setCourses] = useState([]);
   const [selectedDeptId, setSelectedDeptId] = useState("");
   const [selectedCourseId, setSelectedCourseId] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState("table"); // 'table' | 'cards'
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -292,45 +294,157 @@ export const Attendance = () => {
         </div>
       )}
 
-      {/* Mark All Quick Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
-        <div className="flex items-center space-x-2">
-          <span className="text-xs font-bold text-slate-300">Quick 1-Click Batch Actions:</span>
-          <span className="text-[10px] px-2 py-0.5 bg-slate-800 text-slate-400 rounded-full font-bold">
+      {/* Mark All Quick Actions & Search Bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
+        <div className="flex items-center space-x-2 flex-1 w-full md:w-auto">
+          <div className="relative flex-1 max-w-md">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search student by name, ID or course..."
+              className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-semibold text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+            />
+          </div>
+
+          <span className="text-[10px] px-2.5 py-1 bg-slate-800 text-cyan-300 rounded-xl font-bold shrink-0">
             {markedCount}/{students.length} Marked
           </span>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => handleMarkAll("PRESENT")}
-            className="px-3 py-1.5 bg-emerald-950 text-emerald-300 border border-emerald-800 hover:bg-emerald-900 rounded-lg text-xs font-bold transition"
-          >
-            ✓ Mark All Present
-          </button>
-          <button
-            onClick={() => handleMarkAll("ABSENT")}
-            className="px-3 py-1.5 bg-rose-950 text-rose-300 border border-rose-800 hover:bg-rose-900 rounded-lg text-xs font-bold transition"
-          >
-            ✗ Mark All Absent
-          </button>
-          <button
-            onClick={() => handleMarkAll("UNMARKED")}
-            className="px-2.5 py-1.5 bg-slate-950 text-slate-400 border border-slate-800 hover:text-white rounded-lg text-xs font-semibold transition"
-            title="Reset to Unmarked"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-          </button>
+        <div className="flex items-center space-x-3 w-full md:w-auto justify-between md:justify-end">
+          {/* View Mode Toggle Switch */}
+          <div className="flex items-center space-x-1 p-1 bg-slate-950 border border-slate-800 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setViewMode("table")}
+              className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
+                viewMode === "table" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
+              }`}
+              title="Table List View"
+            >
+              <span>List View</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("cards")}
+              className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
+                viewMode === "cards" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
+              }`}
+              title="Mobile Touch Cards View"
+            >
+              <span>📱 Mobile Cards</span>
+            </button>
+          </div>
+
+          <div className="flex items-center space-x-1.5">
+            <button
+              onClick={() => handleMarkAll("PRESENT")}
+              className="px-3 py-1.5 bg-emerald-950 text-emerald-300 border border-emerald-800 hover:bg-emerald-900 rounded-xl text-xs font-bold transition shrink-0"
+            >
+              ✓ All Present
+            </button>
+            <button
+              onClick={() => handleMarkAll("ABSENT")}
+              className="px-3 py-1.5 bg-rose-950 text-rose-300 border border-rose-800 hover:bg-rose-900 rounded-xl text-xs font-bold transition shrink-0"
+            >
+              ✗ All Absent
+            </button>
+            <button
+              onClick={() => handleMarkAll("UNMARKED")}
+              className="p-2 bg-slate-950 text-slate-400 border border-slate-800 hover:text-white rounded-xl text-xs font-semibold transition shrink-0"
+              title="Reset to Unmarked"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Attendance Sheet Table */}
-      <div className="bg-slate-900/60 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
+      {/* Attendance Sheet Section */}
+      <div className="bg-slate-900/60 border border-slate-800 rounded-3xl overflow-hidden shadow-xl p-4 sm:p-6">
         {loading ? (
           <div className="text-center py-16 text-xs text-slate-500">Loading student attendance list...</div>
-        ) : students.length === 0 ? (
-          <div className="text-center py-16 text-xs text-slate-500">No active students found to mark.</div>
+        ) : filteredStudents.length === 0 ? (
+          <div className="text-center py-16 text-xs text-slate-500">No active students found matching search.</div>
+        ) : viewMode === "cards" ? (
+          /* MOBILE TOUCH CARDS VIEW */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredStudents.map((s) => {
+              const currentStatus = attendanceState[s.studentId] || "UNMARKED";
+              const profileUrl = `/dashboard/students/${s.studentId}`;
+
+              return (
+                <div key={s.studentId} className="p-4 bg-slate-950/90 border border-slate-800 rounded-2xl space-y-3 shadow-lg">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs font-bold text-cyan-400">{s.displayId}</span>
+                    {currentStatus === "PRESENT" ? (
+                      <span className="px-2.5 py-0.5 bg-emerald-950 text-emerald-400 border border-emerald-800 rounded-full font-bold text-[10px]">PRESENT</span>
+                    ) : currentStatus === "ABSENT" ? (
+                      <span className="px-2.5 py-0.5 bg-rose-950 text-rose-400 border border-rose-800 rounded-full font-bold text-[10px]">ABSENT</span>
+                    ) : currentStatus === "LATE" ? (
+                      <span className="px-2.5 py-0.5 bg-amber-950 text-amber-400 border border-amber-800 rounded-full font-bold text-[10px]">LATE</span>
+                    ) : (
+                      <span className="px-2.5 py-0.5 bg-slate-950 text-slate-500 border border-slate-800 rounded-full font-bold text-[10px]">UNMARKED</span>
+                    )}
+                  </div>
+
+                  <div>
+                    <a href={profileUrl} target="_blank" rel="noopener noreferrer" className="font-bold text-white hover:text-cyan-400 hover:underline text-sm flex items-center space-x-1">
+                      <span>{s.fullName}</span>
+                      <ExternalLink className="w-3.5 h-3.5 text-slate-400 inline" />
+                    </a>
+                    <p className="text-xs text-slate-400 mt-0.5">{s.courseName}</p>
+                  </div>
+
+                  {/* Mobile 1-Tap Touch Buttons */}
+                  <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800/80">
+                    <button
+                      type="button"
+                      onClick={() => handleStatusChange(s.studentId, "PRESENT")}
+                      className={`py-2.5 rounded-xl font-bold text-xs flex items-center justify-center space-x-1 transition active:scale-95 ${
+                        currentStatus === "PRESENT"
+                          ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/40 border border-emerald-400"
+                          : "bg-slate-900 text-emerald-400 hover:bg-emerald-950 border border-slate-800"
+                      }`}
+                    >
+                      <CheckCircle2 className="w-4 h-4 shrink-0" />
+                      <span>Present</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleStatusChange(s.studentId, "ABSENT")}
+                      className={`py-2.5 rounded-xl font-bold text-xs flex items-center justify-center space-x-1 transition active:scale-95 ${
+                        currentStatus === "ABSENT"
+                          ? "bg-rose-600 text-white shadow-lg shadow-rose-600/40 border border-rose-400"
+                          : "bg-slate-900 text-rose-400 hover:bg-rose-950 border border-slate-800"
+                      }`}
+                    >
+                      <XCircle className="w-4 h-4 shrink-0" />
+                      <span>Absent</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleStatusChange(s.studentId, "LATE")}
+                      className={`py-2.5 rounded-xl font-bold text-xs flex items-center justify-center space-x-1 transition active:scale-95 ${
+                        currentStatus === "LATE"
+                          ? "bg-amber-600 text-white shadow-lg shadow-amber-600/40 border border-amber-400"
+                          : "bg-slate-900 text-amber-400 hover:bg-amber-950 border border-slate-800"
+                      }`}
+                    >
+                      <Clock className="w-4 h-4 shrink-0" />
+                      <span>Late</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         ) : (
+          /* TABLE LIST VIEW */
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
@@ -343,7 +457,7 @@ export const Attendance = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 text-slate-300">
-                {students.map((s) => {
+                {filteredStudents.map((s) => {
                   const currentStatus = attendanceState[s.studentId] || "UNMARKED";
                   const profileUrl = `/dashboard/students/${s.studentId}`;
 

@@ -5,6 +5,7 @@ import {
   markAttendanceController,
   getAttendanceByDateController,
   getAttendanceStatsController,
+  getStudentAttendanceHistoryController,
 } from "./attendance.controller.js";
 
 const router = Router();
@@ -14,6 +15,12 @@ router.get(
   authenticate,
   authorize("SUPER_ADMIN", "FACULTY"),
   getAttendanceStatsController
+);
+
+router.get(
+  "/student/:studentId",
+  authenticate,
+  getStudentAttendanceHistoryController
 );
 
 router.get(
