@@ -59,8 +59,22 @@ export default function AttendanceActiveScreen() {
   const todayStr = new Date().toISOString().split('T')[0];
   const [attendanceDate, setAttendanceDate] = useState<string>(todayStr);
   const [attendanceMap, setAttendanceMap] = useState<Record<string, 'PRESENT' | 'ABSENT' | 'LATE' | 'UNMARKED'>>({});
-  const [savingAttendance, setSavingAttendance] = useState(false);
-  const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
+  // Profile Modal State
+  const [profileModalStudent, setProfileModalStudent] = useState<Student | null>(null);
+
+  const handleCallStudent = (mobile: string) => {
+    if (!mobile) return;
+    Linking.openURL(`tel:${mobile}`).catch(() => Alert.alert('Error', 'Unable to initiate call.'));
+  };
+
+  const handleWhatsAppChat = (mobile: string, name: string) => {
+    if (!mobile) return;
+    const cleanNum = mobile.replace(/\D/g, '');
+    const numWithCode = cleanNum.length === 10 ? `91${cleanNum}` : cleanNum;
+    const text = `Hello ${name}, Greetings from SMS!`;
+    const url = `https://wa.me/${numWithCode}?text=${encodeURIComponent(text)}`;
+    Linking.openURL(url).catch(() => Alert.alert('Error', 'Unable to open WhatsApp.'));
+  };
 
   // Date Navigation Handlers
   const changeDateByDays = (days: number) => {
@@ -367,7 +381,12 @@ export default function AttendanceActiveScreen() {
           </View>
         </View>
 
-        <Text style={styles.fullName}>{item.fullName}</Text>
+        <TouchableOpacity
+          onPress={() => setProfileModalStudent(item)}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.fullName}>{item.fullName}</Text>
+        </TouchableOpacity>
 
         <View style={styles.infoRow}>
           <Text style={styles.label}>Mobile:</Text>
@@ -445,20 +464,27 @@ export default function AttendanceActiveScreen() {
         <View style={styles.mobileActionRow}>
           <TouchableOpacity
             style={styles.collectFeeBtn}
+            onPress={() => setProfileModalStudent(item)}
+          >
+            <Text style={styles.collectFeeBtnText}>📱 View Profile</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.collectFeeBtn}
             onPress={() => {
               setFeeModalStudent(item);
               setFeeAmount('5000');
               setFeeError(null);
             }}
           >
-            <Text style={styles.collectFeeBtnText}>💰 Collect Fee</Text>
+            <Text style={styles.collectFeeBtnText}>💰 Fee</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.whatsappReminderBtn}
             onPress={() => handleSendFeeReminder(item.id)}
           >
-            <Text style={styles.whatsappReminderBtnText}>💬 Fee Reminder</Text>
+            <Text style={styles.whatsappReminderBtnText}>💬 Reminder</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -821,6 +847,114 @@ export default function AttendanceActiveScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* STUDENT PROFILE DETAILS MODAL */}
+      {profileModalStudent && (
+        <Modal
+          visible={!!profileModalStudent}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setProfileModalStudent(null)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.profileModalCard}>
+              <View style={styles.profileHeader}>
+                <View style={styles.avatarCircle}>
+                  <Text style={styles.avatarText}>
+                    {profileModalStudent.fullName.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.profileName}>{profileModalStudent.fullName}</Text>
+                  <Text style={styles.profileIdText}>{profileModalStudent.studentId}</Text>
+                </View>
+                <TouchableOpacity onPress={() => setProfileModalStudent(null)}>
+                  <Text style={styles.closeX}>✕</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.profileDetailSection}>
+                <View style={styles.detailItemRow}>
+                  <Text style={styles.detailLabel}>Mobile:</Text>
+                  <Text style={styles.detailValue}>{profileModalStudent.mobile}</Text>
+                </View>
+
+                {profileModalStudent.email ? (
+                  <View style={styles.detailItemRow}>
+                    <Text style={styles.detailLabel}>Email:</Text>
+                    <Text style={styles.detailValue}>{profileModalStudent.email}</Text>
+                  </View>
+                ) : null}
+
+                <View style={styles.detailItemRow}>
+                  <Text style={styles.detailLabel}>Course:</Text>
+                  <Text style={styles.detailCourseValue}>
+                    {profileModalStudent.courseInfo?.primaryCourse || profileModalStudent.admission?.courseNameSnapshot || 'General Course'}
+                  </Text>
+                </View>
+
+                <View style={styles.detailItemRow}>
+                  <Text style={styles.detailLabel}>Status:</Text>
+                  <Text style={styles.detailValue}>
+                    ● {profileModalStudent.status}
+                  </Text>
+                </View>
+
+                <View style={styles.detailItemRow}>
+                  <Text style={styles.detailLabel}>Pending Dues:</Text>
+                  <Text style={styles.detailDuesValue}>
+                    ₹{Number(profileModalStudent.admission?.pendingAmount || 0).toLocaleString('en-IN')}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Quick Communication & Action Buttons */}
+              <View style={styles.profileActionGrid}>
+                <TouchableOpacity
+                  style={styles.callActionBtn}
+                  onPress={() => handleCallStudent(profileModalStudent.mobile)}
+                >
+                  <Text style={styles.callActionBtnText}>📞 Direct Call</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.whatsappActionBtn}
+                  onPress={() => handleWhatsAppChat(profileModalStudent.mobile, profileModalStudent.fullName)}
+                >
+                  <Text style={styles.whatsappActionBtnText}>💬 Chat WhatsApp</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.profileActionGrid}>
+                <TouchableOpacity
+                  style={styles.collectFeeActionBtn}
+                  onPress={() => {
+                    const st = profileModalStudent;
+                    setProfileModalStudent(null);
+                    setFeeModalStudent(st);
+                  }}
+                >
+                  <Text style={styles.collectFeeActionBtnText}>💳 Collect Fees</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.reminderActionBtn}
+                  onPress={() => handleSendFeeReminder(profileModalStudent.id)}
+                >
+                  <Text style={styles.reminderActionBtnText}>📢 Fee Reminder</Text>
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity
+                style={styles.profileCloseBtn}
+                onPress={() => setProfileModalStudent(null)}
+              >
+                <Text style={styles.profileCloseText}>Close Profile</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      )}
     </SafeAreaView>
   );
 }
@@ -1447,6 +1581,160 @@ const styles = StyleSheet.create({
   unmarkTextActive: {
     color: '#38bdf8',
     fontSize: 11,
+    fontWeight: 'bold',
+  },
+
+  // Profile Modal Styles
+  profileModalCard: {
+    backgroundColor: '#0f172a',
+    borderColor: '#1e293b',
+    borderWidth: 1,
+    borderRadius: 20,
+    padding: 18,
+    width: '100%',
+    maxWidth: 400,
+  },
+  profileHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1e293b',
+  },
+  avatarCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#0284c7',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarText: {
+    color: '#ffffff',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  profileName: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  profileIdText: {
+    color: '#38bdf8',
+    fontSize: 11,
+    fontWeight: 'bold',
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+  },
+  closeX: {
+    color: '#94a3b8',
+    fontSize: 18,
+    fontWeight: 'bold',
+    padding: 4,
+  },
+  profileDetailSection: {
+    backgroundColor: '#1e293b',
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 14,
+    gap: 8,
+  },
+  detailItemRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  detailLabel: {
+    color: '#64748b',
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  detailValue: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  detailCourseValue: {
+    color: '#38bdf8',
+    fontSize: 12,
+    fontWeight: 'bold',
+    flex: 1,
+    textAlign: 'right',
+  },
+  detailDuesValue: {
+    color: '#f87171',
+    fontSize: 12,
+    fontWeight: 'bold',
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+  },
+  profileActionGrid: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8,
+  },
+  callActionBtn: {
+    flex: 1,
+    backgroundColor: '#0284c7',
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  callActionBtnText: {
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  whatsappActionBtn: {
+    flex: 1,
+    backgroundColor: '#065f46',
+    borderColor: '#059669',
+    borderWidth: 1,
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  whatsappActionBtnText: {
+    color: '#a7f3d0',
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  collectFeeActionBtn: {
+    flex: 1,
+    backgroundColor: '#059669',
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  collectFeeActionBtnText: {
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  reminderActionBtn: {
+    flex: 1,
+    backgroundColor: '#1e293b',
+    borderColor: '#334155',
+    borderWidth: 1,
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  reminderActionBtnText: {
+    color: '#fbbf24',
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  profileCloseBtn: {
+    marginTop: 6,
+    paddingVertical: 10,
+    backgroundColor: '#1e293b',
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  profileCloseText: {
+    color: '#94a3b8',
+    fontSize: 12,
     fontWeight: 'bold',
   },
 });
