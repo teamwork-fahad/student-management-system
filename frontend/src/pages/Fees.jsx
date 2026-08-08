@@ -676,25 +676,24 @@ export const Fees = () => {
         )}
       </div>
 
-      {/* TWO COLUMN GRID: COLLECT FEE FORM & HISTORY */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* COLLECT FEE FORM */}
-        <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 space-y-4">
-          <div className="flex items-center space-x-2 pb-3 border-b border-slate-800">
-            <PlusCircle className="w-5 h-5 text-cyan-400" />
-            <h3 className="text-base font-bold text-white">Collect Student Fee</h3>
+      {/* COLLECT STUDENT FEE SECTION (MIDDLE SECTION ON DESKTOP & MOBILE) */}
+      <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-4 sm:p-6 space-y-4 shadow-xl">
+        <div className="flex items-center space-x-2 pb-3 border-b border-slate-800">
+          <PlusCircle className="w-5 h-5 text-cyan-400 shrink-0" />
+          <h3 className="text-base font-bold text-white">Collect Student Fee</h3>
+        </div>
+
+        {error && (
+          <div className="p-3 bg-red-950/80 border border-red-800 text-red-300 rounded-xl text-xs flex items-center space-x-2">
+            <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+            <span>{error}</span>
           </div>
+        )}
 
-          {error && (
-            <div className="p-3 bg-red-950/80 border border-red-800 text-red-300 rounded-xl text-xs flex items-center space-x-2">
-              <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
-
-          <form onSubmit={handleCollectFee} className="space-y-3.5 text-xs">
-            <div>
+        <form onSubmit={handleCollectFee} className="space-y-4 text-xs">
+          {/* Top Row: Student Selection & Dynamic Student Info Summary Badge */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+            <div className="lg:col-span-2">
               <label className="block font-semibold text-slate-300 mb-1">Select Student *</label>
               <SearchableSelect
                 options={students.map((s) => ({
@@ -710,77 +709,83 @@ export const Fees = () => {
               />
             </div>
 
-            {selectedStudentObj && (
-              <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1 text-[11px]">
+            {selectedStudentObj ? (
+              <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1.5 text-[11px] self-end">
                 <div className="flex justify-between text-slate-400">
-                  <span>Course:</span>
+                  <span>Enrolled Course:</span>
                   <span className="font-semibold text-slate-200">
                     {selectedStudentObj.admission?.courseNameSnapshot || selectedStudentObj.admission?.course?.name}
                   </span>
                 </div>
                 <div className="flex justify-between text-amber-400 font-bold">
-                  <span>Current Pending Fees:</span>
+                  <span>Current Pending Dues:</span>
                   <span>₹{Number(selectedStudentObj.admission?.pendingAmount || 0).toLocaleString("en-IN")}</span>
                 </div>
               </div>
+            ) : (
+              <div className="hidden lg:block p-3 bg-slate-950/40 rounded-xl border border-slate-800/60 text-slate-500 text-[11px] italic text-center">
+                Select a student above to view pending fee balance
+              </div>
             )}
+          </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block font-semibold text-slate-300 mb-1">Payment Amount (₹) *</label>
-                <input
-                  type="number"
-                  required
-                  min={1}
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="Enter amount paid"
-                  className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500 font-bold text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-300 mb-1">Payment Date *</label>
-                <input
-                  type="date"
-                  required
-                  value={paymentDate}
-                  onChange={(e) => setPaymentDate(e.target.value)}
-                  onClick={(e) => e.target.showPicker?.()}
-                  className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500 cursor-pointer [color-scheme:dark]"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block font-semibold text-slate-300 mb-1">Payment Mode</label>
-                <select
-                  value={paymentMode}
-                  onChange={(e) => setPaymentMode(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500"
-                >
-                  <option value="CASH">CASH</option>
-                  <option value="UPI">UPI / GPAY</option>
-                  <option value="CARD">CARD</option>
-                  <option value="BANK_TRANSFER">BANK TRANSFER</option>
-                  <option value="CHEQUE">CHEQUE</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-300 mb-1">Txn Ref / Receipt No</label>
-                <input
-                  type="text"
-                  value={transactionReference}
-                  onChange={(e) => setTransactionReference(e.target.value)}
-                  placeholder="Optional reference"
-                  className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500"
-                />
-              </div>
+          {/* Form Controls Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="block font-semibold text-slate-300 mb-1">Payment Amount (₹) *</label>
+              <input
+                type="number"
+                required
+                min={1}
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="Enter amount paid"
+                className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500 font-bold text-sm"
+              />
             </div>
 
             <div>
+              <label className="block font-semibold text-slate-300 mb-1">Payment Date *</label>
+              <input
+                type="date"
+                required
+                value={paymentDate}
+                onChange={(e) => setPaymentDate(e.target.value)}
+                onClick={(e) => e.target.showPicker?.()}
+                className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500 cursor-pointer [color-scheme:dark]"
+              />
+            </div>
+
+            <div>
+              <label className="block font-semibold text-slate-300 mb-1">Payment Mode</label>
+              <select
+                value={paymentMode}
+                onChange={(e) => setPaymentMode(e.target.value)}
+                className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500"
+              >
+                <option value="CASH">CASH</option>
+                <option value="UPI">UPI / GPAY</option>
+                <option value="CARD">CARD</option>
+                <option value="BANK_TRANSFER">BANK TRANSFER</option>
+                <option value="CHEQUE">CHEQUE</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block font-semibold text-slate-300 mb-1">Txn Ref / Receipt No</label>
+              <input
+                type="text"
+                value={transactionReference}
+                onChange={(e) => setTransactionReference(e.target.value)}
+                placeholder="Optional reference"
+                className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500"
+              />
+            </div>
+          </div>
+
+          {/* Bottom Action Row: Remarks & Submit Button */}
+          <div className="flex flex-col sm:flex-row items-end gap-4">
+            <div className="flex-1 w-full">
               <label className="block font-semibold text-slate-300 mb-1">Remarks / Installment Note</label>
               <input
                 type="text"
@@ -794,16 +799,17 @@ export const Fees = () => {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-3 px-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg transition flex items-center justify-center space-x-2 disabled:opacity-50 whitespace-nowrap"
+              className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg transition flex items-center justify-center space-x-2 disabled:opacity-50 whitespace-nowrap shrink-0"
             >
               <CreditCard className="w-4 h-4 shrink-0" />
               <span>{submitting ? "Processing..." : "Record Payment & Print Receipt"}</span>
             </button>
-          </form>
-        </div>
+          </div>
+        </form>
+      </div>
 
-        {/* FEE HISTORY SECTION WITH GRID / LIST VIEW TOGGLE */}
-        <div className="lg:col-span-2 bg-slate-900/60 border border-slate-800 rounded-3xl p-4 sm:p-6 space-y-4">
+      {/* FEE HISTORY SECTION WITH GRID / LIST VIEW TOGGLE */}
+      <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-4 sm:p-6 space-y-4 shadow-xl">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-800 gap-2">
             <div className="flex items-center space-x-2">
               <Receipt className="w-5 h-5 text-emerald-400 shrink-0" />
@@ -1005,8 +1011,6 @@ export const Fees = () => {
             </div>
           )}
         </div>
-
-      </div>
 
       {/* SELECTED YEAR DETAILED BREAKDOWN MODAL */}
       {selectedYearData && (
