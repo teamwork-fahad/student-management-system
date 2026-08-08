@@ -442,8 +442,8 @@ export const Fees = () => {
               <p className="text-xs text-slate-500 italic">No yearly collection data available yet.</p>
             ) : yearlyViewMode === "table" ? (
               /* YEARLY TABLE LIST VIEW */
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+              <div className="overflow-x-auto border border-slate-800/80 rounded-xl">
+                <table className="w-full text-left text-xs min-w-[700px]">
                   <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
                     <tr>
                       <th className="py-3.5 px-4 whitespace-nowrap">Financial Year</th>
@@ -591,8 +591,8 @@ export const Fees = () => {
               <p className="text-xs text-slate-500 italic">No monthly collection records found.</p>
             ) : monthlyViewMode === "table" ? (
               /* MONTHLY TABLE LIST VIEW (DEFAULT) */
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+              <div className="overflow-x-auto border border-slate-800/80 rounded-xl">
+                <table className="w-full text-left text-xs min-w-[700px]">
                   <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
                     <tr>
                       <th className="py-3.5 px-4 whitespace-nowrap">Month & Year</th>
@@ -794,20 +794,20 @@ export const Fees = () => {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center space-x-2 disabled:opacity-50"
+              className="w-full py-3 px-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg transition flex items-center justify-center space-x-2 disabled:opacity-50 whitespace-nowrap"
             >
-              <CreditCard className="w-4 h-4" />
+              <CreditCard className="w-4 h-4 shrink-0" />
               <span>{submitting ? "Processing..." : "Record Payment & Print Receipt"}</span>
             </button>
           </form>
         </div>
 
         {/* FEE HISTORY SECTION WITH GRID / LIST VIEW TOGGLE */}
-        <div className="lg:col-span-2 bg-slate-900/60 border border-slate-800 rounded-3xl p-6 space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div className="lg:col-span-2 bg-slate-900/60 border border-slate-800 rounded-3xl p-4 sm:p-6 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-800 gap-2">
             <div className="flex items-center space-x-2">
-              <Receipt className="w-5 h-5 text-emerald-400" />
-              <h3 className="text-base font-bold text-white">Fee Payment Receipts History</h3>
+              <Receipt className="w-5 h-5 text-emerald-400 shrink-0" />
+              <h3 className="text-sm sm:text-base font-bold text-white whitespace-nowrap">Fee Payment Receipts History</h3>
             </div>
 
             {/* Grid vs List View Toggle Switch */}
@@ -843,8 +843,8 @@ export const Fees = () => {
             <div className="text-center py-16 text-xs text-slate-500">No payment receipts recorded yet.</div>
           ) : viewMode === "table" ? (
             /* LIST / TABLE VIEW */
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+            <div className="overflow-x-auto border border-slate-800/80 rounded-xl">
+              <table className="w-full text-left text-xs min-w-[750px]">
                 <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
                   <tr>
                     <th className="py-3 px-4 whitespace-nowrap">Receipt / Ref</th>
@@ -858,10 +858,10 @@ export const Fees = () => {
                 <tbody className="divide-y divide-slate-800/60 text-slate-300">
                   {feeHistory.map((p) => (
                     <tr key={p.id} className="hover:bg-slate-800/30 transition">
-                      <td className="py-3 px-4 font-mono font-bold text-cyan-400">
+                      <td className="py-3 px-4 font-mono font-bold text-cyan-400 whitespace-nowrap">
                         {p.transactionReference || `REC-${p.id.slice(-6).toUpperCase()}`}
                       </td>
-                      <td className="py-3 px-4 font-bold text-white">
+                      <td className="py-3 px-4 font-bold text-white whitespace-nowrap">
                         {p.admission?.studentId || p.admission?.student?.id ? (
                           <a
                             href={`/dashboard/students/${p.admission?.studentId || p.admission?.student?.id}`}
@@ -871,24 +871,24 @@ export const Fees = () => {
                             title="Open Student Profile in new tab"
                           >
                             <span>{p.admission?.student?.fullName || "Student"}</span>
-                            <ExternalLink className="w-3 h-3 text-cyan-400/80 inline" />
+                            <ExternalLink className="w-3 h-3 text-cyan-400/80 inline shrink-0" />
                           </a>
                         ) : (
                           p.admission?.student?.fullName || "Student"
                         )}
                       </td>
-                      <td className="py-3 px-4 text-slate-400 font-mono">
+                      <td className="py-3 px-4 text-slate-400 font-mono whitespace-nowrap">
                         {formatDate(p.paymentDate || p.createdAt)}
                       </td>
-                      <td className="py-3 px-4">
-                        <span className="px-2 py-0.5 bg-blue-950 text-blue-300 rounded font-bold uppercase text-[10px]">
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        <span className="px-2 py-0.5 bg-blue-950 text-blue-300 rounded font-bold uppercase text-[10px] whitespace-nowrap">
                           {p.paymentMode || "CASH"}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-right font-extrabold text-emerald-400 text-sm">
+                      <td className="py-3 px-4 text-right font-extrabold text-emerald-400 text-sm whitespace-nowrap">
                         ₹{Number(p.amount).toLocaleString("en-IN")}
                       </td>
-                      <td className="py-3 px-4 text-center">
+                      <td className="py-3 px-4 text-center whitespace-nowrap">
                         <div className="flex items-center justify-center space-x-1.5">
                           <button
                             onClick={() => setSelectedReceiptPayment(p)}
