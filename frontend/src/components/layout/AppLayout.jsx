@@ -17,6 +17,7 @@ import {
   BookOpen,
   CalendarCheck,
   Wallet,
+  BarChart3,
 } from "lucide-react";
 
 
@@ -28,6 +29,7 @@ export const AppLayout = () => {
 
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
     { name: "Inquiries & Leads", href: "/dashboard/inquiries", icon: MessageSquare },
     { name: "Admissions", href: "/dashboard/admissions", icon: UserPlus },
     { name: "Students", href: "/dashboard/students", icon: Users },

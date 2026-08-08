@@ -5,6 +5,7 @@ import { AppLayout } from "./components/layout/AppLayout";
 import { LandingPage } from "./pages/LandingPage";
 import { StudentDashboard } from "./pages/StudentDashboard";
 import { Dashboard } from "./pages/Dashboard";
+import { AnalyticsDashboard } from "./pages/AnalyticsDashboard";
 import { Inquiries } from "./pages/Inquiries";
 import { Admissions } from "./pages/Admissions";
 import { Students } from "./pages/Students";
@@ -73,6 +74,7 @@ export const App = () => {
             <Route path="attendance" element={<Attendance />} />
             <Route path="fees" element={<Fees />} />
             <Route path="expenses" element={<Expenses />} />
+            <Route path="analytics" element={<AnalyticsDashboard />} />
           </Route>
 
           {/* Fallback redirect */}
