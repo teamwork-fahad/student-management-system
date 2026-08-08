@@ -546,27 +546,27 @@ export const StudentProfilePage = () => {
       )}
 
       {/* TOP NAVIGATION & HEADER BAR */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
-        <div className="flex items-center space-x-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-5 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
+        <div className="flex items-center space-x-3 sm:space-x-4">
           <button
             type="button"
             onClick={handleBack}
-            className="p-2.5 bg-slate-950 hover:bg-cyan-950 text-slate-300 hover:text-cyan-400 border border-slate-800 hover:border-cyan-800 rounded-xl transition flex items-center space-x-1.5 text-xs font-bold shadow"
+            className="p-2.5 bg-slate-950 hover:bg-cyan-950 text-slate-300 hover:text-cyan-400 border border-slate-800 hover:border-cyan-800 rounded-xl transition flex items-center space-x-1.5 text-xs font-bold shadow shrink-0"
             title="Go back to previous page"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 shrink-0" />
             <span>Back</span>
           </button>
 
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-950 to-slate-950 text-cyan-400 border border-cyan-800 flex items-center justify-center font-black text-lg shadow-lg">
+          <div className="flex items-center space-x-3 min-w-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-cyan-950 to-slate-950 text-cyan-400 border border-cyan-800 flex items-center justify-center font-black text-base sm:text-lg shadow-lg shrink-0">
               {studentData.fullName[0]?.toUpperCase()}
             </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <h1 className="text-xl font-black text-white tracking-tight">{toTitleCase(studentData.fullName)}</h1>
+            <div className="min-w-0">
+              <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+                <h1 className="text-lg sm:text-xl font-black text-white tracking-tight truncate">{toTitleCase(studentData.fullName)}</h1>
                 <span
-                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${
                     studentData.status === "ACTIVE"
                       ? "bg-emerald-950 text-emerald-400 border-emerald-800"
                       : studentData.status === "REVISION"
@@ -589,40 +589,40 @@ export const StudentProfilePage = () => {
                     : "🔴 DROPPED"}
                 </span>
               </div>
-              <div className="flex items-center space-x-3 mt-1 text-xs text-slate-400 font-mono">
-                <span className="font-bold text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded border border-cyan-800/80">
+              <div className="flex items-center space-x-2 flex-wrap gap-1.5 mt-1 text-xs text-slate-400 font-mono">
+                <span className="font-bold text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded border border-cyan-800/80 whitespace-nowrap">
                   {studentData.studentId}
                 </span>
-                <span>📞 {studentData.mobile}</span>
-                {studentData.email && <span>• ✉️ {studentData.email}</span>}
+                <span className="whitespace-nowrap">📞 {studentData.mobile}</span>
+                {studentData.email && <span className="whitespace-nowrap truncate">• ✉️ {studentData.email}</span>}
               </div>
             </div>
           </div>
         </div>
 
         {/* SUPER ADMIN MANAGEMENT ACTION TOOLBAR */}
-        <div className="flex items-center flex-wrap gap-2 text-xs font-bold">
+        <div className="flex items-center flex-wrap gap-2 text-xs font-bold w-full sm:w-auto">
           <button
             onClick={handleOpenAddCourseModal}
-            className="px-3.5 py-2 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white rounded-xl border border-indigo-700/60 flex items-center space-x-1.5 transition shadow"
+            className="px-3.5 py-2 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white rounded-xl border border-indigo-700/60 flex items-center space-x-1.5 transition shadow whitespace-nowrap shrink-0"
             title="Enroll student in another course"
           >
-            <PlusCircle className="w-4 h-4" />
+            <PlusCircle className="w-4 h-4 shrink-0" />
             <span>+ Add Course</span>
           </button>
 
           <button
             onClick={() => handleOpenFeeModal()}
-            className="px-3.5 py-2 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white rounded-xl border border-emerald-700/60 flex items-center space-x-1.5 transition shadow"
+            className="px-3.5 py-2 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white rounded-xl border border-emerald-700/60 flex items-center space-x-1.5 transition shadow whitespace-nowrap shrink-0"
             title="Collect tuition fee"
           >
-            <CreditCard className="w-4 h-4" />
+            <CreditCard className="w-4 h-4 shrink-0" />
             <span>Collect Fee</span>
           </button>
 
           <button
             onClick={handleSendWhatsAppFeeReminder}
-            className="px-3.5 py-2 bg-emerald-950 hover:bg-emerald-900 text-emerald-400 border border-emerald-800 rounded-xl flex items-center space-x-1.5 transition shadow"
+            className="px-3.5 py-2 bg-emerald-950 hover:bg-emerald-900 text-emerald-400 border border-emerald-800 rounded-xl flex items-center space-x-1.5 transition shadow whitespace-nowrap shrink-0"
             title="Send WhatsApp Fee Reminder to Student"
           >
             <span>💬 Fee Reminder</span>
@@ -630,20 +630,20 @@ export const StudentProfilePage = () => {
 
           <button
             onClick={handleOpenEdit}
-            className="px-3.5 py-2 bg-amber-600/20 hover:bg-amber-600 text-amber-300 hover:text-white rounded-xl border border-amber-700/60 flex items-center space-x-1.5 transition shadow"
+            className="px-3.5 py-2 bg-amber-600/20 hover:bg-amber-600 text-amber-300 hover:text-white rounded-xl border border-amber-700/60 flex items-center space-x-1.5 transition shadow whitespace-nowrap shrink-0"
             title="Edit student profile & status"
           >
-            <Edit className="w-4 h-4" />
+            <Edit className="w-4 h-4 shrink-0" />
             <span>Edit Profile</span>
           </button>
 
           {isSuperAdmin && (
             <button
               onClick={handleDeleteStudent}
-              className="px-3.5 py-2 bg-rose-950/80 hover:bg-rose-600 text-rose-300 hover:text-white rounded-xl border border-rose-800 flex items-center space-x-1.5 transition shadow"
+              className="px-3.5 py-2 bg-rose-950/80 hover:bg-rose-600 text-rose-300 hover:text-white rounded-xl border border-rose-800 flex items-center space-x-1.5 transition shadow whitespace-nowrap shrink-0"
               title="Delete student record (Super Admin)"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-4 h-4 shrink-0" />
               <span>Delete Record</span>
             </button>
           )}
@@ -651,91 +651,91 @@ export const StudentProfilePage = () => {
       </div>
 
       {/* OVERVIEW KPI METRICS SUMMARY CARDS */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
-          <div className="p-3 bg-cyan-950/80 border border-cyan-800/80 rounded-xl text-cyan-400">
+      <div className="grid grid-cols-1 min-[420px]:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
+          <div className="p-2.5 sm:p-3 bg-cyan-950/80 border border-cyan-800/80 rounded-xl text-cyan-400 shrink-0">
             <BookOpen className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Enrolled Courses</p>
-            <h3 className="text-xl font-black text-white">{admissions.length}</h3>
+            <p className="text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Enrolled Courses</p>
+            <h3 className="text-lg sm:text-xl font-black text-white whitespace-nowrap">{admissions.length}</h3>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
-          <div className="p-3 bg-indigo-950/80 border border-indigo-800/80 rounded-xl text-indigo-400">
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
+          <div className="p-2.5 sm:p-3 bg-indigo-950/80 border border-indigo-800/80 rounded-xl text-indigo-400 shrink-0">
             <CreditCard className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Course Fees</p>
-            <h3 className="text-xl font-black text-slate-200">₹{totalFees.toLocaleString("en-IN")}</h3>
+            <p className="text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Total Course Fees</p>
+            <h3 className="text-lg sm:text-xl font-black text-slate-200 whitespace-nowrap">₹{totalFees.toLocaleString("en-IN")}</h3>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
-          <div className="p-3 bg-emerald-950/80 border border-emerald-800/80 rounded-xl text-emerald-400">
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
+          <div className="p-2.5 sm:p-3 bg-emerald-950/80 border border-emerald-800/80 rounded-xl text-emerald-400 shrink-0">
             <Receipt className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Fees Paid</p>
-            <h3 className="text-xl font-black text-emerald-400">₹{totalPaid.toLocaleString("en-IN")}</h3>
+            <p className="text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Fees Paid</p>
+            <h3 className="text-lg sm:text-xl font-black text-emerald-400 whitespace-nowrap">₹{totalPaid.toLocaleString("en-IN")}</h3>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
-          <div className="p-3 bg-amber-950/80 border border-amber-800/80 rounded-xl text-amber-400">
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
+          <div className="p-2.5 sm:p-3 bg-amber-950/80 border border-amber-800/80 rounded-xl text-amber-400 shrink-0">
             <AlertCircle className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Pending Dues</p>
-            <h3 className="text-xl font-black text-amber-400">₹{totalPending.toLocaleString("en-IN")}</h3>
+            <p className="text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Pending Dues</p>
+            <h3 className="text-lg sm:text-xl font-black text-amber-400 whitespace-nowrap">₹{totalPending.toLocaleString("en-IN")}</h3>
           </div>
         </div>
       </div>
 
       {/* TAB NAVIGATION */}
-      <div className="flex items-center space-x-2 border-b border-slate-800 pb-2 text-xs font-semibold">
+      <div className="flex items-center space-x-2 border-b border-slate-800 pb-2 text-xs font-semibold overflow-x-auto">
         <button
           type="button"
           onClick={() => setActiveTab("courses")}
-          className={`px-4 py-2.5 rounded-xl flex items-center space-x-2 transition ${
+          className={`px-4 py-2.5 rounded-xl flex items-center space-x-2 transition whitespace-nowrap shrink-0 ${
             activeTab === "courses" ? "bg-cyan-600 text-white shadow-lg font-bold" : "bg-slate-900 text-slate-400 hover:text-white"
           }`}
         >
-          <BookOpen className="w-4 h-4" />
+          <BookOpen className="w-4 h-4 shrink-0" />
           <span>Enrolled Courses ({admissions.length})</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab("payments")}
-          className={`px-4 py-2.5 rounded-xl flex items-center space-x-2 transition ${
+          className={`px-4 py-2.5 rounded-xl flex items-center space-x-2 transition whitespace-nowrap shrink-0 ${
             activeTab === "payments" ? "bg-emerald-600 text-white shadow-lg font-bold" : "bg-slate-900 text-slate-400 hover:text-white"
           }`}
         >
-          <Receipt className="w-4 h-4" />
+          <Receipt className="w-4 h-4 shrink-0" />
           <span>Payment Receipts ({studentData.allPayments?.length || 0})</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab("attendance")}
-          className={`px-4 py-2.5 rounded-xl flex items-center space-x-2 transition ${
+          className={`px-4 py-2.5 rounded-xl flex items-center space-x-2 transition whitespace-nowrap shrink-0 ${
             activeTab === "attendance" ? "bg-indigo-600 text-white shadow-lg font-bold" : "bg-slate-900 text-slate-400 hover:text-white"
           }`}
         >
-          <Calendar className="w-4 h-4" />
+          <Calendar className="w-4 h-4 shrink-0" />
           <span>Attendance Log ({studentData.attendanceStats?.attendancePercentage || 100}%)</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab("personal")}
-          className={`px-4 py-2.5 rounded-xl flex items-center space-x-2 transition ${
+          className={`px-4 py-2.5 rounded-xl flex items-center space-x-2 transition whitespace-nowrap shrink-0 ${
             activeTab === "personal" ? "bg-purple-600 text-white shadow-lg font-bold" : "bg-slate-900 text-slate-400 hover:text-white"
           }`}
         >
-          <User className="w-4 h-4" />
+          <User className="w-4 h-4 shrink-0" />
           <span>Full Personal Info</span>
         </button>
       </div>
@@ -757,24 +757,24 @@ export const StudentProfilePage = () => {
                 const admPending = Number(adm.pendingAmount || 0);
 
                 return (
-                  <div key={adm.id || idx} className="p-5 bg-slate-950 border border-slate-800 rounded-2xl space-y-4">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div className="flex items-center space-x-3">
-                        <div className="p-3 bg-cyan-950 text-cyan-400 border border-cyan-800 rounded-xl font-black text-sm">
+                  <div key={adm.id || idx} className="p-4 sm:p-5 bg-slate-950 border border-slate-800 rounded-2xl space-y-4 shadow-md">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center space-x-3 min-w-0">
+                        <div className="p-2.5 sm:p-3 bg-cyan-950 text-cyan-400 border border-cyan-800 rounded-xl font-black text-xs sm:text-sm shrink-0">
                           {idx + 1}
                         </div>
-                        <div>
-                          <h4 className="font-bold text-white text-base">
+                        <div className="min-w-0">
+                          <h4 className="font-bold text-white text-sm sm:text-base truncate">
                             {adm.courseNameSnapshot || adm.course?.name || "General Course"}
                           </h4>
-                          <p className="text-xs text-slate-400 mt-0.5">
+                          <p className="text-xs text-slate-400 mt-0.5 truncate">
                             Course Code: <span className="font-mono text-cyan-400 font-bold">{adm.course?.code || "CRS-GENERAL"}</span>
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex items-center space-x-2">
-                        <span className={`px-3 py-1 rounded-xl text-xs font-bold border ${
+                      <div className="flex items-center space-x-2 flex-wrap gap-1.5 shrink-0">
+                        <span className={`px-2.5 py-1 rounded-xl text-xs font-bold border whitespace-nowrap shrink-0 ${
                           admStatus === "ACTIVE"
                             ? "bg-emerald-950 text-emerald-400 border-emerald-800"
                             : admStatus === "COMPLETED"
@@ -786,52 +786,52 @@ export const StudentProfilePage = () => {
                           {admStatus}
                         </span>
 
-                        <span className="font-mono text-xs font-bold text-cyan-400 bg-cyan-950 border border-cyan-800 px-3 py-1 rounded-xl">
+                        <span className="font-mono text-xs font-bold text-cyan-400 bg-cyan-950 border border-cyan-800 px-2.5 py-1 rounded-xl whitespace-nowrap shrink-0">
                           {adm.admissionNumber}
                         </span>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs pt-2 border-t border-slate-900">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-3 border-t border-slate-900">
                       <div>
-                        <span className="text-slate-500 block text-[10px] uppercase font-semibold">Joining / Admission Date</span>
-                        <span className="font-mono text-slate-200 font-semibold">{formatDate(adm.admissionDate)}</span>
+                        <span className="text-slate-500 block text-[10px] uppercase font-semibold whitespace-nowrap">Admission Date</span>
+                        <span className="font-mono text-slate-200 font-semibold whitespace-nowrap">{formatDate(adm.admissionDate)}</span>
                       </div>
 
                       <div>
-                        <span className="text-slate-500 block text-[10px] uppercase font-semibold">Total Course Fees</span>
-                        <span className="font-bold text-slate-200 text-sm">₹{admFees.toLocaleString("en-IN")}</span>
+                        <span className="text-slate-500 block text-[10px] uppercase font-semibold whitespace-nowrap">Total Course Fees</span>
+                        <span className="font-bold text-slate-200 text-sm whitespace-nowrap">₹{admFees.toLocaleString("en-IN")}</span>
                       </div>
 
                       <div>
-                        <span className="text-slate-500 block text-[10px] uppercase font-semibold">Paid Fee Amount</span>
-                        <span className="font-extrabold text-emerald-400 text-sm">₹{admPaid.toLocaleString("en-IN")}</span>
+                        <span className="text-slate-500 block text-[10px] uppercase font-semibold whitespace-nowrap">Paid Fee Amount</span>
+                        <span className="font-extrabold text-emerald-400 text-sm whitespace-nowrap">₹{admPaid.toLocaleString("en-IN")}</span>
                       </div>
 
                       <div>
-                        <span className="text-slate-500 block text-[10px] uppercase font-semibold">Pending Balance</span>
-                        <span className="font-extrabold text-amber-400 text-sm">₹{admPending.toLocaleString("en-IN")}</span>
+                        <span className="text-slate-500 block text-[10px] uppercase font-semibold whitespace-nowrap">Pending Balance</span>
+                        <span className="font-extrabold text-amber-400 text-sm whitespace-nowrap">₹{admPending.toLocaleString("en-IN")}</span>
                       </div>
                     </div>
 
                     {/* COURSE ACTION TOOLBAR: STOP/DROP, COMPLETE, DELETE */}
-                    <div className="pt-3 border-t border-slate-900 flex flex-wrap items-center justify-between gap-2 text-xs">
-                      <span className="text-slate-400 font-semibold">Course Controls:</span>
-                      <div className="flex items-center space-x-2">
+                    <div className="pt-3 border-t border-slate-900 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+                      <span className="text-slate-400 font-semibold text-[11px]">Course Controls:</span>
+                      <div className="flex items-center flex-wrap gap-2 w-full sm:w-auto">
                         {admStatus === "ACTIVE" ? (
                           <>
                             <button
                               type="button"
                               onClick={() => handleCourseStatusChange(adm.id, "DROPPED")}
-                              className="px-3 py-1.5 bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800 rounded-xl font-bold transition"
+                              className="px-3 py-1.5 bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800 rounded-xl font-bold transition whitespace-nowrap shrink-0"
                               title="Stop or Drop this specific course"
                             >
-                              🛑 Stop / Drop Course
+                              🛑 Stop / Drop
                             </button>
                             <button
                               type="button"
                               onClick={() => handleCourseStatusChange(adm.id, "COMPLETED")}
-                              className="px-3 py-1.5 bg-blue-950/80 hover:bg-blue-900 text-blue-300 border border-blue-800 rounded-xl font-bold transition"
+                              className="px-3 py-1.5 bg-blue-950/80 hover:bg-blue-900 text-blue-300 border border-blue-800 rounded-xl font-bold transition whitespace-nowrap shrink-0"
                               title="Mark this course completed"
                             >
                               ✓ Mark Completed
@@ -841,10 +841,10 @@ export const StudentProfilePage = () => {
                           <button
                             type="button"
                             onClick={() => handleCourseStatusChange(adm.id, "ACTIVE")}
-                            className="px-3 py-1.5 bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-800 rounded-xl font-bold transition"
+                            className="px-3 py-1.5 bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-800 rounded-xl font-bold transition whitespace-nowrap shrink-0"
                             title="Re-activate this course"
                           >
-                            ▶ Re-Activate Course
+                            ▶ Re-Activate
                           </button>
                         )}
 
@@ -853,17 +853,17 @@ export const StudentProfilePage = () => {
                             <button
                               type="button"
                               onClick={() => handleOpenEditCourseModal(adm)}
-                              className="px-3 py-1.5 bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-800 rounded-xl font-bold transition flex items-center space-x-1"
+                              className="px-3 py-1.5 bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-800 rounded-xl font-bold transition flex items-center space-x-1 whitespace-nowrap shrink-0"
                               title="Edit course fees, discount or transfer course"
                             >
-                              <Edit className="w-3.5 h-3.5" />
+                              <Edit className="w-3.5 h-3.5 shrink-0" />
                               <span>Edit Course</span>
                             </button>
 
                             <button
                               type="button"
                               onClick={() => handleDeleteCourseAdmission(adm.id, adm.courseNameSnapshot || adm.course?.name || "Course", adm)}
-                              className="px-3 py-1.5 bg-slate-900 hover:bg-red-950 text-slate-400 hover:text-red-400 border border-slate-800 hover:border-red-800 rounded-xl transition font-bold"
+                              className="px-3 py-1.5 bg-slate-900 hover:bg-red-950 text-slate-400 hover:text-red-400 border border-slate-800 hover:border-red-800 rounded-xl transition font-bold whitespace-nowrap shrink-0"
                               title="Delete this course enrollment record"
                             >
                               🗑️ Delete Course
@@ -889,47 +889,47 @@ export const StudentProfilePage = () => {
             {(!studentData.allPayments || studentData.allPayments.length === 0) ? (
               <p className="text-xs text-slate-500 py-12 text-center">No payment receipts recorded for this student.</p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+              <div className="overflow-x-auto border border-slate-800/80 rounded-xl">
+                <table className="w-full text-left text-xs min-w-[750px]">
                   <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] border-b border-slate-800">
                     <tr>
-                      <th className="py-3 px-4">Receipt / Ref</th>
-                      <th className="py-3 px-4">Course</th>
-                      <th className="py-3 px-4">Date</th>
-                      <th className="py-3 px-4">Payment Mode</th>
-                      <th className="py-3 px-4 text-right">Amount Paid</th>
-                      <th className="py-3 px-4 text-center">Actions</th>
+                      <th className="py-3 px-4 whitespace-nowrap">Receipt / Ref</th>
+                      <th className="py-3 px-4 whitespace-nowrap">Course</th>
+                      <th className="py-3 px-4 whitespace-nowrap">Date</th>
+                      <th className="py-3 px-4 whitespace-nowrap">Payment Mode</th>
+                      <th className="py-3 px-4 text-right whitespace-nowrap">Amount Paid</th>
+                      <th className="py-3 px-4 text-center whitespace-nowrap">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60 font-sans">
                     {studentData.allPayments.map((p) => (
                       <tr key={p.id} className="hover:bg-slate-800/30">
-                        <td className="py-3 px-4 font-mono font-bold text-cyan-400">
+                        <td className="py-3 px-4 font-mono font-bold text-cyan-400 whitespace-nowrap">
                           {p.transactionReference || `REC-${p.id ? p.id.slice(-6).toUpperCase() : "PAYMENT"}`}
                         </td>
-                        <td className="py-3 px-4 font-semibold text-white truncate max-w-[180px]">
+                        <td className="py-3 px-4 font-semibold text-white truncate max-w-[180px] whitespace-nowrap">
                           {p.courseName || "Course"}
                         </td>
-                        <td className="py-3 px-4 font-mono text-slate-400">
+                        <td className="py-3 px-4 font-mono text-slate-400 whitespace-nowrap">
                           {formatDate(p.paymentDate || p.createdAt)}
                         </td>
-                        <td className="py-3 px-4">
+                        <td className="py-3 px-4 whitespace-nowrap">
                           <span className="px-2.5 py-1 bg-blue-950 text-blue-300 rounded-lg font-bold uppercase text-[10px]">
                             {p.paymentMode || "CASH"}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-right font-extrabold text-emerald-400 text-sm">
+                        <td className="py-3 px-4 text-right font-extrabold text-emerald-400 text-sm whitespace-nowrap">
                           ₹{Number(p.amount).toLocaleString("en-IN")}
                         </td>
-                        <td className="py-3 px-4 text-center">
+                        <td className="py-3 px-4 text-center whitespace-nowrap">
                           <div className="flex items-center justify-center space-x-1.5">
                             <button
                               type="button"
                               onClick={() => setSelectedReceiptPayment(p)}
-                              className="px-2.5 py-1.5 bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white rounded-lg font-semibold text-xs inline-flex items-center space-x-1 transition"
+                              className="px-2.5 py-1.5 bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white rounded-lg font-semibold text-xs inline-flex items-center space-x-1 transition whitespace-nowrap"
                               title="Print Fee Receipt"
                             >
-                              <Printer className="w-3.5 h-3.5" />
+                              <Printer className="w-3.5 h-3.5 shrink-0" />
                               <span>Print</span>
                             </button>
 
@@ -938,17 +938,17 @@ export const StudentProfilePage = () => {
                                 <button
                                   type="button"
                                   onClick={() => handleOpenEditPaymentModal(p)}
-                                  className="px-2.5 py-1.5 bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-800 rounded-lg font-bold text-xs inline-flex items-center space-x-1 transition"
+                                  className="px-2.5 py-1.5 bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-800 rounded-lg font-bold text-xs inline-flex items-center space-x-1 transition whitespace-nowrap"
                                   title="Edit fee payment receipt details"
                                 >
-                                  <Edit className="w-3.5 h-3.5" />
+                                  <Edit className="w-3.5 h-3.5 shrink-0" />
                                   <span>Edit</span>
                                 </button>
 
                                 <button
                                   type="button"
                                   onClick={() => handleDeletePayment(p.id, p.transactionReference, p.amount)}
-                                  className="px-2 py-1.5 bg-slate-900 hover:bg-red-950 text-slate-400 hover:text-red-400 border border-slate-800 hover:border-red-800 rounded-lg font-bold text-xs transition"
+                                  className="px-2 py-1.5 bg-slate-900 hover:bg-red-950 text-slate-400 hover:text-red-400 border border-slate-800 hover:border-red-800 rounded-lg font-bold text-xs transition whitespace-nowrap"
                                   title="Delete this payment receipt"
                                 >
                                   🗑️
