@@ -246,11 +246,14 @@ export const updateFeePayment = async (paymentId, payload, updatedBy) => {
     throw createHttpError("Fee payment record not found", 404);
   }
 
-  const { amount, paymentMode, paymentDate, transactionReference, remarks } = payload;
+  const { admissionId, amount, paymentMode, paymentDate, transactionReference, remarks } = payload;
+  const oldAdmissionId = existingPayment.admissionId;
+  const newAdmissionId = admissionId && admissionId !== oldAdmissionId ? admissionId : oldAdmissionId;
 
   return prisma.$transaction(async (tx) => {
     const updateData = {};
-    if (amount !== undefined) updateData.amount = new Prisma.Decimal(Number(amount));
+    if (newAdmissionId !== oldAdmissionId) updateData.admissionId = newAdmissionId;
+    if (amount !== undefined && amount !== null && amount !== "") updateData.amount = new Prisma.Decimal(Number(amount));
     if (paymentMode) updateData.paymentMode = paymentMode;
     if (paymentDate) updateData.paymentDate = new Date(paymentDate);
     if (transactionReference !== undefined) updateData.transactionReference = transactionReference;
@@ -269,12 +272,72 @@ export const updateFeePayment = async (paymentId, payload, updatedBy) => {
       },
     });
 
-    // Recalculate Admission total paid & pending amounts
-    const allPayments = await tx.admissionPayment.findMany({
+    // Recalculate Admission total paid & pending amounts for old admission
+    const oldPayments = await tx.admissionPayment.findMany({
+      where: { admissionId: oldAdmissionId },
+    });
+    const oldTotalPaid = oldPayments.reduce((sum, p) => sum + Number(p.amount), 0);
+    const oldFinalFees = Number(existingPayment.admission.finalFees || 0);
+    const oldNewPending = Math.max(0, oldFinalFees - oldTotalPaid);
+
+    await tx.admission.update({
+      where: { id: oldAdmissionId },
+      data: {
+        paidAmount: new Prisma.Decimal(oldTotalPaid),
+        pendingAmount: new Prisma.Decimal(oldNewPending),
+        updatedBy,
+      },
+    });
+
+    // If reassigned to a new admission, recalculate for new admission too
+    if (newAdmissionId !== oldAdmissionId) {
+      const targetAdmission = await tx.admission.findUnique({ where: { id: newAdmissionId } });
+      if (targetAdmission) {
+        const newPayments = await tx.admissionPayment.findMany({
+          where: { admissionId: newAdmissionId },
+        });
+        const newTotalPaid = newPayments.reduce((sum, p) => sum + Number(p.amount), 0);
+        const newFinalFees = Number(targetAdmission.finalFees || 0);
+        const newPending = Math.max(0, newFinalFees - newTotalPaid);
+
+        await tx.admission.update({
+          where: { id: newAdmissionId },
+          data: {
+            paidAmount: new Prisma.Decimal(newTotalPaid),
+            pendingAmount: new Prisma.Decimal(newPending),
+            updatedBy,
+          },
+        });
+      }
+    }
+
+    return updatedPayment;
+  });
+};
+
+/**
+ * Delete a fee payment record and recalculate admission dues.
+ */
+export const deleteFeePayment = async (paymentId, deletedBy) => {
+  const existingPayment = await prisma.admissionPayment.findUnique({
+    where: { id: paymentId },
+    include: { admission: true },
+  });
+
+  if (!existingPayment) {
+    throw createHttpError("Fee payment record not found", 404);
+  }
+
+  return prisma.$transaction(async (tx) => {
+    await tx.admissionPayment.delete({
+      where: { id: paymentId },
+    });
+
+    const remainingPayments = await tx.admissionPayment.findMany({
       where: { admissionId: existingPayment.admissionId },
     });
 
-    const totalPaid = allPayments.reduce((sum, p) => sum + Number(p.amount), 0);
+    const totalPaid = remainingPayments.reduce((sum, p) => sum + Number(p.amount), 0);
     const finalFees = Number(existingPayment.admission.finalFees || 0);
     const newPending = Math.max(0, finalFees - totalPaid);
 
@@ -283,11 +346,11 @@ export const updateFeePayment = async (paymentId, payload, updatedBy) => {
       data: {
         paidAmount: new Prisma.Decimal(totalPaid),
         pendingAmount: new Prisma.Decimal(newPending),
-        updatedBy,
+        updatedBy: deletedBy,
       },
     });
 
-    return updatedPayment;
+    return { message: "Fee payment receipt deleted successfully" };
   });
 };
 

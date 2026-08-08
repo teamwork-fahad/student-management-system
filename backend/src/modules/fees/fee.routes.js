@@ -6,6 +6,7 @@ import {
   getFeeHistoryController,
   getStudentFeeSummaryController,
   updateFeePaymentController,
+  deleteFeePaymentController,
   generateFeeReminderWhatsAppController,
 } from "./fee.controller.js";
 
@@ -32,6 +33,14 @@ router.put(
   authenticate,
   authorize("SUPER_ADMIN"),
   updateFeePaymentController
+);
+
+// DELETE /api/v1/fees/:id - Delete a fee payment receipt (SUPER_ADMIN)
+router.delete(
+  "/:id",
+  authenticate,
+  authorize("SUPER_ADMIN"),
+  deleteFeePaymentController
 );
 
 // GET /api/v1/fees - Get fee history list with filters (SUPER_ADMIN, FACULTY)

@@ -105,6 +105,19 @@ export const Fees = () => {
     }
   };
 
+  const handleDeletePayment = async (paymentId, refNo, amt) => {
+    const confirmMsg = `Are you sure you want to delete payment receipt (${refNo || "Payment"}) for ₹${Number(amt).toLocaleString("en-IN")}?\nThis will recalculate the student's pending fee balance.`;
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      await api.delete(`/fees/${paymentId}`);
+      alert("Payment receipt deleted successfully.");
+      fetchInitialData();
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to delete payment receipt.");
+    }
+  };
+
   // Analytics Switcher Tab: 'yearly' | 'monthly'
   const [analyticsTab, setAnalyticsTab] = useState("yearly");
 
@@ -897,15 +910,26 @@ export const Fees = () => {
                           )}
 
                           {isSuperAdmin && (
-                            <button
-                              type="button"
-                              onClick={() => handleOpenEditFeeModal(p)}
-                              className="px-2.5 py-1 bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-800 rounded-lg font-bold text-[11px] inline-flex items-center space-x-1 transition cursor-pointer"
-                              title="Edit fee payment receipt details"
-                            >
-                              <Edit className="w-3.5 h-3.5" />
-                              <span>Edit</span>
-                            </button>
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEditFeeModal(p)}
+                                className="px-2.5 py-1 bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-800 rounded-lg font-bold text-[11px] inline-flex items-center space-x-1 transition cursor-pointer"
+                                title="Edit fee payment receipt details"
+                              >
+                                <Edit className="w-3.5 h-3.5" />
+                                <span>Edit</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleDeletePayment(p.id, p.transactionReference, p.amount)}
+                                className="px-2 py-1 bg-slate-900 hover:bg-red-950 text-slate-400 hover:text-red-400 border border-slate-800 hover:border-red-800 rounded-lg font-bold text-[11px] transition cursor-pointer"
+                                title="Delete this payment receipt"
+                              >
+                                🗑️
+                              </button>
+                            </>
                           )}
                         </div>
                       </td>

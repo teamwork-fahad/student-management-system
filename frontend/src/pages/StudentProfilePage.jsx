@@ -58,6 +58,14 @@ export const StudentProfilePage = () => {
   const { user } = useAuth();
   const isSuperAdmin = user?.role === "SUPER_ADMIN";
 
+  const handleBack = () => {
+    if (window.history.state && typeof window.history.state.idx === "number" && window.history.state.idx > 0) {
+      navigate(-1);
+    } else {
+      navigate("/dashboard/students");
+    }
+  };
+
   const [studentData, setStudentData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -194,6 +202,80 @@ export const StudentProfilePage = () => {
     }
   };
 
+  // Edit Fee Payment Receipt Modal State & Handlers
+  const [editingPayment, setEditingPayment] = useState(null);
+  const [editPaymentSubmitting, setEditPaymentSubmitting] = useState(false);
+  const [editPaymentError, setEditPaymentError] = useState("");
+  const [editPaymentForm, setEditPaymentForm] = useState({
+    admissionId: "",
+    amount: "",
+    paymentMode: "CASH",
+    paymentDate: new Date().toISOString().split("T")[0],
+    transactionReference: "",
+    remarks: "",
+  });
+
+  const handleOpenEditPaymentModal = (p) => {
+    setEditingPayment(p);
+    const dateStr = p.paymentDate
+      ? new Date(p.paymentDate).toISOString().split("T")[0]
+      : new Date(p.createdAt || Date.now()).toISOString().split("T")[0];
+
+    setEditPaymentForm({
+      admissionId: p.admissionId || p.admission?.id || "",
+      amount: String(p.amount || ""),
+      paymentMode: p.paymentMode || "CASH",
+      paymentDate: dateStr,
+      transactionReference: p.transactionReference || "",
+      remarks: p.remarks || "",
+    });
+    setEditPaymentError("");
+  };
+
+  const handleEditPaymentSubmit = async (e) => {
+    e.preventDefault();
+    if (!editingPayment) return;
+    if (!editPaymentForm.amount || Number(editPaymentForm.amount) <= 0) {
+      setEditPaymentError("Paid amount must be greater than 0.");
+      return;
+    }
+
+    setEditPaymentSubmitting(true);
+    setEditPaymentError("");
+    try {
+      await api.put(`/fees/${editingPayment.id}`, {
+        admissionId: editPaymentForm.admissionId || undefined,
+        amount: Number(editPaymentForm.amount),
+        paymentMode: editPaymentForm.paymentMode,
+        paymentDate: editPaymentForm.paymentDate,
+        transactionReference: editPaymentForm.transactionReference,
+        remarks: editPaymentForm.remarks,
+      });
+
+      setEditingPayment(null);
+      notifyStudentUpdated();
+      fetchStudentProfile();
+    } catch (err) {
+      setEditPaymentError(err.response?.data?.message || "Failed to update payment receipt.");
+    } finally {
+      setEditPaymentSubmitting(false);
+    }
+  };
+
+  const handleDeletePayment = async (paymentId, refNo, amt) => {
+    const confirmMsg = `Are you sure you want to delete payment receipt (${refNo || "Payment"}) for ₹${Number(amt).toLocaleString("en-IN")}?\nThis action will recalculate the student's pending fee balance.`;
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      await api.delete(`/fees/${paymentId}`);
+      alert("Payment receipt deleted successfully.");
+      notifyStudentUpdated();
+      fetchStudentProfile();
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to delete payment receipt.");
+    }
+  };
+
   // Edit Enrolled Course Modal State & Handlers (Super Admin)
   const [editingAdmission, setEditingAdmission] = useState(null);
   const [editCourseForm, setEditCourseForm] = useState({
@@ -262,7 +344,7 @@ export const StudentProfilePage = () => {
       await api.delete(`/students/${studentData.id}`);
       alert(`Student record for ${studentData.fullName} deleted successfully.`);
       notifyStudentUpdated();
-      navigate(-1);
+      handleBack();
     } catch (err) {
       alert(err.response?.data?.message || "Failed to delete student record");
     }
@@ -424,7 +506,7 @@ export const StudentProfilePage = () => {
           {error || "Student record not found."}
         </div>
         <button
-          onClick={() => navigate(-1)}
+          onClick={handleBack}
           className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold inline-flex items-center space-x-2 border border-slate-700 transition"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -468,7 +550,7 @@ export const StudentProfilePage = () => {
         <div className="flex items-center space-x-4">
           <button
             type="button"
-            onClick={() => navigate(-1)}
+            onClick={handleBack}
             className="p-2.5 bg-slate-950 hover:bg-cyan-950 text-slate-300 hover:text-cyan-400 border border-slate-800 hover:border-cyan-800 rounded-xl transition flex items-center space-x-1.5 text-xs font-bold shadow"
             title="Go back to previous page"
           >
@@ -816,7 +898,7 @@ export const StudentProfilePage = () => {
                       <th className="py-3 px-4">Date</th>
                       <th className="py-3 px-4">Payment Mode</th>
                       <th className="py-3 px-4 text-right">Amount Paid</th>
-                      <th className="py-3 px-4 text-center">Print Receipt</th>
+                      <th className="py-3 px-4 text-center">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60 font-sans">
@@ -840,13 +922,40 @@ export const StudentProfilePage = () => {
                           ₹{Number(p.amount).toLocaleString("en-IN")}
                         </td>
                         <td className="py-3 px-4 text-center">
-                          <button
-                            onClick={() => setSelectedReceiptPayment(p)}
-                            className="px-3 py-1.5 bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white rounded-lg font-semibold text-xs inline-flex items-center space-x-1 transition"
-                          >
-                            <Printer className="w-3.5 h-3.5" />
-                            <span>Print Receipt</span>
-                          </button>
+                          <div className="flex items-center justify-center space-x-1.5">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedReceiptPayment(p)}
+                              className="px-2.5 py-1.5 bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white rounded-lg font-semibold text-xs inline-flex items-center space-x-1 transition"
+                              title="Print Fee Receipt"
+                            >
+                              <Printer className="w-3.5 h-3.5" />
+                              <span>Print</span>
+                            </button>
+
+                            {isSuperAdmin && (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenEditPaymentModal(p)}
+                                  className="px-2.5 py-1.5 bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-800 rounded-lg font-bold text-xs inline-flex items-center space-x-1 transition"
+                                  title="Edit fee payment receipt details"
+                                >
+                                  <Edit className="w-3.5 h-3.5" />
+                                  <span>Edit</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeletePayment(p.id, p.transactionReference, p.amount)}
+                                  className="px-2 py-1.5 bg-slate-900 hover:bg-red-950 text-slate-400 hover:text-red-400 border border-slate-800 hover:border-red-800 rounded-lg font-bold text-xs transition"
+                                  title="Delete this payment receipt"
+                                >
+                                  🗑️
+                                </button>
+                              </>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -1364,14 +1473,15 @@ export const StudentProfilePage = () => {
                       fees: c.fees,
                     }))}
                   value={editCourseForm.courseId}
-                  onChange={(_, targetCourseId) => {
-                    const foundCourse = coursesList.find((c) => c.id === targetCourseId);
+                  onChange={(e, targetCourseId) => {
+                    const selectedId = targetCourseId || e?.target?.value;
+                    const foundCourse = coursesList.find((c) => c.id === selectedId);
                     const newBaseFees = foundCourse ? String(foundCourse.fees) : editCourseForm.courseFees;
                     const discountVal = Number(editCourseForm.discount || 0);
                     const finalVal = Math.max(0, Number(newBaseFees) - discountVal);
                     setEditCourseForm({
                       ...editCourseForm,
-                      courseId: targetCourseId,
+                      courseId: selectedId,
                       courseFees: newBaseFees,
                       finalFees: String(finalVal),
                     });
@@ -1483,6 +1593,134 @@ export const StudentProfilePage = () => {
               >
                 <Save className="w-4 h-4" />
                 <span>{editCourseSubmitting ? "Updating..." : "Save Course & Fee Changes"}</span>
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* EDIT FEE PAYMENT RECEIPT MODAL */}
+      {editingPayment && (
+        <Modal
+          isOpen={!!editingPayment}
+          onClose={() => setEditingPayment(null)}
+          title={`Edit Fee Payment Receipt (${editingPayment.transactionReference || "REC-" + editingPayment.id.slice(-6).toUpperCase()})`}
+        >
+          <form onSubmit={handleEditPaymentSubmit} className="space-y-4 text-xs font-sans">
+            {editPaymentError && (
+              <div className="p-3 bg-rose-950/80 border border-rose-800 rounded-xl text-rose-300">
+                {editPaymentError}
+              </div>
+            )}
+
+            <div className="p-3.5 bg-slate-950/80 border border-slate-800 rounded-xl space-y-1">
+              <span className="text-slate-400 block font-semibold text-[10px] uppercase">Student Name</span>
+              <span className="font-bold text-white text-sm">
+                {toTitleCase(studentData.fullName)}
+              </span>
+            </div>
+
+            {/* Course Enrollment Selection (Reassign course for receipt) */}
+            {admissions.length > 0 && (
+              <div>
+                <label className="text-slate-400 block mb-1 font-semibold">
+                  Course Enrollment / Receipt Assignment *
+                </label>
+                <select
+                  value={editPaymentForm.admissionId}
+                  onChange={(e) => setEditPaymentForm({ ...editPaymentForm, admissionId: e.target.value })}
+                  className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-medium text-xs"
+                  required
+                >
+                  {admissions.map((adm) => (
+                    <option key={adm.id} value={adm.id}>
+                      {adm.courseNameSnapshot || adm.course?.name || "Course"} — Adm #{adm.admissionNumber} (Fee: ₹{Number(adm.finalFees || 0).toLocaleString("en-IN")})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-slate-400 block mb-1 font-semibold">Paid Amount (₹) *</label>
+                <input
+                  type="number"
+                  value={editPaymentForm.amount}
+                  onChange={(e) => setEditPaymentForm({ ...editPaymentForm, amount: e.target.value })}
+                  required
+                  min={1}
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-bold text-sm text-emerald-400"
+                />
+              </div>
+
+              <div>
+                <label className="text-slate-400 block mb-1 font-semibold">Payment Date *</label>
+                <input
+                  type="date"
+                  value={editPaymentForm.paymentDate}
+                  onChange={(e) => setEditPaymentForm({ ...editPaymentForm, paymentDate: e.target.value })}
+                  onClick={(e) => e.target.showPicker?.()}
+                  required
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-bold cursor-pointer [color-scheme:dark]"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-slate-400 block mb-1 font-semibold">Payment Mode</label>
+                <select
+                  value={editPaymentForm.paymentMode}
+                  onChange={(e) => setEditPaymentForm({ ...editPaymentForm, paymentMode: e.target.value })}
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-bold"
+                >
+                  <option value="CASH">CASH</option>
+                  <option value="UPI">UPI / GPay / PhonePe</option>
+                  <option value="CARD">CARD</option>
+                  <option value="BANK_TRANSFER">BANK TRANSFER</option>
+                  <option value="CHEQUE">CHEQUE</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-slate-400 block mb-1 font-semibold">Txn Ref / Receipt No</label>
+                <input
+                  type="text"
+                  value={editPaymentForm.transactionReference}
+                  onChange={(e) => setEditPaymentForm({ ...editPaymentForm, transactionReference: e.target.value })}
+                  placeholder="UPI Ref / Receipt Number"
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-mono"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-slate-400 block mb-1 font-semibold">Remarks / Installment Note</label>
+              <textarea
+                rows={2}
+                value={editPaymentForm.remarks}
+                onChange={(e) => setEditPaymentForm({ ...editPaymentForm, remarks: e.target.value })}
+                placeholder="Installment payment note..."
+                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 resize-none"
+              />
+            </div>
+
+            <div className="flex justify-end space-x-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setEditingPayment(null)}
+                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-slate-400 rounded-xl font-bold"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={editPaymentSubmitting}
+                className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl font-bold shadow flex items-center space-x-1 disabled:opacity-50"
+              >
+                <Save className="w-4 h-4" />
+                <span>{editPaymentSubmitting ? "Updating..." : "Save Payment Changes"}</span>
               </button>
             </div>
           </form>

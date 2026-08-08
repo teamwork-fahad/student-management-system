@@ -6,6 +6,7 @@ import {
   getFeeHistory,
   getStudentFeeSummary,
   updateFeePayment,
+  deleteFeePayment,
   generateStudentFeeReminderWhatsApp,
 } from "./fee.service.js";
 
@@ -80,6 +81,17 @@ export const updateFeePaymentController = asyncHandler(async (req, res) => {
   return successResponse(
     res,
     "Fee payment details updated successfully",
+    result,
+    200
+  );
+});
+
+export const deleteFeePaymentController = asyncHandler(async (req, res) => {
+  const result = await deleteFeePayment(req.params.id, req.user.id);
+
+  return successResponse(
+    res,
+    "Fee payment receipt deleted successfully",
     result,
     200
   );
