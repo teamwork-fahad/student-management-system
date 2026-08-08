@@ -546,107 +546,126 @@ export const StudentProfilePage = () => {
       )}
 
       {/* TOP NAVIGATION & HEADER BAR */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-5 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
-        <div className="flex items-center space-x-3 sm:space-x-4">
+      <div className="p-4 sm:p-5 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl space-y-4">
+        {/* Row 1: Top Bar with Navigation Back Button & Status Badges */}
+        <div className="flex items-center justify-between gap-3">
           <button
             type="button"
             onClick={handleBack}
-            className="p-2.5 bg-slate-950 hover:bg-cyan-950 text-slate-300 hover:text-cyan-400 border border-slate-800 hover:border-cyan-800 rounded-xl transition flex items-center space-x-1.5 text-xs font-bold shadow shrink-0"
+            className="px-3 py-1.5 bg-slate-950 hover:bg-cyan-950 text-slate-300 hover:text-cyan-400 border border-slate-800 hover:border-cyan-800 rounded-xl transition flex items-center space-x-1.5 text-xs font-bold shadow shrink-0"
             title="Go back to previous page"
           >
             <ArrowLeft className="w-4 h-4 shrink-0" />
             <span>Back</span>
           </button>
 
-          <div className="flex items-center space-x-3 min-w-0">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-cyan-950 to-slate-950 text-cyan-400 border border-cyan-800 flex items-center justify-center font-black text-base sm:text-lg shadow-lg shrink-0">
-              {studentData.fullName[0]?.toUpperCase()}
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center space-x-2 flex-wrap gap-y-1">
-                <h1 className="text-lg sm:text-xl font-black text-white tracking-tight truncate">{toTitleCase(studentData.fullName)}</h1>
-                <span
-                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${
-                    studentData.status === "ACTIVE"
-                      ? "bg-emerald-950 text-emerald-400 border-emerald-800"
-                      : studentData.status === "REVISION"
-                      ? "bg-purple-950 text-purple-300 border-purple-800"
-                      : studentData.status === "ON_HOLD"
-                      ? "bg-amber-950 text-amber-300 border-amber-800"
-                      : studentData.status === "COMPLETED"
-                      ? "bg-blue-950 text-blue-300 border-blue-800"
-                      : "bg-rose-950 text-rose-400 border-rose-800"
-                  }`}
-                >
-                  {studentData.status === "ACTIVE"
-                    ? "🟢 ACTIVE"
-                    : studentData.status === "REVISION"
-                    ? "🔄 REVISION"
-                    : studentData.status === "ON_HOLD"
-                    ? "🟡 ON HOLD"
-                    : studentData.status === "COMPLETED"
-                    ? "🔵 COMPLETED"
-                    : "🔴 DROPPED"}
+          <div className="flex items-center space-x-2">
+            <span
+              className={`px-2.5 py-1 rounded-full text-xs font-extrabold border shadow-sm shrink-0 ${
+                studentData.status === "ACTIVE"
+                  ? "bg-emerald-950 text-emerald-400 border-emerald-800"
+                  : studentData.status === "REVISION"
+                  ? "bg-purple-950 text-purple-300 border-purple-800"
+                  : studentData.status === "ON_HOLD"
+                  ? "bg-amber-950 text-amber-300 border-amber-800"
+                  : studentData.status === "COMPLETED"
+                  ? "bg-blue-950 text-blue-300 border-blue-800"
+                  : "bg-rose-950 text-rose-400 border-rose-800"
+              }`}
+            >
+              {studentData.status === "ACTIVE"
+                ? "🟢 ACTIVE"
+                : studentData.status === "REVISION"
+                ? "🔄 REVISION"
+                : studentData.status === "ON_HOLD"
+                ? "🟡 ON HOLD"
+                : studentData.status === "COMPLETED"
+                ? "🔵 COMPLETED"
+                : "🔴 DROPPED"}
+            </span>
+
+            <span className="font-mono text-xs font-bold text-cyan-400 bg-cyan-950/80 px-2.5 py-1 rounded-xl border border-cyan-800/80 shadow-sm shrink-0">
+              {studentData.studentId}
+            </span>
+          </div>
+        </div>
+
+        {/* Row 2: Student Main Avatar, Full Name & Contact Info */}
+        <div className="flex items-start space-x-3.5 sm:space-x-4 pt-1">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-cyan-950 to-slate-950 text-cyan-400 border border-cyan-800 flex items-center justify-center font-black text-xl sm:text-2xl shadow-lg shrink-0">
+            {studentData.fullName[0]?.toUpperCase()}
+          </div>
+
+          <div className="space-y-1 min-w-0 flex-1">
+            <h1 className="text-lg sm:text-2xl font-black text-white tracking-tight leading-snug break-words">
+              {toTitleCase(studentData.fullName)}
+            </h1>
+
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400 font-mono">
+              <span className="flex items-center space-x-1 whitespace-nowrap text-slate-300 font-semibold">
+                <Phone className="w-3.5 h-3.5 text-cyan-400 inline shrink-0" />
+                <span>{studentData.mobile}</span>
+              </span>
+
+              {studentData.email && (
+                <span className="flex items-center space-x-1 text-slate-400 truncate">
+                  <Mail className="w-3.5 h-3.5 text-slate-500 inline shrink-0" />
+                  <span className="truncate">{studentData.email}</span>
                 </span>
-              </div>
-              <div className="flex items-center space-x-2 flex-wrap gap-1.5 mt-1 text-xs text-slate-400 font-mono">
-                <span className="font-bold text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded border border-cyan-800/80 whitespace-nowrap">
-                  {studentData.studentId}
-                </span>
-                <span className="whitespace-nowrap">📞 {studentData.mobile}</span>
-                {studentData.email && <span className="whitespace-nowrap truncate">• ✉️ {studentData.email}</span>}
-              </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* SUPER ADMIN MANAGEMENT ACTION TOOLBAR */}
-        <div className="flex items-center flex-wrap gap-2 text-xs font-bold w-full sm:w-auto">
-          <button
-            onClick={handleOpenAddCourseModal}
-            className="px-3.5 py-2 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white rounded-xl border border-indigo-700/60 flex items-center space-x-1.5 transition shadow whitespace-nowrap shrink-0"
-            title="Enroll student in another course"
-          >
-            <PlusCircle className="w-4 h-4 shrink-0" />
-            <span>+ Add Course</span>
-          </button>
-
-          <button
-            onClick={() => handleOpenFeeModal()}
-            className="px-3.5 py-2 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white rounded-xl border border-emerald-700/60 flex items-center space-x-1.5 transition shadow whitespace-nowrap shrink-0"
-            title="Collect tuition fee"
-          >
-            <CreditCard className="w-4 h-4 shrink-0" />
-            <span>Collect Fee</span>
-          </button>
-
-          <button
-            onClick={handleSendWhatsAppFeeReminder}
-            className="px-3.5 py-2 bg-emerald-950 hover:bg-emerald-900 text-emerald-400 border border-emerald-800 rounded-xl flex items-center space-x-1.5 transition shadow whitespace-nowrap shrink-0"
-            title="Send WhatsApp Fee Reminder to Student"
-          >
-            <span>💬 Fee Reminder</span>
-          </button>
-
-          <button
-            onClick={handleOpenEdit}
-            className="px-3.5 py-2 bg-amber-600/20 hover:bg-amber-600 text-amber-300 hover:text-white rounded-xl border border-amber-700/60 flex items-center space-x-1.5 transition shadow whitespace-nowrap shrink-0"
-            title="Edit student profile & status"
-          >
-            <Edit className="w-4 h-4 shrink-0" />
-            <span>Edit Profile</span>
-          </button>
-
-          {isSuperAdmin && (
+        {/* Row 3: Organized Action Toolbar (2-column Grid on Mobile, Flex on Desktop) */}
+        <div className="pt-3 border-t border-slate-800/80">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 text-xs font-bold w-full">
             <button
-              onClick={handleDeleteStudent}
-              className="px-3.5 py-2 bg-rose-950/80 hover:bg-rose-600 text-rose-300 hover:text-white rounded-xl border border-rose-800 flex items-center space-x-1.5 transition shadow whitespace-nowrap shrink-0"
-              title="Delete student record (Super Admin)"
+              onClick={handleOpenAddCourseModal}
+              className="px-3.5 py-2.5 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white rounded-xl border border-indigo-700/60 flex items-center justify-center space-x-1.5 transition shadow whitespace-nowrap"
+              title="Enroll student in another course"
             >
-              <Trash2 className="w-4 h-4 shrink-0" />
-              <span>Delete Record</span>
+              <PlusCircle className="w-4 h-4 shrink-0" />
+              <span>+ Add Course</span>
             </button>
-          )}
+
+            <button
+              onClick={() => handleOpenFeeModal()}
+              className="px-3.5 py-2.5 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white rounded-xl border border-emerald-700/60 flex items-center justify-center space-x-1.5 transition shadow whitespace-nowrap"
+              title="Collect tuition fee"
+            >
+              <CreditCard className="w-4 h-4 shrink-0" />
+              <span>Collect Fee</span>
+            </button>
+
+            <button
+              onClick={handleSendWhatsAppFeeReminder}
+              className="px-3.5 py-2.5 bg-emerald-950 hover:bg-emerald-900 text-emerald-400 border border-emerald-800 rounded-xl flex items-center justify-center space-x-1.5 transition shadow whitespace-nowrap"
+              title="Send WhatsApp Fee Reminder to Student"
+            >
+              <span>💬 Fee Reminder</span>
+            </button>
+
+            <button
+              onClick={handleOpenEdit}
+              className="px-3.5 py-2.5 bg-amber-600/20 hover:bg-amber-600 text-amber-300 hover:text-white rounded-xl border border-amber-700/60 flex items-center justify-center space-x-1.5 transition shadow whitespace-nowrap"
+              title="Edit student profile & status"
+            >
+              <Edit className="w-4 h-4 shrink-0" />
+              <span>Edit Profile</span>
+            </button>
+
+            {isSuperAdmin && (
+              <button
+                onClick={handleDeleteStudent}
+                className="col-span-2 sm:col-span-1 px-3.5 py-2.5 bg-rose-950/80 hover:bg-rose-600 text-rose-300 hover:text-white rounded-xl border border-rose-800 flex items-center justify-center space-x-1.5 transition shadow whitespace-nowrap"
+                title="Delete student record (Super Admin)"
+              >
+                <Trash2 className="w-4 h-4 shrink-0" />
+                <span>Delete Record</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
