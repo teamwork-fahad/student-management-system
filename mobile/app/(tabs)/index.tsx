@@ -417,6 +417,18 @@ export default function AttendanceActiveScreen() {
             </Text>
           </TouchableOpacity>
 
+          <TouchableOpacity
+            style={[
+              styles.attBtn,
+              currentAtt === 'EXEMPTED' ? styles.exemptedBtnActive : styles.attBtnInactive,
+            ]}
+            onPress={() => toggleStudentAttendance(item.id, 'EXEMPTED')}
+          >
+            <Text style={currentAtt === 'EXEMPTED' ? styles.attTextActive : styles.attTextInactive}>
+              ☕ OFF
+            </Text>
+          </TouchableOpacity>
+
           {currentAtt !== 'UNMARKED' && (
             <TouchableOpacity
               style={[styles.attBtn, styles.unmarkBtnActive]}
@@ -1061,6 +1073,10 @@ const styles = StyleSheet.create({
   absentBtnActive: {
     backgroundColor: '#881337',
     borderColor: '#e11d48',
+  },
+  exemptedBtnActive: {
+    backgroundColor: '#312e81',
+    borderColor: '#6366f1',
   },
   attTextActive: {
     color: '#ffffff',

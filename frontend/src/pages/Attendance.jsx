@@ -484,6 +484,8 @@ export const Attendance = () => {
                       <span className="px-2.5 py-0.5 bg-rose-950 text-rose-400 border border-rose-800 rounded-full font-bold text-[10px]">ABSENT</span>
                     ) : currentStatus === "LATE" ? (
                       <span className="px-2.5 py-0.5 bg-amber-950 text-amber-400 border border-amber-800 rounded-full font-bold text-[10px]">LATE</span>
+                    ) : currentStatus === "EXEMPTED" ? (
+                      <span className="px-2.5 py-0.5 bg-indigo-950 text-indigo-300 border border-indigo-800 rounded-full font-bold text-[10px]">☕ OFF / EXEMPT</span>
                     ) : (
                       <span className="px-2.5 py-0.5 bg-slate-950 text-slate-500 border border-slate-800 rounded-full font-bold text-[10px]">UNMARKED</span>
                     )}
@@ -494,48 +496,65 @@ export const Attendance = () => {
                       <span>{s.fullName}</span>
                       <ExternalLink className="w-3.5 h-3.5 text-slate-400 inline" />
                     </a>
-                    <p className="text-xs text-slate-400 mt-0.5">{s.courseName}</p>
+                    <div className="flex items-center space-x-2 mt-0.5">
+                      <p className="text-xs text-slate-400">{s.courseName}</p>
+                      {s.studentStatus === "REVISION" && (
+                        <span className="px-2 py-0.2 bg-purple-950 text-purple-300 border border-purple-800 rounded-full font-bold text-[9px]">
+                          🔄 REVISION
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Mobile 1-Tap Touch Buttons */}
-                  <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800/80">
+                  <div className="grid grid-cols-4 gap-1.5 pt-2 border-t border-slate-800/80">
                     <button
                       type="button"
                       onClick={() => handleStatusChange(s.studentId, "PRESENT")}
-                      className={`py-2.5 rounded-xl font-bold text-xs flex items-center justify-center space-x-1 transition active:scale-95 ${
+                      className={`py-2 rounded-xl font-bold text-[11px] flex items-center justify-center space-x-1 transition active:scale-95 ${
                         currentStatus === "PRESENT"
-                          ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/40 border border-emerald-400"
+                          ? "bg-emerald-600 text-white shadow border border-emerald-400"
                           : "bg-slate-900 text-emerald-400 hover:bg-emerald-950 border border-slate-800"
                       }`}
                     >
-                      <CheckCircle2 className="w-4 h-4 shrink-0" />
                       <span>Present</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => handleStatusChange(s.studentId, "ABSENT")}
-                      className={`py-2.5 rounded-xl font-bold text-xs flex items-center justify-center space-x-1 transition active:scale-95 ${
+                      className={`py-2 rounded-xl font-bold text-[11px] flex items-center justify-center space-x-1 transition active:scale-95 ${
                         currentStatus === "ABSENT"
-                          ? "bg-rose-600 text-white shadow-lg shadow-rose-600/40 border border-rose-400"
+                          ? "bg-rose-600 text-white shadow border border-rose-400"
                           : "bg-slate-900 text-rose-400 hover:bg-rose-950 border border-slate-800"
                       }`}
                     >
-                      <XCircle className="w-4 h-4 shrink-0" />
                       <span>Absent</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => handleStatusChange(s.studentId, "LATE")}
-                      className={`py-2.5 rounded-xl font-bold text-xs flex items-center justify-center space-x-1 transition active:scale-95 ${
+                      className={`py-2 rounded-xl font-bold text-[11px] flex items-center justify-center space-x-1 transition active:scale-95 ${
                         currentStatus === "LATE"
-                          ? "bg-amber-600 text-white shadow-lg shadow-amber-600/40 border border-amber-400"
+                          ? "bg-amber-600 text-white shadow border border-amber-400"
                           : "bg-slate-900 text-amber-400 hover:bg-amber-950 border border-slate-800"
                       }`}
                     >
-                      <Clock className="w-4 h-4 shrink-0" />
                       <span>Late</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleStatusChange(s.studentId, "EXEMPTED")}
+                      className={`py-2 rounded-xl font-bold text-[11px] flex items-center justify-center space-x-1 transition active:scale-95 ${
+                        currentStatus === "EXEMPTED"
+                          ? "bg-indigo-600 text-white shadow border border-indigo-400"
+                          : "bg-slate-900 text-indigo-300 hover:bg-indigo-950 border border-slate-800"
+                      }`}
+                      title="No Lecture Today (Irregular/Revision Student)"
+                    >
+                      <span>☕ Off</span>
                     </button>
                   </div>
                 </div>
@@ -608,6 +627,10 @@ export const Attendance = () => {
                           <span className="px-2.5 py-0.5 bg-amber-950 text-amber-400 border border-amber-800 rounded-full font-bold text-[10px]">
                             LATE
                           </span>
+                        ) : currentStatus === "EXEMPTED" ? (
+                          <span className="px-2.5 py-0.5 bg-indigo-950 text-indigo-300 border border-indigo-800 rounded-full font-bold text-[10px]">
+                            ☕ OFF / EXEMPT
+                          </span>
                         ) : (
                           <span className="px-2.5 py-0.5 bg-slate-950 text-slate-500 border border-slate-800 rounded-full font-bold text-[10px]">
                             UNMARKED
@@ -650,6 +673,19 @@ export const Attendance = () => {
                             }`}
                           >
                             Late
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleStatusChange(s.studentId, "EXEMPTED")}
+                            className={`px-3 py-1.5 rounded-xl font-bold text-[11px] transition ${
+                              currentStatus === "EXEMPTED"
+                                ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                                : "bg-slate-950 text-slate-400 hover:text-slate-200 border border-slate-800"
+                            }`}
+                            title="Mark Off / Exempt for students with no lecture today"
+                          >
+                            ☕ Off
                           </button>
                         </div>
                       </td>

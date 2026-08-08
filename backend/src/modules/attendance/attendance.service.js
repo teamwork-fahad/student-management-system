@@ -206,7 +206,7 @@ export const getAttendanceWhatsAppReport = async (dateStr) => {
     year: "numeric",
   });
 
-  const [totalStudents, presentCount, absentCount, lateCount] = await Promise.all([
+  const [totalStudents, presentCount, absentCount, lateCount, exemptedCount] = await Promise.all([
     prisma.student.count({
       where: {
         deletedAt: null,
@@ -217,9 +217,10 @@ export const getAttendanceWhatsAppReport = async (dateStr) => {
     prisma.attendance.count({ where: { date: targetDate, status: "PRESENT" } }),
     prisma.attendance.count({ where: { date: targetDate, status: "ABSENT" } }),
     prisma.attendance.count({ where: { date: targetDate, status: "LATE" } }),
+    prisma.attendance.count({ where: { date: targetDate, status: "EXEMPTED" } }),
   ]);
 
-  const unmarkedCount = Math.max(0, totalStudents - (presentCount + absentCount + lateCount));
+  const unmarkedCount = Math.max(0, totalStudents - (presentCount + absentCount + lateCount + exemptedCount));
   const markedTotal = presentCount + absentCount + lateCount;
   const attendanceRate = markedTotal > 0 ? Math.round(((presentCount + lateCount * 0.5) / markedTotal) * 100) : 0;
 
@@ -230,6 +231,7 @@ export const getAttendanceWhatsAppReport = async (dateStr) => {
 ✅ *Present:* ${presentCount}
 ❌ *Absent:* ${absentCount}
 ⏳ *Late:* ${lateCount}
+☕ *Off / No Class:* ${exemptedCount} (Exempted)
 ❓ *Unmarked:* ${unmarkedCount}
 
 📈 *Attendance Rate:* ${attendanceRate}%
@@ -246,6 +248,7 @@ _Sent via Student Management System_`;
       presentCount,
       absentCount,
       lateCount,
+      exemptedCount,
       unmarkedCount,
       attendanceRate,
     },
