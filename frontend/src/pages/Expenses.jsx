@@ -28,6 +28,10 @@ export const Expenses = () => {
   // View Mode: 'table' | 'grid'
   const [viewMode, setViewMode] = useState("table");
 
+  // Pagination State (10 expenses per page)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -47,6 +51,10 @@ export const Expenses = () => {
     fetchExpenses();
     fetchStats();
   }, [selectedCategory]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, selectedCategory]);
 
   const fetchExpenses = async () => {
     setLoading(true);
@@ -130,6 +138,13 @@ export const Expenses = () => {
       (e.remarks || "").toLowerCase().includes(search.toLowerCase()) ||
       (e.paidTo || "").toLowerCase().includes(search.toLowerCase())
   );
+
+  // Pagination calculation
+  const totalPages = Math.ceil(filteredExpenses.length / itemsPerPage) || 1;
+  const validCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+  const indexOfLastItem = validCurrentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const paginatedExpenses = filteredExpenses.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
     <div className="space-y-6 font-sans">
@@ -247,7 +262,7 @@ export const Expenses = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 text-slate-300">
-                {filteredExpenses.map((exp) => (
+                {paginatedExpenses.map((exp) => (
                   <tr key={exp.id} className="hover:bg-slate-800/30 transition">
                     <td className="py-3.5 px-4 text-slate-400 font-mono whitespace-nowrap">
                       {formatDate(exp.expenseDate)}
@@ -288,7 +303,7 @@ export const Expenses = () => {
         ) : (
           /* GRID CARDS VIEW */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredExpenses.map((exp) => (
+            {paginatedExpenses.map((exp) => (
               <div key={exp.id} className="p-4 bg-slate-950/80 border border-slate-800 rounded-2xl space-y-3 shadow-md">
                 <div className="flex items-center justify-between">
                   <span className="px-2 py-0.5 bg-rose-950 text-rose-300 border border-rose-800 rounded font-semibold text-[10px]">
@@ -323,6 +338,78 @@ export const Expenses = () => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* PAGINATION CONTROLS BAR (10 EXPENSES PER PAGE) */}
+        {filteredExpenses.length > 0 && (
+          <div className="pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400 font-medium">
+            <div className="flex flex-wrap items-center gap-2">
+              <span>Show</span>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="bg-slate-950 border border-slate-800 text-white rounded-xl px-2.5 py-1 font-bold focus:outline-none focus:border-rose-500 cursor-pointer"
+              >
+                <option value={10}>10 expenses per page</option>
+                <option value={20}>20 expenses per page</option>
+                <option value={50}>50 expenses per page</option>
+                <option value={100}>100 expenses per page</option>
+              </select>
+              <span>
+                Showing <strong className="text-white">{indexOfFirstItem + 1}</strong> to{" "}
+                <strong className="text-white">{Math.min(indexOfLastItem, filteredExpenses.length)}</strong> of{" "}
+                <strong className="text-rose-400">{filteredExpenses.length}</strong> expenses
+              </span>
+            </div>
+
+            <div className="flex items-center space-x-1.5">
+              <button
+                type="button"
+                disabled={validCurrentPage === 1}
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                className="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 hover:text-white hover:border-rose-500 font-bold transition disabled:opacity-40 disabled:hover:border-slate-800 disabled:hover:text-slate-300 cursor-pointer"
+              >
+                ◀ Prev
+              </button>
+
+              <div className="flex items-center space-x-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter((p) => p === 1 || p === totalPages || Math.abs(p - validCurrentPage) <= 1)
+                  .map((p, idx, arr) => {
+                    const prevP = arr[idx - 1];
+                    const showEllipsis = prevP && p - prevP > 1;
+                    return (
+                      <React.Fragment key={p}>
+                        {showEllipsis && <span className="px-1 text-slate-600 font-bold">...</span>}
+                        <button
+                          type="button"
+                          onClick={() => setCurrentPage(p)}
+                          className={`px-3 py-1.5 rounded-xl font-extrabold text-xs transition cursor-pointer ${
+                            p === validCurrentPage
+                              ? "bg-rose-600 text-white shadow"
+                              : "bg-slate-950 border border-slate-800 text-slate-400 hover:text-white"
+                          }`}
+                        >
+                          {p}
+                        </button>
+                      </React.Fragment>
+                    );
+                  })}
+              </div>
+
+              <button
+                type="button"
+                disabled={validCurrentPage >= totalPages}
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                className="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 hover:text-white hover:border-rose-500 font-bold transition disabled:opacity-40 disabled:hover:border-slate-800 disabled:hover:text-slate-300 cursor-pointer"
+              >
+                Next ▶
+              </button>
+            </div>
           </div>
         )}
       </div>
