@@ -41,6 +41,10 @@ export const Fees = () => {
   const [error, setError] = useState("");
   const [selectedReceiptPayment, setSelectedReceiptPayment] = useState(null);
 
+  // Fee History Pagination State (10 receipts per page)
+  const [receiptsCurrentPage, setReceiptsCurrentPage] = useState(1);
+  const [receiptsPerPage, setReceiptsPerPage] = useState(10);
+
   // Edit Fee Payment Modal State (Super Admin)
   const [editingPayment, setEditingPayment] = useState(null);
   const [editFeeForm, setEditFeeForm] = useState({
@@ -313,6 +317,13 @@ export const Fees = () => {
   const percentageChange = prevRevenue > 0
     ? ((revenueDiff / prevRevenue) * 100).toFixed(1)
     : (currentRevenue > 0 ? 100 : 0);
+
+  // Fee History Pagination calculation
+  const totalReceiptPages = Math.ceil(feeHistory.length / receiptsPerPage) || 1;
+  const validReceiptPage = Math.min(Math.max(1, receiptsCurrentPage), totalReceiptPages);
+  const indexOfLastReceipt = validReceiptPage * receiptsPerPage;
+  const indexOfFirstReceipt = indexOfLastReceipt - receiptsPerPage;
+  const paginatedFeeHistory = feeHistory.slice(indexOfFirstReceipt, indexOfLastReceipt);
 
   return (
     <div className="space-y-6 font-sans">
@@ -862,7 +873,7 @@ export const Fees = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60 text-slate-300">
-                  {feeHistory.map((p) => (
+                  {paginatedFeeHistory.map((p) => (
                     <tr key={p.id} className="hover:bg-slate-800/30 transition">
                       <td className="py-3 px-4 font-mono font-bold text-cyan-400 whitespace-nowrap">
                         {p.transactionReference || `REC-${p.id.slice(-6).toUpperCase()}`}
@@ -947,7 +958,7 @@ export const Fees = () => {
           ) : (
             /* GRID CARDS VIEW */
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {feeHistory.map((p) => (
+              {paginatedFeeHistory.map((p) => (
                 <div key={p.id} className="p-4 bg-slate-950/80 border border-slate-800 rounded-2xl space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-xs font-bold text-cyan-400">
@@ -1008,6 +1019,78 @@ export const Fees = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* PAGINATION CONTROLS BAR (10 RECEIPTS PER PAGE) */}
+          {feeHistory.length > 0 && (
+            <div className="pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400 font-medium">
+              <div className="flex flex-wrap items-center gap-2">
+                <span>Show</span>
+                <select
+                  value={receiptsPerPage}
+                  onChange={(e) => {
+                    setReceiptsPerPage(Number(e.target.value));
+                    setReceiptsCurrentPage(1);
+                  }}
+                  className="bg-slate-950 border border-slate-800 text-white rounded-xl px-2.5 py-1 font-bold focus:outline-none focus:border-cyan-500 cursor-pointer"
+                >
+                  <option value={10}>10 receipts per page</option>
+                  <option value={20}>20 receipts per page</option>
+                  <option value={50}>50 receipts per page</option>
+                  <option value={100}>100 receipts per page</option>
+                </select>
+                <span>
+                  Showing <strong className="text-white">{indexOfFirstReceipt + 1}</strong> to{" "}
+                  <strong className="text-white">{Math.min(indexOfLastReceipt, feeHistory.length)}</strong> of{" "}
+                  <strong className="text-emerald-400">{feeHistory.length}</strong> receipts
+                </span>
+              </div>
+
+              <div className="flex items-center space-x-1.5">
+                <button
+                  type="button"
+                  disabled={validReceiptPage === 1}
+                  onClick={() => setReceiptsCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  className="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 hover:text-white hover:border-cyan-500 font-bold transition disabled:opacity-40 disabled:hover:border-slate-800 disabled:hover:text-slate-300 cursor-pointer"
+                >
+                  ◀ Prev
+                </button>
+
+                <div className="flex items-center space-x-1">
+                  {Array.from({ length: totalReceiptPages }, (_, i) => i + 1)
+                    .filter((p) => p === 1 || p === totalReceiptPages || Math.abs(p - validReceiptPage) <= 1)
+                    .map((p, idx, arr) => {
+                      const prevP = arr[idx - 1];
+                      const showEllipsis = prevP && p - prevP > 1;
+                      return (
+                        <React.Fragment key={p}>
+                          {showEllipsis && <span className="px-1 text-slate-600 font-bold">...</span>}
+                          <button
+                            type="button"
+                            onClick={() => setReceiptsCurrentPage(p)}
+                            className={`px-3 py-1.5 rounded-xl font-extrabold text-xs transition cursor-pointer ${
+                              p === validReceiptPage
+                                ? "bg-cyan-600 text-white shadow"
+                                : "bg-slate-950 border border-slate-800 text-slate-400 hover:text-white"
+                            }`}
+                          >
+                            {p}
+                          </button>
+                        </React.Fragment>
+                      );
+                    })}
+                </div>
+
+                <button
+                  type="button"
+                  disabled={validReceiptPage >= totalReceiptPages}
+                  onClick={() => setReceiptsCurrentPage((prev) => Math.min(prev + 1, totalReceiptPages))}
+                  className="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 hover:text-white hover:border-cyan-500 font-bold transition disabled:opacity-40 disabled:hover:border-slate-800 disabled:hover:text-slate-300 cursor-pointer"
+                >
+                  Next ▶
+                </button>
+              </div>
             </div>
           )}
         </div>
