@@ -237,11 +237,11 @@ export const Inquiries = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-white tracking-tight">Inquiries & Leads Management</h1>
+          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">Inquiries & Leads Management</h1>
           <p className="text-xs text-slate-400">Track prospective student inquiries, follow-ups, and admissions conversion.</p>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <button
             type="button"
             onClick={() => {
@@ -249,9 +249,9 @@ export const Inquiries = () => {
               setAddError("");
               setAddSuccess("");
             }}
-            className="px-4 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-cyan-950 flex items-center space-x-2 transition"
+            className="px-3.5 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-cyan-950 flex items-center space-x-2 transition whitespace-nowrap"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 shrink-0" />
             <span>Add New Inquiry</span>
           </button>
 
@@ -284,7 +284,7 @@ export const Inquiries = () => {
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 bg-slate-900/60 p-3.5 sm:p-4 rounded-2xl border border-slate-800">
         <div className="relative flex-1 w-full">
           <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
           <input
@@ -296,12 +296,12 @@ export const Inquiries = () => {
           />
         </div>
 
-        <div className="flex items-center space-x-3 w-full sm:w-auto">
-          <Filter className="w-4 h-4 text-slate-400" />
+        <div className="flex items-center space-x-2.5 w-full sm:w-auto">
+          <Filter className="w-4 h-4 text-slate-400 shrink-0" />
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-medium text-slate-200 outline-none cursor-pointer font-bold"
+            className="w-full sm:w-auto px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-medium text-slate-200 outline-none cursor-pointer font-bold truncate max-w-full"
           >
             <option value="">⏳ Active Pending Inquiries (Excl. Admission Done)</option>
             <option value="NEW">🆕 NEW Inquiries Only</option>
@@ -316,9 +316,9 @@ export const Inquiries = () => {
 
       {/* BULK OPERATIONS TOOLBAR */}
       {isSuperAdmin && selectedInquiryIds.length > 0 && (
-        <div className="p-4 bg-cyan-950/90 border border-cyan-800 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs shadow-xl">
+        <div className="p-3.5 sm:p-4 bg-cyan-950/90 border border-cyan-800 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs shadow-xl">
           <div className="flex items-center space-x-2">
-            <span className="font-bold text-white bg-cyan-900 px-3 py-1 rounded-xl">
+            <span className="font-bold text-white bg-cyan-900 px-3 py-1 rounded-xl whitespace-nowrap">
               {selectedInquiryIds.length} Inquiry(s) Selected
             </span>
           </div>
@@ -328,7 +328,7 @@ export const Inquiries = () => {
               type="button"
               onClick={handleBulkDeleteInquiries}
               disabled={bulkDeleting}
-              className="px-3.5 py-2 bg-rose-950 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-800 rounded-xl font-bold transition shadow flex items-center space-x-1.5"
+              className="px-3.5 py-2 bg-rose-950 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-800 rounded-xl font-bold transition shadow flex items-center space-x-1.5 whitespace-nowrap"
             >
               <Trash2 className="w-4 h-4" />
               <span>{bulkDeleting ? "Deleting..." : `Delete Selected (${selectedInquiryIds.length})`}</span>
@@ -347,19 +347,19 @@ export const Inquiries = () => {
       )}
 
       {/* Inquiries Content Section */}
-      <div className="bg-slate-900/60 border border-slate-800 rounded-3xl overflow-hidden shadow-xl p-6">
+      <div className="bg-slate-900/60 border border-slate-800 rounded-3xl overflow-hidden shadow-xl p-4 sm:p-6">
         {loading ? (
           <div className="text-center py-16 text-xs text-slate-500">Loading inquiries...</div>
         ) : inquiries.length === 0 ? (
           <div className="text-center py-16 text-xs text-slate-500">No inquiries found matching criteria.</div>
         ) : viewMode === "table" ? (
           /* TABLE LIST VIEW */
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+          <div className="overflow-x-auto border border-slate-800/80 rounded-xl">
+            <table className="w-full text-left text-xs min-w-[800px]">
               <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
                 <tr>
                   {isSuperAdmin && (
-                    <th className="py-3.5 px-3 w-10 text-center">
+                    <th className="py-3.5 px-3 w-10 text-center whitespace-nowrap">
                       <input
                         type="checkbox"
                         checked={
@@ -371,20 +371,20 @@ export const Inquiries = () => {
                       />
                     </th>
                   )}
-                  <th className="py-3.5 px-4">Inquiry No</th>
-                  <th className="py-3.5 px-4">Student Name</th>
-                  <th className="py-3.5 px-4">Contact Details</th>
-                  <th className="py-3.5 px-4">Course Interested</th>
-                  <th className="py-3.5 px-4">Lead Source</th>
-                  <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4 text-center">Actions</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Inquiry No</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Student Name</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Contact Details</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Course Interested</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Lead Source</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Status</th>
+                  <th className="py-3.5 px-4 text-center whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 text-slate-300">
                 {inquiries.map((inq) => (
                   <tr key={inq.id} className="hover:bg-slate-800/30 transition">
                     {isSuperAdmin && (
-                      <td className="py-3.5 px-3 text-center">
+                      <td className="py-3.5 px-3 text-center whitespace-nowrap">
                         <input
                           type="checkbox"
                           checked={selectedInquiryIds.includes(inq.id)}
@@ -393,30 +393,30 @@ export const Inquiries = () => {
                         />
                       </td>
                     )}
-                    <td className="py-3.5 px-4 font-mono font-bold text-cyan-400">
+                    <td className="py-3.5 px-4 font-mono font-bold text-cyan-400 whitespace-nowrap">
                       {inq.inquiryNumber}
                     </td>
-                    <td className="py-3.5 px-4 font-bold text-white">
+                    <td className="py-3.5 px-4 font-bold text-white whitespace-nowrap">
                       {inq.fullName}
                     </td>
-                    <td className="py-3.5 px-4">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       <div className="flex items-center space-x-1.5 font-mono font-bold text-emerald-400 text-xs">
                         <Phone className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                         <a href={`tel:${inq.mobile}`} className="hover:underline hover:text-emerald-300">
                           {inq.mobile}
                         </a>
                       </div>
-                      {inq.email && <div className="text-[10px] text-slate-400 truncate max-w-[160px]">{inq.email}</div>}
+                      {inq.email && <div className="text-[10px] text-slate-400 truncate max-w-[200px]">{inq.email}</div>}
                     </td>
-                    <td className="py-3.5 px-4 font-semibold text-slate-200">
+                    <td className="py-3.5 px-4 font-semibold text-slate-200 whitespace-nowrap">
                       {inq.course?.name || "General Course"}
                     </td>
-                    <td className="py-3.5 px-4">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       <span className="px-2 py-0.5 bg-slate-800 text-slate-300 rounded font-medium text-[10px]">
                         {inq.leadSource?.name || "Direct"}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4">
+                    <td className="py-3.5 px-4 whitespace-nowrap">
                       <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
                         inq.status === "ADMISSION_DONE"
                           ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
@@ -427,7 +427,7 @@ export const Inquiries = () => {
                         {inq.status}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-center space-x-2">
+                    <td className="py-3.5 px-4 text-center space-x-2 whitespace-nowrap">
                       <button
                         onClick={() => handleOpenFollowUp(inq)}
                         className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-[11px] font-semibold transition"
