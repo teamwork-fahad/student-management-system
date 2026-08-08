@@ -716,44 +716,44 @@ export const Students = () => {
       </div>
 
       {/* KPI STATS SUMMARY CARDS HEADER */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
-          <div className="p-3 bg-cyan-950/80 border border-cyan-800/80 rounded-xl text-cyan-400">
+      <div className="grid grid-cols-1 min-[420px]:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
+          <div className="p-2.5 sm:p-3 bg-cyan-950/80 border border-cyan-800/80 rounded-xl text-cyan-400 shrink-0">
             <Users className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Registered</p>
-            <h3 className="text-xl font-black text-white">{stats.totalStudents || pagination.total || students.length}</h3>
+            <p className="text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Total Registered</p>
+            <h3 className="text-lg sm:text-xl font-black text-white whitespace-nowrap">{stats.totalStudents || pagination.total || students.length}</h3>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
-          <div className="p-3 bg-emerald-950/80 border border-emerald-800/80 rounded-xl text-emerald-400">
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
+          <div className="p-2.5 sm:p-3 bg-emerald-950/80 border border-emerald-800/80 rounded-xl text-emerald-400 shrink-0">
             <CheckCircle2 className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Active Students</p>
-            <h3 className="text-xl font-black text-emerald-400">{stats.activeStudents || 0}</h3>
+            <p className="text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Active Students</p>
+            <h3 className="text-lg sm:text-xl font-black text-emerald-400 whitespace-nowrap">{stats.activeStudents || 0}</h3>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
-          <div className="p-3 bg-amber-950/80 border border-amber-800/80 rounded-xl text-amber-400">
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
+          <div className="p-2.5 sm:p-3 bg-amber-950/80 border border-amber-800/80 rounded-xl text-amber-400 shrink-0">
             <CreditCard className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Pending Dues ({stats.pendingDuesCount || 0})</p>
-            <h3 className="text-xl font-black text-amber-400">₹{(stats.totalPendingDuesAmount || 0).toLocaleString("en-IN")}</h3>
+            <p className="text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Pending Dues ({stats.pendingDuesCount || 0})</p>
+            <h3 className="text-lg sm:text-xl font-black text-amber-400 whitespace-nowrap">₹{(stats.totalPendingDuesAmount || 0).toLocaleString("en-IN")}</h3>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
-          <div className="p-3 bg-purple-950/80 border border-purple-800/80 rounded-xl text-purple-400">
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center space-x-3 shadow-lg">
+          <div className="p-2.5 sm:p-3 bg-purple-950/80 border border-purple-800/80 rounded-xl text-purple-400 shrink-0">
             <GraduationCap className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Completed Passout</p>
-            <h3 className="text-xl font-black text-purple-300">{stats.completedStudents || 0}</h3>
+            <p className="text-[10px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Completed Passout</p>
+            <h3 className="text-lg sm:text-xl font-black text-purple-300 whitespace-nowrap">{stats.completedStudents || 0}</h3>
           </div>
         </div>
       </div>
@@ -847,124 +847,147 @@ export const Students = () => {
           </div>
         </div>
 
-        {/* Multi-Filters & Sorting Controls Row */}
-        <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-slate-800/80">
-          <div className="flex items-center space-x-1 text-slate-400 text-xs font-semibold">
-            <Filter className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Filters:</span>
-          </div>
+        {/* Multi-Filters & Sorting Controls Organized Grid */}
+        <div className="pt-3 border-t border-slate-800/80 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2 text-slate-300 text-xs font-bold uppercase tracking-wider">
+              <Filter className="w-4 h-4 text-cyan-400 shrink-0" />
+              <span>Directory Filters</span>
+              {(statusFilter || departmentFilter || programFilter || courseFilter || paymentFilter) && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-cyan-950 text-cyan-400 border border-cyan-800">
+                  Filtered
+                </span>
+              )}
+            </div>
 
-          {/* Academic Status Filter */}
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-cyan-500 font-semibold"
-          >
-            <option value="">All Academic Statuses ({stats.totalStudents || 0})</option>
-            <option value="ACTIVE">🟢 ACTIVE ({stats.statusCounts?.ACTIVE ?? stats.activeStudents ?? 0})</option>
-            <option value="ON_HOLD">🟡 ON HOLD ({stats.statusCounts?.ON_HOLD ?? 0})</option>
-            <option value="COMPLETED">🔵 COMPLETED ({stats.statusCounts?.COMPLETED ?? stats.completedStudents ?? 0})</option>
-            <option value="DROPPED">🔴 DROPPED ({stats.statusCounts?.DROPPED ?? 0})</option>
-            <option value="TRANSFERRED">TRANSFERRED ({stats.statusCounts?.TRANSFERRED ?? 0})</option>
-          </select>
-
-          {/* Level 1: Department Filter */}
-          <select
-            value={departmentFilter}
-            onChange={(e) => {
-              setDepartmentFilter(e.target.value);
-              setProgramFilter("");
-              setCourseFilter("");
-            }}
-            className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-cyan-500 font-semibold max-w-[180px] truncate"
-          >
-            <option value="">🏛️ All Departments</option>
-            {departmentsList.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name}
-              </option>
-            ))}
-          </select>
-
-          {/* Level 2: Program / Degree Filter */}
-          <select
-            value={programFilter}
-            onChange={(e) => {
-              setProgramFilter(e.target.value);
-              setCourseFilter("");
-            }}
-            className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-cyan-500 font-semibold max-w-[170px] truncate"
-          >
-            <option value="">🎓 All Programs</option>
-            {availablePrograms.map((prog) => (
-              <option key={prog} value={prog}>
-                {prog}
-              </option>
-            ))}
-          </select>
-
-          {/* Level 3: Semester / Specific Course Filter */}
-          <select
-            value={courseFilter}
-            onChange={(e) => setCourseFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-cyan-500 font-semibold max-w-[220px] truncate"
-          >
-            <option value="">
-              📖 All Courses ({coursesInProgram.reduce((acc, c) => acc + (c.stats?.totalStudents || c.stats?.activeStudents || 0), 0)})
-            </option>
-            {coursesInProgram
-              .slice()
-              .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
-              .map((c) => {
-                const count = c.stats?.totalStudents || c.stats?.activeStudents || 0;
-                return (
-                  <option key={c.id} value={c.id}>
-                    {c.name} ({count})
-                  </option>
-                );
-              })}
-          </select>
-
-          {/* Payment / Dues Filter */}
-          <select
-            value={paymentFilter}
-            onChange={(e) => setPaymentFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-cyan-500 font-semibold"
-          >
-            <option value="">All Payment Statuses</option>
-            <option value="PENDING">⚠️ Has Pending Dues</option>
-            <option value="CLEARED">✓ Fees Fully Cleared</option>
-          </select>
-
-          {/* Sort By Dropdown */}
-          <div className="flex items-center space-x-1.5 ml-auto">
-            <span className="text-slate-400 text-xs font-semibold hidden sm:inline">Sort:</span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-cyan-400 text-xs focus:outline-none focus:border-cyan-500 font-bold"
-            >
-              <option value="name_asc">🟢 Active First & Name (A - Z)</option>
-              <option value="name_desc">🟢 Active First & Name (Z - A)</option>
-              <option value="newest">Newest Registrations</option>
-              <option value="oldest">Oldest Registrations</option>
-              <option value="pending_desc">Highest Pending Dues (₹)</option>
-              <option value="pending_asc">Lowest Pending Dues (₹)</option>
-            </select>
-
-            {/* DYNAMIC COLUMN / FIELD CUSTOMIZER POPOVER */}
-            <div ref={columnCustomizerRef} className="relative">
+            {(statusFilter || departmentFilter || programFilter || courseFilter || paymentFilter) && (
               <button
                 type="button"
-                onClick={() => setShowColumnCustomizer(!showColumnCustomizer)}
-                className={`px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold flex items-center space-x-1 transition ${
-                  showColumnCustomizer ? "border-cyan-500 text-cyan-400 bg-cyan-950/40" : "text-slate-300 hover:text-white"
-                }`}
-                title="Customize Display Columns & Fields"
+                onClick={() => {
+                  setStatusFilter("");
+                  setDepartmentFilter("");
+                  setProgramFilter("");
+                  setCourseFilter("");
+                  setPaymentFilter("");
+                }}
+                className="text-[11px] font-bold text-rose-400 hover:text-rose-300 transition flex items-center space-x-1"
               >
-                <SlidersHorizontal className="w-3.5 h-3.5 text-cyan-400" />
-                <span className="hidden sm:inline">Fields ({Object.values(columns).filter(Boolean).length})</span>
+                <span>Reset Filters ✕</span>
               </button>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5">
+            {/* Academic Status Filter */}
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-cyan-500 font-semibold truncate"
+            >
+              <option value="">All Statuses ({stats.totalStudents || 0})</option>
+              <option value="ACTIVE">🟢 ACTIVE ({stats.statusCounts?.ACTIVE ?? stats.activeStudents ?? 0})</option>
+              <option value="ON_HOLD">🟡 ON HOLD ({stats.statusCounts?.ON_HOLD ?? 0})</option>
+              <option value="COMPLETED">🔵 COMPLETED ({stats.statusCounts?.COMPLETED ?? stats.completedStudents ?? 0})</option>
+              <option value="DROPPED">🔴 DROPPED ({stats.statusCounts?.DROPPED ?? 0})</option>
+              <option value="TRANSFERRED">TRANSFERRED ({stats.statusCounts?.TRANSFERRED ?? 0})</option>
+            </select>
+
+            {/* Level 1: Department Filter */}
+            <select
+              value={departmentFilter}
+              onChange={(e) => {
+                setDepartmentFilter(e.target.value);
+                setProgramFilter("");
+                setCourseFilter("");
+              }}
+              className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-cyan-500 font-semibold truncate"
+            >
+              <option value="">🏛️ All Departments</option>
+              {departmentsList.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
+              ))}
+            </select>
+
+            {/* Level 2: Program / Degree Filter */}
+            <select
+              value={programFilter}
+              onChange={(e) => {
+                setProgramFilter(e.target.value);
+                setCourseFilter("");
+              }}
+              className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-cyan-500 font-semibold truncate"
+            >
+              <option value="">🎓 All Programs</option>
+              {availablePrograms.map((prog) => (
+                <option key={prog} value={prog}>
+                  {prog}
+                </option>
+              ))}
+            </select>
+
+            {/* Level 3: Semester / Specific Course Filter */}
+            <select
+              value={courseFilter}
+              onChange={(e) => setCourseFilter(e.target.value)}
+              className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-cyan-500 font-semibold truncate"
+            >
+              <option value="">
+                📖 All Courses ({coursesInProgram.reduce((acc, c) => acc + (c.stats?.totalStudents || c.stats?.activeStudents || 0), 0)})
+              </option>
+              {coursesInProgram
+                .slice()
+                .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
+                .map((c) => {
+                  const count = c.stats?.totalStudents || c.stats?.activeStudents || 0;
+                  return (
+                    <option key={c.id} value={c.id}>
+                      {c.name} ({count})
+                    </option>
+                  );
+                })}
+            </select>
+
+            {/* Payment / Dues Filter */}
+            <select
+              value={paymentFilter}
+              onChange={(e) => setPaymentFilter(e.target.value)}
+              className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-cyan-500 font-semibold truncate"
+            >
+              <option value="">All Payment Statuses</option>
+              <option value="PENDING">⚠️ Has Pending Dues</option>
+              <option value="CLEARED">✓ Fees Fully Cleared</option>
+            </select>
+
+            {/* Sort & Fields Customizer */}
+            <div className="flex items-center space-x-1.5 w-full">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="flex-1 px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-cyan-400 text-xs focus:outline-none focus:border-cyan-500 font-bold truncate min-w-0"
+              >
+                <option value="name_asc">🟢 Active & Name (A-Z)</option>
+                <option value="name_desc">🟢 Active & Name (Z-A)</option>
+                <option value="newest">Newest Registrations</option>
+                <option value="oldest">Oldest Registrations</option>
+                <option value="pending_desc">Highest Pending Dues</option>
+                <option value="pending_asc">Lowest Pending Dues</option>
+              </select>
+
+              {/* DYNAMIC COLUMN / FIELD CUSTOMIZER POPOVER */}
+              <div ref={columnCustomizerRef} className="relative shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setShowColumnCustomizer(!showColumnCustomizer)}
+                  className={`px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold flex items-center space-x-1 transition ${
+                    showColumnCustomizer ? "border-cyan-500 text-cyan-400 bg-cyan-950/40" : "text-slate-300 hover:text-white"
+                  }`}
+                  title="Customize Display Columns & Fields"
+                >
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                  <span className="hidden min-[400px]:inline">Fields ({Object.values(columns).filter(Boolean).length})</span>
+                </button>
 
               {showColumnCustomizer && (
                 <div className="absolute right-0 top-11 w-64 bg-slate-950 border border-cyan-800/80 rounded-2xl shadow-2xl p-4 z-50 space-y-3 font-sans text-xs">
@@ -1023,6 +1046,7 @@ export const Students = () => {
             </div>
           </div>
         </div>
+      </div>
       </div>
 
       {/* FLOATING BULK ACTIONS BAR */}
@@ -1091,8 +1115,8 @@ export const Students = () => {
           />
         ) : viewMode === "table" ? (
           /* TABLE LIST VIEW WITH THE 4 REQUESTED DISPLAY COLUMNS PROMINENTLY HIGHLIGHTED */
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-300">
+          <div className="overflow-x-auto border border-slate-800/80 rounded-xl">
+            <table className="w-full text-left text-sm text-slate-300 min-w-[850px]">
               <thead className="bg-slate-950/80 text-xs text-slate-400 uppercase tracking-wider border-b border-slate-800">
                 <tr>
                   <th className="p-3.5 w-10 text-center whitespace-nowrap">
@@ -1125,7 +1149,7 @@ export const Students = () => {
                         isSelected ? "bg-cyan-950/20" : ""
                       }`}
                     >
-                      <td className="p-3.5 text-center">
+                      <td className="p-3.5 text-center whitespace-nowrap">
                         <input
                           type="checkbox"
                           checked={selectedStudentIds.includes(student.id)}
@@ -1135,7 +1159,7 @@ export const Students = () => {
                       </td>
 
                       {/* 1. STUDENT NAME & CONTACT */}
-                      <td className="p-3.5">
+                      <td className="p-3.5 whitespace-nowrap">
                         <div className="flex items-center space-x-3">
                           <div className="w-9 h-9 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800 flex items-center justify-center font-bold text-sm shrink-0">
                             {student.fullName[0]?.toUpperCase()}
@@ -1149,7 +1173,7 @@ export const Students = () => {
                               title="Open Student Profile in new tab"
                             >
                               <span>{toTitleCase(student.fullName)}</span>
-                              <ExternalLink className="w-3 h-3 text-cyan-400/80 inline" />
+                              <ExternalLink className="w-3 h-3 text-cyan-400/80 inline shrink-0" />
                             </a>
                             <div className="flex items-center space-x-2 mt-0.5">
                               <a
@@ -1170,7 +1194,7 @@ export const Students = () => {
                       </td>
 
                       {/* 2. ENROLLED COURSE(S) */}
-                      <td className="p-3.5 text-xs">
+                      <td className="p-3.5 text-xs whitespace-nowrap">
                         <div className="flex items-center space-x-1.5 flex-wrap gap-y-1">
                           <span
                             className="px-2.5 py-1 bg-cyan-950 text-cyan-300 border border-cyan-800 rounded-lg text-xs font-bold truncate max-w-[220px]"
@@ -1193,7 +1217,7 @@ export const Students = () => {
                       </td>
 
                       {/* 3. PENDING DUES BALANCE (₹) */}
-                      <td className="p-3.5 text-right">
+                      <td className="p-3.5 text-right whitespace-nowrap">
                         {pendingAmount > 0 ? (
                           <div>
                             <span className="font-extrabold text-amber-400 text-sm bg-amber-950/60 border border-amber-800/60 px-2.5 py-1 rounded-lg inline-block">
@@ -1216,7 +1240,7 @@ export const Students = () => {
                       </td>
 
                       {/* 4. ACADEMIC STATUS */}
-                      <td className="p-3.5 text-center">
+                      <td className="p-3.5 text-center whitespace-nowrap">
                         <span
                           className={`inline-flex items-center px-3 py-1 rounded-xl text-xs font-bold border ${
                             st === "ACTIVE"
@@ -1239,7 +1263,7 @@ export const Students = () => {
                       </td>
 
                       {/* ACTIONS */}
-                      <td className="p-3.5 text-center space-x-1.5">
+                      <td className="p-3.5 text-center space-x-1.5 whitespace-nowrap">
                         <a
                           href={`/dashboard/students/${student.id}`}
                           target="_blank"
