@@ -105,6 +105,28 @@ export const Attendance = () => {
     }
   };
 
+  const markedCount = Object.values(attendanceState).filter((s) => s && s !== "UNMARKED").length;
+  const unmarkedCount = students.length - markedCount;
+
+  const filteredStudents = students.filter((s) => {
+    const currentStatus = attendanceState[s.studentId] || "UNMARKED";
+
+    if (attendanceTab === "UNMARKED" && currentStatus !== "UNMARKED") {
+      return false;
+    }
+    if (attendanceTab === "MARKED" && currentStatus === "UNMARKED") {
+      return false;
+    }
+
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase().trim();
+    return (
+      (s.fullName || "").toLowerCase().includes(q) ||
+      (s.displayId || "").toLowerCase().includes(q) ||
+      (s.courseName || "").toLowerCase().includes(q)
+    );
+  });
+
   // Instant save on individual button click
   const handleStatusChange = async (studentId, status) => {
     const updatedState = {
@@ -196,28 +218,6 @@ export const Attendance = () => {
       alert("Failed to generate WhatsApp attendance report");
     }
   };
-
-  const markedCount = Object.values(attendanceState).filter((s) => s && s !== "UNMARKED").length;
-  const unmarkedCount = students.length - markedCount;
-
-  const filteredStudents = students.filter((s) => {
-    const currentStatus = attendanceState[s.studentId] || "UNMARKED";
-
-    if (attendanceTab === "UNMARKED" && currentStatus !== "UNMARKED") {
-      return false;
-    }
-    if (attendanceTab === "MARKED" && currentStatus === "UNMARKED") {
-      return false;
-    }
-
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase().trim();
-    return (
-      (s.fullName || "").toLowerCase().includes(q) ||
-      (s.displayId || "").toLowerCase().includes(q) ||
-      (s.courseName || "").toLowerCase().includes(q)
-    );
-  });
 
   return (
     <div className="space-y-6 font-sans">
