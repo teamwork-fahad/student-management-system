@@ -32,7 +32,9 @@ export const Attendance = () => {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
 
-  // Map of studentId -> attendance status ('PRESENT' | 'ABSENT' | 'LATE' | 'UNMARKED')
+  const [selectedStudentIds, setSelectedStudentIds] = useState([]);
+
+  // Map of studentId -> attendance status ('PRESENT' | 'ABSENT' | 'LATE' | 'EXEMPTED' | 'UNMARKED')
   const [attendanceState, setAttendanceState] = useState({});
 
   useEffect(() => {
@@ -42,7 +44,50 @@ export const Attendance = () => {
   useEffect(() => {
     fetchAttendance();
     fetchStats();
+    setSelectedStudentIds([]);
   }, [date, selectedCourseId, selectedDeptId]);
+
+  const toggleSelectStudent = (id) => {
+    setSelectedStudentIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedStudentIds.length === filteredStudents.length && filteredStudents.length > 0) {
+      setSelectedStudentIds([]);
+    } else {
+      setSelectedStudentIds(filteredStudents.map((s) => s.studentId));
+    }
+  };
+
+  const handleBulkStatusChange = async (status) => {
+    if (selectedStudentIds.length === 0) return;
+
+    const nextState = { ...attendanceState };
+    const records = selectedStudentIds.map((studentId) => {
+      nextState[studentId] = status;
+      return { studentId, status };
+    });
+    setAttendanceState(nextState);
+
+    setSaving(true);
+    try {
+      await api.post("/attendance", {
+        date,
+        records,
+      });
+      setMsg(`Updated ${selectedStudentIds.length} student(s) to ${status}!`);
+      setSelectedStudentIds([]);
+      fetchStats();
+      setTimeout(() => setMsg(""), 3000);
+    } catch (err) {
+      console.error("Bulk status error:", err);
+      setMsg("Failed to update bulk attendance.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const fetchDropdowns = async () => {
     try {
@@ -461,6 +506,47 @@ export const Attendance = () => {
         </div>
       </div>
 
+      {/* BULK SELECTION ACTION BAR */}
+      {selectedStudentIds.length > 0 && (
+        <div className="bg-slate-900 border border-cyan-500/40 p-3 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-xl">
+          <div className="flex items-center space-x-2 text-xs text-slate-300 font-bold">
+            <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
+            <span>{selectedStudentIds.length} Student(s) Selected</span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => handleBulkStatusChange("PRESENT")}
+              disabled={saving}
+              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition shadow"
+            >
+              ✓ Mark Present
+            </button>
+            <button
+              onClick={() => handleBulkStatusChange("ABSENT")}
+              disabled={saving}
+              className="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold transition shadow"
+            >
+              ✗ Mark Absent
+            </button>
+            <button
+              onClick={() => handleBulkStatusChange("EXEMPTED")}
+              disabled={saving}
+              className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition shadow"
+            >
+              ☕ Mark Off
+            </button>
+            <button
+              onClick={() => handleBulkStatusChange("UNMARKED")}
+              disabled={saving}
+              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs font-bold transition shadow"
+            >
+              🔄 Unmark / Reset
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Attendance Sheet Section */}
       <div className="bg-slate-900/60 border border-slate-800 rounded-3xl overflow-hidden shadow-xl p-4 sm:p-6">
         {loading ? (
@@ -472,12 +558,21 @@ export const Attendance = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredStudents.map((s) => {
               const currentStatus = attendanceState[s.studentId] || "UNMARKED";
+              const isSelected = selectedStudentIds.includes(s.studentId);
               const profileUrl = `/dashboard/students/${s.studentId}`;
 
               return (
-                <div key={s.studentId} className="p-4 bg-slate-950/90 border border-slate-800 rounded-2xl space-y-3 shadow-lg">
+                <div key={s.studentId} className={`p-4 bg-slate-950/90 border rounded-2xl space-y-3 shadow-lg transition ${isSelected ? "border-cyan-500/80 bg-cyan-950/20" : "border-slate-800"}`}>
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-xs font-bold text-cyan-400">{s.displayId}</span>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleSelectStudent(s.studentId)}
+                        className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-cyan-500 cursor-pointer"
+                      />
+                      <span className="font-mono text-xs font-bold text-cyan-400">{s.displayId}</span>
+                    </div>
                     {currentStatus === "PRESENT" ? (
                       <span className="px-2.5 py-0.5 bg-emerald-950 text-emerald-400 border border-emerald-800 rounded-full font-bold text-[10px]">PRESENT</span>
                     ) : currentStatus === "ABSENT" ? (
@@ -507,11 +602,11 @@ export const Attendance = () => {
                   </div>
 
                   {/* Mobile 1-Tap Touch Buttons */}
-                  <div className="grid grid-cols-4 gap-1.5 pt-2 border-t border-slate-800/80">
+                  <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-800/80">
                     <button
                       type="button"
                       onClick={() => handleStatusChange(s.studentId, "PRESENT")}
-                      className={`py-2 rounded-xl font-bold text-[11px] flex items-center justify-center space-x-1 transition active:scale-95 ${
+                      className={`flex-1 py-2 rounded-xl font-bold text-[11px] transition active:scale-95 ${
                         currentStatus === "PRESENT"
                           ? "bg-emerald-600 text-white shadow border border-emerald-400"
                           : "bg-slate-900 text-emerald-400 hover:bg-emerald-950 border border-slate-800"
@@ -523,7 +618,7 @@ export const Attendance = () => {
                     <button
                       type="button"
                       onClick={() => handleStatusChange(s.studentId, "ABSENT")}
-                      className={`py-2 rounded-xl font-bold text-[11px] flex items-center justify-center space-x-1 transition active:scale-95 ${
+                      className={`flex-1 py-2 rounded-xl font-bold text-[11px] transition active:scale-95 ${
                         currentStatus === "ABSENT"
                           ? "bg-rose-600 text-white shadow border border-rose-400"
                           : "bg-slate-900 text-rose-400 hover:bg-rose-950 border border-slate-800"
@@ -534,20 +629,8 @@ export const Attendance = () => {
 
                     <button
                       type="button"
-                      onClick={() => handleStatusChange(s.studentId, "LATE")}
-                      className={`py-2 rounded-xl font-bold text-[11px] flex items-center justify-center space-x-1 transition active:scale-95 ${
-                        currentStatus === "LATE"
-                          ? "bg-amber-600 text-white shadow border border-amber-400"
-                          : "bg-slate-900 text-amber-400 hover:bg-amber-950 border border-slate-800"
-                      }`}
-                    >
-                      <span>Late</span>
-                    </button>
-
-                    <button
-                      type="button"
                       onClick={() => handleStatusChange(s.studentId, "EXEMPTED")}
-                      className={`py-2 rounded-xl font-bold text-[11px] flex items-center justify-center space-x-1 transition active:scale-95 ${
+                      className={`flex-1 py-2 rounded-xl font-bold text-[11px] transition active:scale-95 ${
                         currentStatus === "EXEMPTED"
                           ? "bg-indigo-600 text-white shadow border border-indigo-400"
                           : "bg-slate-900 text-indigo-300 hover:bg-indigo-950 border border-slate-800"
@@ -556,6 +639,17 @@ export const Attendance = () => {
                     >
                       <span>☕ Off</span>
                     </button>
+
+                    {currentStatus !== "UNMARKED" && (
+                      <button
+                        type="button"
+                        onClick={() => handleStatusChange(s.studentId, "UNMARKED")}
+                        className="px-2.5 py-2 rounded-xl font-bold text-[11px] bg-slate-900 text-cyan-400 border border-slate-700 hover:bg-slate-800 transition active:scale-95"
+                        title="Unmark attendance (Reset back to pending)"
+                      >
+                        🔄 Unmark
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -567,6 +661,14 @@ export const Attendance = () => {
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
                 <tr>
+                  <th className="py-3.5 px-3 w-10 text-center">
+                    <input
+                      type="checkbox"
+                      checked={selectedStudentIds.length === filteredStudents.length && filteredStudents.length > 0}
+                      onChange={toggleSelectAll}
+                      className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-cyan-500 cursor-pointer"
+                    />
+                  </th>
                   <th className="py-3.5 px-4">Student ID</th>
                   <th className="py-3.5 px-4">Student Name</th>
                   <th className="py-3.5 px-4">Course Name</th>
@@ -577,10 +679,19 @@ export const Attendance = () => {
               <tbody className="divide-y divide-slate-800/60 text-slate-300">
                 {filteredStudents.map((s) => {
                   const currentStatus = attendanceState[s.studentId] || "UNMARKED";
+                  const isSelected = selectedStudentIds.includes(s.studentId);
                   const profileUrl = `/dashboard/students/${s.studentId}`;
 
                   return (
-                    <tr key={s.studentId} className="hover:bg-slate-800/30 transition">
+                    <tr key={s.studentId} className={`transition ${isSelected ? "bg-cyan-950/30" : "hover:bg-slate-800/30"}`}>
+                      <td className="py-3.5 px-3 text-center">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelectStudent(s.studentId)}
+                          className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-cyan-500 cursor-pointer"
+                        />
+                      </td>
                       <td className="py-3.5 px-4 font-mono font-bold text-cyan-400">
                         <a
                           href={profileUrl}
@@ -665,18 +776,6 @@ export const Attendance = () => {
 
                           <button
                             type="button"
-                            onClick={() => handleStatusChange(s.studentId, "LATE")}
-                            className={`px-3 py-1.5 rounded-xl font-bold text-[11px] transition ${
-                              currentStatus === "LATE"
-                                ? "bg-amber-600 text-white shadow-md shadow-amber-600/30"
-                                : "bg-slate-950 text-slate-400 hover:text-slate-200 border border-slate-800"
-                            }`}
-                          >
-                            Late
-                          </button>
-
-                          <button
-                            type="button"
                             onClick={() => handleStatusChange(s.studentId, "EXEMPTED")}
                             className={`px-3 py-1.5 rounded-xl font-bold text-[11px] transition ${
                               currentStatus === "EXEMPTED"
@@ -687,6 +786,17 @@ export const Attendance = () => {
                           >
                             ☕ Off
                           </button>
+
+                          {currentStatus !== "UNMARKED" && (
+                            <button
+                              type="button"
+                              onClick={() => handleStatusChange(s.studentId, "UNMARKED")}
+                              className="px-2.5 py-1.5 rounded-xl font-bold text-[11px] bg-slate-950 text-cyan-400 border border-slate-700 hover:bg-slate-800 transition"
+                              title="Unmark attendance (Reset back to pending)"
+                            >
+                              🔄 Unmark
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

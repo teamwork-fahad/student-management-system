@@ -1,11 +1,11 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { Text, Platform } from 'react-native';
+import { Text, Platform, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const insets = useSafeAreaInsets();
+  const bottomInset = insets.bottom > 0 ? insets.bottom : (Platform.OS === 'android' ? 10 : 8);
 
   return (
     <Tabs
@@ -15,27 +15,64 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: '#0f172a',
           borderTopColor: '#1e293b',
-          height: Platform.OS === 'android' ? 70 : 64,
-          paddingBottom: Platform.OS === 'android' ? 14 : 10,
+          borderTopWidth: 1,
+          height: 60 + bottomInset,
+          paddingBottom: bottomInset,
           paddingTop: 8,
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          elevation: 8,
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: -3 },
+          shadowOpacity: 0.3,
+          shadowRadius: 6,
+        },
+        tabBarItemStyle: {
+          justifyContent: 'center',
+          alignItems: 'center',
+          paddingVertical: 2,
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '700',
+          marginTop: 2,
+          paddingBottom: 2,
         },
         headerShown: false,
-      }}>
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Active & Attendance',
+          title: 'Attendance',
           tabBarIcon: ({ color, focused }) => (
-            <Text style={{ fontSize: 18, opacity: focused ? 1 : 0.6 }}>📋</Text>
+            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontSize: 18, opacity: focused ? 1 : 0.6 }}>📋</Text>
+            </View>
           ),
         }}
       />
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Status & All Students',
+          title: 'Status',
           tabBarIcon: ({ color, focused }) => (
-            <Text style={{ fontSize: 18, opacity: focused ? 1 : 0.6 }}>👥</Text>
+            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontSize: 18, opacity: focused ? 1 : 0.6 }}>👥</Text>
+            </View>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="fees"
+        options={{
+          title: 'Fee Entry',
+          tabBarIcon: ({ color, focused }) => (
+            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontSize: 18, opacity: focused ? 1 : 0.6 }}>💰</Text>
+            </View>
           ),
         }}
       />

@@ -55,6 +55,7 @@ export default function StatusManagerScreen() {
   // Fee Collection Modal State
   const [feeModalStudent, setFeeModalStudent] = useState<Student | null>(null);
   const [feeAmount, setFeeAmount] = useState<string>('5000');
+  const [feePaymentDate, setFeePaymentDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [paymentMode, setPaymentMode] = useState<'CASH' | 'UPI' | 'CARD' | 'BANK_TRANSFER'>('CASH');
   const [feeSubmitting, setFeeSubmitting] = useState<boolean>(false);
   const [feeError, setFeeError] = useState<string | null>(null);
@@ -177,6 +178,8 @@ export default function StatusManagerScreen() {
       return;
     }
 
+    const todayStr = new Date().toISOString().split('T')[0];
+
     setFeeSubmitting(true);
     setFeeError(null);
     try {
@@ -184,11 +187,12 @@ export default function StatusManagerScreen() {
         studentId: feeModalStudent.id,
         amount: numericAmount,
         paymentMode: paymentMode,
+        paymentDate: feePaymentDate || todayStr,
         remarks: 'Collected via AppXwinD Mobile App',
       });
 
       const receiptNo = res.data?.data?.payment?.transactionReference || 'REC-SUCCESS';
-      Alert.alert('Fee Payment Success! 💳', `Collected ₹${numericAmount.toLocaleString('en-IN')} for ${feeModalStudent.fullName}.\nReceipt: ${receiptNo}`);
+      Alert.alert('Fee Payment Success! 💳', `Collected ₹${numericAmount.toLocaleString('en-IN')} for ${feeModalStudent.fullName}.\nPayment Date: ${feePaymentDate || todayStr}\nReceipt: ${receiptNo}`);
       setFeeModalStudent(null);
       setFeeAmount('5000');
       fetchStudents(selectedStatusTab, search);
@@ -632,6 +636,25 @@ export default function StatusManagerScreen() {
                 />
               </View>
 
+              <View style={{ marginBottom: 12 }}>
+                <Text style={{ color: '#cbd5e1', fontSize: 12, fontWeight: 'bold', marginBottom: 4 }}>Payment Date (YYYY-MM-DD)</Text>
+                <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
+                  <TextInput
+                    style={[styles.searchInput, { flex: 1 }]}
+                    value={feePaymentDate}
+                    onChangeText={setFeePaymentDate}
+                    placeholder="YYYY-MM-DD"
+                    placeholderTextColor="#64748b"
+                  />
+                  <TouchableOpacity
+                    style={{ backgroundColor: '#1e293b', borderColor: '#334155', borderWidth: 1, paddingVertical: 12, paddingHorizontal: 14, borderRadius: 12 }}
+                    onPress={() => setFeePaymentDate(new Date().toISOString().split('T')[0])}
+                  >
+                    <Text style={{ color: '#38bdf8', fontSize: 11, fontWeight: 'bold' }}>Today</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
               <View style={{ marginBottom: 16 }}>
                 <Text style={{ color: '#cbd5e1', fontSize: 12, fontWeight: 'bold', marginBottom: 6 }}>Payment Mode</Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
@@ -672,6 +695,8 @@ export default function StatusManagerScreen() {
               </View>
             </View>
           </View>
+        </Modal>
+      )}
     </SafeAreaView>
   );
 }
@@ -1168,6 +1193,19 @@ const styles = StyleSheet.create({
   profileCloseText: {
     color: '#94a3b8',
     fontSize: 12,
+    fontWeight: 'bold',
+  },
+  errorBanner: {
+    backgroundColor: '#881337',
+    borderColor: '#be123c',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 10,
+  },
+  errorText: {
+    color: '#fecdd3',
+    fontSize: 11,
     fontWeight: 'bold',
   },
 });

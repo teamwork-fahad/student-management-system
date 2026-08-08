@@ -43,8 +43,24 @@ export const markBatchAttendance = async ({ date, records, markedBy }) => {
     throw createHttpError("No valid student records found to mark attendance", 400);
   }
 
-  const results = await prisma.$transaction(
-    validRecords.map((r) =>
+  const toUpsert = validRecords.filter((r) => r.status && r.status !== "UNMARKED");
+  const toDelete = validRecords.filter((r) => r.status === "UNMARKED");
+
+  const ops = [];
+
+  if (toDelete.length > 0) {
+    ops.push(
+      prisma.attendance.deleteMany({
+        where: {
+          date: attendanceDate,
+          studentId: { in: toDelete.map((r) => r.studentId) },
+        },
+      })
+    );
+  }
+
+  toUpsert.forEach((r) => {
+    ops.push(
       prisma.attendance.upsert({
         where: {
           studentId_date: {
@@ -53,21 +69,22 @@ export const markBatchAttendance = async ({ date, records, markedBy }) => {
           },
         },
         update: {
-          status: r.status || "PRESENT",
+          status: r.status,
           remarks: r.remarks || null,
           markedBy: markedBy || "SUPER_ADMIN",
         },
         create: {
           studentId: r.studentId,
           date: attendanceDate,
-          status: r.status || "PRESENT",
+          status: r.status,
           remarks: r.remarks || null,
           markedBy: markedBy || "SUPER_ADMIN",
         },
       })
-    )
-  );
+    );
+  });
 
+  const results = await prisma.$transaction(ops);
   return results;
 };
 
@@ -121,7 +138,7 @@ export const getAttendanceByDate = async (dateStr, courseId) => {
 export const getAttendanceStats = async () => {
   const today = parseDateToUTC(new Date().toISOString().split("T")[0]);
 
-  const [totalStudents, todayPresent, todayAbsent, todayLate] = await Promise.all([
+  const [totalStudents, todayPresent, todayAbsent, todayLate, todayExempted] = await Promise.all([
     prisma.student.count({
       where: {
         deletedAt: null,
@@ -132,6 +149,7 @@ export const getAttendanceStats = async () => {
     prisma.attendance.count({ where: { date: today, status: "PRESENT" } }),
     prisma.attendance.count({ where: { date: today, status: "ABSENT" } }),
     prisma.attendance.count({ where: { date: today, status: "LATE" } }),
+    prisma.attendance.count({ where: { date: today, status: "EXEMPTED" } }),
   ]);
 
   return {
@@ -139,7 +157,8 @@ export const getAttendanceStats = async () => {
     todayPresent,
     todayAbsent,
     todayLate,
-    todayUnmarked: Math.max(0, totalStudents - (todayPresent + todayAbsent + todayLate)),
+    todayExempted,
+    todayUnmarked: Math.max(0, totalStudents - (todayPresent + todayAbsent + todayLate + todayExempted)),
   };
 };
 

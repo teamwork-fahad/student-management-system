@@ -319,9 +319,13 @@ export const generateStudentFeeReminderWhatsApp = async (studentId) => {
   const formattedMobile = cleanMobile.length === 10 ? `91${cleanMobile}` : cleanMobile;
   const courseName = admission.courseNameSnapshot || admission.course?.name || "Enrolled Course";
 
-  const totalFees = Number(admission.finalFees || admission.courseFees || 0);
+  const totalFees = Number(admission.courseFees || admission.finalFees || 0);
+  const discount = Number(admission.discount || 0);
+  const finalFees = Number(admission.finalFees || 0);
   const paidAmount = Number(admission.paidAmount || 0);
   const pendingAmount = Number(admission.pendingAmount || 0);
+
+  const portalUrl = "https://student-management-system-pi-rosy.vercel.app/";
 
   const text = `📢 *FEE PAYMENT REMINDER NOTICE*
 
@@ -329,9 +333,14 @@ Dear *${student.fullName}* (${student.studentId}),
 
 This is a gentle reminder regarding your pending course fee balance for *${courseName}*.
 
-💰 *Total Course Fees:* ₹${totalFees.toLocaleString("en-IN")}
-✅ *Amount Paid:* ₹${paidAmount.toLocaleString("en-IN")}
-⚠️ *Pending Balance:* ₹${pendingAmount.toLocaleString("en-IN")}
+💰 *Total Fees:* ₹${totalFees.toLocaleString("en-IN")}
+🎁 *Discount:* ₹${discount.toLocaleString("en-IN")}
+🏷️ *Final Fees:* ₹${finalFees.toLocaleString("en-IN")}
+💳 *Paid Amount:* ₹${paidAmount.toLocaleString("en-IN")}
+⚠️ *Pending Dues Balance:* ₹${pendingAmount.toLocaleString("en-IN")}
+
+🔗 Aap system me ja kar payment verify kar sakte hain aur receipt download kar sakte hain:
+${portalUrl}
 
 Please clear your pending dues at the earliest to continue your classes smoothly. If you have already paid, kindly ignore this message.
 

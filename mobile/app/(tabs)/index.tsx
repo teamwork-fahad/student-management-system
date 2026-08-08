@@ -58,7 +58,10 @@ export default function AttendanceActiveScreen() {
   // Date state: YYYY-MM-DD
   const todayStr = new Date().toISOString().split('T')[0];
   const [attendanceDate, setAttendanceDate] = useState<string>(todayStr);
-  const [attendanceMap, setAttendanceMap] = useState<Record<string, 'PRESENT' | 'ABSENT' | 'LATE' | 'UNMARKED'>>({});
+  const [attendanceMap, setAttendanceMap] = useState<Record<string, 'PRESENT' | 'ABSENT' | 'LATE' | 'EXEMPTED' | 'UNMARKED'>>({});
+  const [savingAttendance, setSavingAttendance] = useState(false);
+  const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
+
   // Profile Modal State
   const [profileModalStudent, setProfileModalStudent] = useState<Student | null>(null);
 
@@ -104,12 +107,7 @@ export default function AttendanceActiveScreen() {
     }
   };
 
-  // Fee Collection Modal State (Mobile App)
-  const [feeModalStudent, setFeeModalStudent] = useState<Student | null>(null);
-  const [feeAmount, setFeeAmount] = useState<string>('5000');
-  const [paymentMode, setPaymentMode] = useState<'CASH' | 'UPI' | 'CARD' | 'BANK_TRANSFER'>('CASH');
-  const [feeSubmitting, setFeeSubmitting] = useState<boolean>(false);
-  const [feeError, setFeeError] = useState<string | null>(null);
+
 
   const handleShareWhatsAppReport = async () => {
     try {
@@ -147,6 +145,14 @@ export default function AttendanceActiveScreen() {
     }
   };
 
+  // Fee Collection Modal State
+  const [feeModalStudent, setFeeModalStudent] = useState<Student | null>(null);
+  const [feeAmount, setFeeAmount] = useState<string>('5000');
+  const [feePaymentDate, setFeePaymentDate] = useState<string>(todayStr);
+  const [paymentMode, setPaymentMode] = useState<'CASH' | 'UPI' | 'CARD' | 'BANK_TRANSFER'>('CASH');
+  const [feeSubmitting, setFeeSubmitting] = useState<boolean>(false);
+  const [feeError, setFeeError] = useState<string | null>(null);
+
   const handleCollectFeeSubmit = async () => {
     if (!feeModalStudent) return;
     const numericAmount = Number(feeAmount);
@@ -162,11 +168,12 @@ export default function AttendanceActiveScreen() {
         studentId: feeModalStudent.id,
         amount: numericAmount,
         paymentMode: paymentMode,
+        paymentDate: feePaymentDate || todayStr,
         remarks: 'Collected via AppXwinD Mobile App',
       });
 
       const receiptNo = res.data?.data?.payment?.transactionReference || 'REC-SUCCESS';
-      Alert.alert('Fee Payment Success! 💳', `Collected ₹${numericAmount.toLocaleString('en-IN')} for ${feeModalStudent.fullName}.\nReceipt: ${receiptNo}`);
+      Alert.alert('Fee Payment Success! 💳', `Collected ₹${numericAmount.toLocaleString('en-IN')} for ${feeModalStudent.fullName}.\nPayment Date: ${feePaymentDate || todayStr}\nReceipt: ${receiptNo}`);
       setFeeModalStudent(null);
       setFeeAmount('5000');
       fetchActiveStudentsAndAttendance(attendanceDate, search);
@@ -299,11 +306,20 @@ export default function AttendanceActiveScreen() {
     }
   };
 
-  const toggleStudentAttendance = (studentId: string, status: 'PRESENT' | 'ABSENT' | 'LATE' | 'UNMARKED') => {
+  const toggleStudentAttendance = async (studentId: string, status: 'PRESENT' | 'ABSENT' | 'LATE' | 'EXEMPTED' | 'UNMARKED') => {
     setAttendanceMap((prev) => ({
       ...prev,
       [studentId]: status,
     }));
+
+    try {
+      await api.post('/attendance', {
+        date: attendanceDate,
+        records: [{ studentId, status }],
+      });
+    } catch (err: any) {
+      console.error('Instant save error mobile:', err.response?.data || err.message);
+    }
   };
 
   const handleSaveAttendance = async () => {
@@ -376,7 +392,15 @@ export default function AttendanceActiveScreen() {
           <Text style={styles.studentId}>{item.studentId}</Text>
           <View style={styles.activeBadge}>
             <Text style={styles.activeText}>
-              {currentAtt === 'PRESENT' ? '✓ PRESENT' : currentAtt === 'ABSENT' ? '✗ ABSENT' : currentAtt === 'LATE' ? '⏳ LATE' : '⏳ UNMARKED'}
+              {currentAtt === 'PRESENT'
+                ? '✓ PRESENT'
+                : currentAtt === 'ABSENT'
+                ? '✗ ABSENT'
+                : currentAtt === 'LATE'
+                ? '⏳ LATE'
+                : currentAtt === 'EXEMPTED'
+                ? '☕ OFF / EXEMPT'
+                : '⏳ UNMARKED'}
             </Text>
           </View>
         </View>
@@ -797,6 +821,25 @@ export default function AttendanceActiveScreen() {
                 placeholder="e.g. 5000"
                 placeholderTextColor="#64748b"
               />
+            </View>
+
+            <View style={styles.modalFormGroup}>
+              <Text style={styles.modalLabel}>Payment Date (YYYY-MM-DD)</Text>
+              <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
+                <TextInput
+                  style={[styles.modalInput, { flex: 1 }]}
+                  value={feePaymentDate}
+                  onChangeText={setFeePaymentDate}
+                  placeholder="YYYY-MM-DD"
+                  placeholderTextColor="#64748b"
+                />
+                <TouchableOpacity
+                  style={{ backgroundColor: '#0f172a', borderColor: '#334155', borderWidth: 1, paddingVertical: 12, paddingHorizontal: 14, borderRadius: 12 }}
+                  onPress={() => setFeePaymentDate(todayStr)}
+                >
+                  <Text style={{ color: '#38bdf8', fontSize: 11, fontWeight: 'bold' }}>Today</Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             <View style={styles.modalFormGroup}>
