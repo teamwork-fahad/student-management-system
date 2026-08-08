@@ -1,3 +1,4 @@
+import { z } from "zod";
 import {
   getDepartmentsService,
   getDepartmentByIdService,
@@ -5,6 +6,14 @@ import {
   updateDepartmentService,
   deleteDepartmentService,
 } from './department.service.js';
+
+const createDepartmentSchema = z.object({
+  name: z.string().trim().min(2, "Department name must be at least 2 characters"),
+  code: z.string().trim().min(1, "Department code is required"),
+  description: z.string().trim().optional(),
+});
+
+const updateDepartmentSchema = createDepartmentSchema.partial();
 
 export const getDepartments = async (req, res, next) => {
   try {
@@ -33,7 +42,8 @@ export const getDepartmentById = async (req, res, next) => {
 
 export const createDepartment = async (req, res, next) => {
   try {
-    const department = await createDepartmentService(req.body);
+    const validatedData = createDepartmentSchema.parse(req.body);
+    const department = await createDepartmentService(validatedData);
     res.status(201).json({
       success: true,
       message: 'Department created successfully',
@@ -46,7 +56,8 @@ export const createDepartment = async (req, res, next) => {
 
 export const updateDepartment = async (req, res, next) => {
   try {
-    const department = await updateDepartmentService(req.params.id, req.body);
+    const validatedData = updateDepartmentSchema.parse(req.body);
+    const department = await updateDepartmentService(req.params.id, validatedData);
     res.json({
       success: true,
       message: 'Department updated successfully',

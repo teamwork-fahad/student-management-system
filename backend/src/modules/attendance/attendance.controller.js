@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { successResponse } from "../../utils/response.js";
 import {
@@ -8,11 +9,38 @@ import {
   getAttendanceWhatsAppReport,
 } from "./attendance.service.js";
 
+const markAttendanceSchema = z.object({
+  date: z.string().trim().min(1, "Date is required"),
+  records: z.array(
+    z.object({
+      studentId: z.string().trim().min(1, "Student ID is required"),
+      status: z.enum(
+        [
+          "PRESENT",
+          "ABSENT",
+          "LATE",
+          "EARLY_LEAVE",
+          "NO_CLASS",
+          "HOLIDAY",
+          "EXEMPTED",
+          "UNMARKED",
+        ],
+        { errorMap: () => ({ message: "Invalid attendance status" }) }
+      ),
+      remarks: z.string().trim().optional(),
+    })
+  ).min(1, "At least one attendance record is required"),
+});
+
 export const markAttendanceController = asyncHandler(async (req, res) => {
-  const { date, records } = req.body;
+  const validated = markAttendanceSchema.parse(req.body);
   const markedBy = req.user?.name || "SUPER_ADMIN";
 
-  const result = await markBatchAttendance({ date, records, markedBy });
+  const result = await markBatchAttendance({
+    date: validated.date,
+    records: validated.records,
+    markedBy,
+  });
 
   return successResponse(res, "Attendance marked successfully", result, 200);
 });

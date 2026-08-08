@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { successResponse } from "../../utils/response.js";
 import {
@@ -66,9 +67,15 @@ export const deleteInquiryController = asyncHandler(async (req, res) => {
   return successResponse(res, "Inquiry deleted successfully", inquiry, 200);
 });
 
+const bulkDeleteInquiriesSchema = z.object({
+  inquiryIds: z
+    .array(z.string().trim().min(1, "Invalid inquiry ID"))
+    .min(1, "At least one inquiry ID is required"),
+});
+
 export const bulkDeleteInquiriesController = asyncHandler(async (req, res) => {
-  const { inquiryIds } = req.body;
-  const result = await bulkDeleteInquiries(inquiryIds);
+  const validated = bulkDeleteInquiriesSchema.parse(req.body);
+  const result = await bulkDeleteInquiries(validated.inquiryIds);
 
   return successResponse(
     res,
@@ -108,7 +115,8 @@ export const convertInquiryController = asyncHandler(async (req, res) => {
 });
 
 export const createPublicInquiryController = asyncHandler(async (req, res) => {
-  const inquiry = await createPublicInquiry(req.body);
+  const validatedData = createInquirySchema.parse(req.body);
+  const inquiry = await createPublicInquiry(validatedData);
 
   return successResponse(
     res,

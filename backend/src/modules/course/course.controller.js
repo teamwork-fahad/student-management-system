@@ -1,3 +1,4 @@
+import { z } from "zod";
 import {
   createCourse,
   deleteCourse,
@@ -54,16 +55,29 @@ export const getCourseStudentsController = asyncHandler(async (req, res) => {
   return successResponse(res, "Course students fetched successfully", students, 200);
 });
 
+const bulkDeleteCoursesSchema = z.object({
+  courseIds: z
+    .array(z.string().trim().min(1, "Invalid course ID"))
+    .min(1, "At least one course ID is required"),
+});
+
+const bulkUpdateCourseCategorySchema = z.object({
+  courseIds: z
+    .array(z.string().trim().min(1, "Invalid course ID"))
+    .min(1, "At least one course ID is required"),
+  category: z.string().trim().min(1, "Category is required"),
+});
+
 export const bulkDeleteCoursesController = asyncHandler(async (req, res) => {
-  const { courseIds } = req.body;
-  const result = await bulkDeleteCourses(courseIds);
+  const validated = bulkDeleteCoursesSchema.parse(req.body);
+  const result = await bulkDeleteCourses(validated.courseIds);
 
   return successResponse(res, "Bulk courses deleted successfully", result, 200);
 });
 
 export const bulkUpdateCourseCategoryController = asyncHandler(async (req, res) => {
-  const { courseIds, category } = req.body;
-  const result = await bulkUpdateCourseCategory(courseIds, category);
+  const validated = bulkUpdateCourseCategorySchema.parse(req.body);
+  const result = await bulkUpdateCourseCategory(validated.courseIds, validated.category);
 
   return successResponse(res, "Bulk course category updated successfully", result, 200);
 });

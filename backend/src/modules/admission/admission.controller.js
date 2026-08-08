@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { successResponse } from "../../utils/response.js";
 import {
@@ -112,9 +113,20 @@ export const updateAdmissionController = asyncHandler(async (req, res) => {
   );
 });
 
+const admissionStatuses = ["ACTIVE", "COMPLETED", "DROPPED", "CANCELLED"];
+
+const updateAdmissionStatusSchema = z.object({
+  status: z.enum(admissionStatuses, { errorMap: () => ({ message: "Invalid admission status" }) }),
+});
+
+const bulkUpdateAdmissionStatusSchema = z.object({
+  admissionIds: z.array(z.string().trim().min(1, "Invalid admission ID")).min(1, "At least one admission ID is required"),
+  status: z.enum(admissionStatuses, { errorMap: () => ({ message: "Invalid admission status" }) }),
+});
+
 export const updateAdmissionStatusController = asyncHandler(async (req, res) => {
-  const { status } = req.body;
-  const result = await updateAdmissionStatusService(req.params.id, status);
+  const validated = updateAdmissionStatusSchema.parse(req.body);
+  const result = await updateAdmissionStatusService(req.params.id, validated.status);
   return successResponse(res, "Course status updated successfully", result, 200);
 });
 
@@ -124,7 +136,7 @@ export const deleteAdmissionController = asyncHandler(async (req, res) => {
 });
 
 export const bulkUpdateAdmissionStatusController = asyncHandler(async (req, res) => {
-  const { admissionIds, status } = req.body;
-  const result = await bulkUpdateAdmissionStatusService(admissionIds, status);
+  const validated = bulkUpdateAdmissionStatusSchema.parse(req.body);
+  const result = await bulkUpdateAdmissionStatusService(validated.admissionIds, validated.status);
   return successResponse(res, "Bulk course status updated successfully", result, 200);
 });

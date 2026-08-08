@@ -75,8 +75,26 @@ export const generateFeeReminderWhatsAppController = asyncHandler(async (req, re
   );
 });
 
+const updateFeePaymentSchema = z.object({
+  amount: z
+    .union([z.string(), z.number()])
+    .transform((val) => Number(val))
+    .refine((val) => val > 0, { message: "Amount must be greater than 0" })
+    .optional(),
+  paymentMode: z
+    .enum(paymentModes, {
+      errorMap: () => ({ message: "Invalid payment mode" }),
+    })
+    .optional(),
+  transactionReference: z.string().trim().optional(),
+  paymentDate: z.coerce.date().optional(),
+  admissionId: z.string().trim().optional(),
+  remarks: z.string().trim().optional(),
+});
+
 export const updateFeePaymentController = asyncHandler(async (req, res) => {
-  const result = await updateFeePayment(req.params.id, req.body, req.user.id);
+  const validatedData = updateFeePaymentSchema.parse(req.body);
+  const result = await updateFeePayment(req.params.id, validatedData, req.user.id);
 
   return successResponse(
     res,
