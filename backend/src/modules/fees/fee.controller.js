@@ -6,6 +6,7 @@ import {
   getFeeHistory,
   getStudentFeeSummary,
   updateFeePayment,
+  generateStudentFeeReminderWhatsApp,
 } from "./fee.service.js";
 
 const paymentModes = ["CASH", "UPI", "CARD", "BANK_TRANSFER", "CHEQUE"];
@@ -57,6 +58,17 @@ export const getStudentFeeSummaryController = asyncHandler(async (req, res) => {
   return successResponse(
     res,
     "Student fee summary fetched successfully",
+    result,
+    200
+  );
+});
+
+export const generateFeeReminderWhatsAppController = asyncHandler(async (req, res) => {
+  const result = await generateStudentFeeReminderWhatsApp(req.params.studentId);
+
+  return successResponse(
+    res,
+    "WhatsApp fee reminder generated successfully",
     result,
     200
   );

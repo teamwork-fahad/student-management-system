@@ -6,6 +6,7 @@ import {
   getFeeHistoryController,
   getStudentFeeSummaryController,
   updateFeePaymentController,
+  generateFeeReminderWhatsAppController,
 } from "./fee.controller.js";
 
 const router = Router();
@@ -47,6 +48,14 @@ router.get(
   authenticate,
   authorize("SUPER_ADMIN", "FACULTY"),
   getStudentFeeSummaryController
+);
+
+// GET /api/v1/fees/student/:studentId/whatsapp-reminder - Generate WhatsApp Fee Reminder (SUPER_ADMIN, FACULTY)
+router.get(
+  "/student/:studentId/whatsapp-reminder",
+  authenticate,
+  authorize("SUPER_ADMIN", "FACULTY"),
+  generateFeeReminderWhatsAppController
 );
 
 export default router;

@@ -8,11 +8,13 @@ import {
   ActivityIndicator,
   RefreshControl,
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   Platform,
   Alert,
+  Linking,
+  Modal,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { safeStorage } from '@/utils/storage';
 import api, { setAuthToken } from '@/services/api';
 
@@ -29,6 +31,7 @@ export interface Student {
   admission?: {
     courseNameSnapshot?: string;
     pendingAmount?: number | string;
+    paidAmount?: number | string;
     finalFees?: number | string;
   };
 }
@@ -49,14 +52,116 @@ export default function AttendanceActiveScreen() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
+  const [attendanceTab, setAttendanceTab] = useState<'UNMARKED' | 'MARKED' | 'ALL'>('UNMARKED');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Date state: YYYY-MM-DD
   const todayStr = new Date().toISOString().split('T')[0];
   const [attendanceDate, setAttendanceDate] = useState<string>(todayStr);
-  const [attendanceMap, setAttendanceMap] = useState<Record<string, 'PRESENT' | 'ABSENT' | 'LATE'>>({});
+  const [attendanceMap, setAttendanceMap] = useState<Record<string, 'PRESENT' | 'ABSENT' | 'LATE' | 'UNMARKED'>>({});
   const [savingAttendance, setSavingAttendance] = useState(false);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
+
+  // Date Navigation Handlers
+  const changeDateByDays = (days: number) => {
+    const current = new Date(attendanceDate);
+    if (isNaN(current.getTime())) {
+      setAttendanceDate(todayStr);
+      fetchActiveStudentsAndAttendance(todayStr, search);
+      return;
+    }
+    current.setDate(current.getDate() + days);
+    const newDateStr = current.toISOString().split('T')[0];
+    setAttendanceDate(newDateStr);
+    fetchActiveStudentsAndAttendance(newDateStr, search);
+  };
+
+  const handlePrevDay = () => changeDateByDays(-1);
+  const handleNextDay = () => changeDateByDays(1);
+  const handleSelectToday = () => {
+    setAttendanceDate(todayStr);
+    fetchActiveStudentsAndAttendance(todayStr, search);
+  };
+
+  const handleDateChangeText = (text: string) => {
+    setAttendanceDate(text);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+      fetchActiveStudentsAndAttendance(text, search);
+    }
+  };
+
+  // Fee Collection Modal State (Mobile App)
+  const [feeModalStudent, setFeeModalStudent] = useState<Student | null>(null);
+  const [feeAmount, setFeeAmount] = useState<string>('5000');
+  const [paymentMode, setPaymentMode] = useState<'CASH' | 'UPI' | 'CARD' | 'BANK_TRANSFER'>('CASH');
+  const [feeSubmitting, setFeeSubmitting] = useState<boolean>(false);
+  const [feeError, setFeeError] = useState<string | null>(null);
+
+  const handleShareWhatsAppReport = async () => {
+    try {
+      const res = await api.get(`/attendance/whatsapp-report?date=${attendanceDate}`);
+      const whatsappUrl = res.data?.data?.whatsappUrl || res.data?.data?.apiWhatsappUrl;
+      const text = res.data?.data?.text || '';
+
+      if (whatsappUrl) {
+        try {
+          await Linking.openURL(whatsappUrl);
+        } catch {
+          await Linking.openURL(`https://wa.me/?text=${encodeURIComponent(text)}`);
+        }
+      }
+    } catch (err: any) {
+      Alert.alert('WhatsApp Error', err.response?.data?.message || 'Failed to generate WhatsApp report.');
+    }
+  };
+
+  const handleSendFeeReminder = async (studentId: string) => {
+    try {
+      const res = await api.get(`/fees/student/${studentId}/whatsapp-reminder`);
+      const whatsappUrl = res.data?.data?.whatsappUrl || res.data?.data?.apiWhatsappUrl;
+      const text = res.data?.data?.text || '';
+
+      if (whatsappUrl) {
+        try {
+          await Linking.openURL(whatsappUrl);
+        } catch {
+          await Linking.openURL(`https://wa.me/?text=${encodeURIComponent(text)}`);
+        }
+      }
+    } catch (err: any) {
+      Alert.alert('WhatsApp Error', err.response?.data?.message || 'Failed to generate fee reminder.');
+    }
+  };
+
+  const handleCollectFeeSubmit = async () => {
+    if (!feeModalStudent) return;
+    const numericAmount = Number(feeAmount);
+    if (!numericAmount || numericAmount <= 0) {
+      setFeeError('Please enter a valid amount greater than zero.');
+      return;
+    }
+
+    setFeeSubmitting(true);
+    setFeeError(null);
+    try {
+      const res = await api.post('/fees/collect', {
+        studentId: feeModalStudent.id,
+        amount: numericAmount,
+        paymentMode: paymentMode,
+        remarks: 'Collected via AppXwinD Mobile App',
+      });
+
+      const receiptNo = res.data?.data?.payment?.transactionReference || 'REC-SUCCESS';
+      Alert.alert('Fee Payment Success! 💳', `Collected ₹${numericAmount.toLocaleString('en-IN')} for ${feeModalStudent.fullName}.\nReceipt: ${receiptNo}`);
+      setFeeModalStudent(null);
+      setFeeAmount('5000');
+      fetchActiveStudentsAndAttendance(attendanceDate, search);
+    } catch (err: any) {
+      setFeeError(err.response?.data?.message || 'Failed to record fee payment.');
+    } finally {
+      setFeeSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     checkExistingAuth();
@@ -160,13 +265,6 @@ export default function AttendanceActiveScreen() {
 
       const activeList: Student[] = stdRes.data?.data?.students || [];
 
-      // Default unmarked students to PRESENT
-      activeList.forEach((s) => {
-        if (!newAttMap[s.id]) {
-          newAttMap[s.id] = 'PRESENT';
-        }
-      });
-
       setAttendanceMap(newAttMap);
       setStudents(activeList);
     } catch (error: any) {
@@ -187,7 +285,7 @@ export default function AttendanceActiveScreen() {
     }
   };
 
-  const toggleStudentAttendance = (studentId: string, status: 'PRESENT' | 'ABSENT' | 'LATE') => {
+  const toggleStudentAttendance = (studentId: string, status: 'PRESENT' | 'ABSENT' | 'LATE' | 'UNMARKED') => {
     setAttendanceMap((prev) => ({
       ...prev,
       [studentId]: status,
@@ -199,10 +297,12 @@ export default function AttendanceActiveScreen() {
     setSavingAttendance(true);
     setSaveSuccessMsg(null);
 
-    const records = students.map((s) => ({
-      studentId: s.id,
-      status: attendanceMap[s.id] || 'PRESENT',
-    }));
+    const records = students
+      .filter((s) => attendanceMap[s.id] && attendanceMap[s.id] !== 'UNMARKED')
+      .map((s) => ({
+        studentId: s.id,
+        status: attendanceMap[s.id],
+      }));
 
     try {
       await api.post('/attendance', {
@@ -210,7 +310,7 @@ export default function AttendanceActiveScreen() {
         records: records,
       });
 
-      setSaveSuccessMsg(`Attendance saved successfully for ${records.length} active students!`);
+      setSaveSuccessMsg(`Attendance saved successfully for ${records.length} marked students!`);
       setTimeout(() => setSaveSuccessMsg(null), 4000);
     } catch (err: any) {
       console.error('Save attendance error:', err.response?.data || err.message);
@@ -231,22 +331,39 @@ export default function AttendanceActiveScreen() {
   };
 
   // Counts
+  const markedCount = Object.values(attendanceMap).filter((s) => s && s !== 'UNMARKED').length;
+  const unmarkedCount = students.length - markedCount;
   const presentCount = Object.values(attendanceMap).filter((s) => s === 'PRESENT').length;
   const absentCount = Object.values(attendanceMap).filter((s) => s === 'ABSENT').length;
 
+  const displayedStudents = students.filter((s) => {
+    const currentStatus = attendanceMap[s.id] || 'UNMARKED';
+    if (attendanceTab === 'UNMARKED' && currentStatus !== 'UNMARKED') {
+      return false;
+    }
+    if (attendanceTab === 'MARKED' && currentStatus === 'UNMARKED') {
+      return false;
+    }
+    return true;
+  });
+
   const renderStudentCard = ({ item }: { item: Student }) => {
-    const currentAtt = attendanceMap[item.id] || 'PRESENT';
+    const currentAtt = attendanceMap[item.id] || 'UNMARKED';
     const primaryCourse =
       item.courseInfo?.primaryCourse ||
       item.admission?.courseNameSnapshot ||
       'General Course';
+
+    const pendingAmount = Number(item.admission?.pendingAmount || 0);
 
     return (
       <View style={styles.card}>
         <View style={styles.cardHeader}>
           <Text style={styles.studentId}>{item.studentId}</Text>
           <View style={styles.activeBadge}>
-            <Text style={styles.activeText}>ACTIVE</Text>
+            <Text style={styles.activeText}>
+              {currentAtt === 'PRESENT' ? '✓ PRESENT' : currentAtt === 'ABSENT' ? '✗ ABSENT' : currentAtt === 'LATE' ? '⏳ LATE' : '⏳ UNMARKED'}
+            </Text>
           </View>
         </View>
 
@@ -262,6 +379,16 @@ export default function AttendanceActiveScreen() {
           <Text style={styles.courseValue} numberOfLines={1}>
             {primaryCourse}
           </Text>
+        </View>
+
+        {/* Fee Dues Indicator */}
+        <View style={styles.feeDuesRow}>
+          <Text style={styles.label}>Fees Dues:</Text>
+          {pendingAmount > 0 ? (
+            <Text style={styles.feePendingText}>₹{pendingAmount.toLocaleString('en-IN')} Pending</Text>
+          ) : (
+            <Text style={styles.feePaidText}>✓ Fully Cleared</Text>
+          )}
         </View>
 
         {/* Quick Attendance Toggle Buttons */}
@@ -289,6 +416,38 @@ export default function AttendanceActiveScreen() {
               ✗ ABSENT
             </Text>
           </TouchableOpacity>
+
+          {currentAtt !== 'UNMARKED' && (
+            <TouchableOpacity
+              style={[styles.attBtn, styles.unmarkBtnActive]}
+              onPress={() => toggleStudentAttendance(item.id, 'UNMARKED')}
+            >
+              <Text style={styles.unmarkTextActive}>
+                🔄 Reset
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Mobile Action Buttons: Fee Collection & WhatsApp Reminder */}
+        <View style={styles.mobileActionRow}>
+          <TouchableOpacity
+            style={styles.collectFeeBtn}
+            onPress={() => {
+              setFeeModalStudent(item);
+              setFeeAmount('5000');
+              setFeeError(null);
+            }}
+          >
+            <Text style={styles.collectFeeBtnText}>💰 Collect Fee</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.whatsappReminderBtn}
+            onPress={() => handleSendFeeReminder(item.id)}
+          >
+            <Text style={styles.whatsappReminderBtnText}>💬 Fee Reminder</Text>
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -306,13 +465,13 @@ export default function AttendanceActiveScreen() {
   // LOGIN SCREEN
   if (!isAuthenticated) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <StatusBar barStyle="light-content" backgroundColor="#0f172a" />
         <View style={styles.loginWrapper}>
           <Text style={styles.loginLogo}>🎓 AppXwinD SMS</Text>
           <Text style={styles.loginTitle}>Mobile Portal Sign In</Text>
           <Text style={styles.loginSub}>
-            Sign in with Super Admin or Faculty account to mark daily attendance.
+            Sign in with Super Admin or Faculty account to mark daily attendance & fees.
           </Text>
 
           {loginError && (
@@ -375,7 +534,7 @@ export default function AttendanceActiveScreen() {
 
   // ACTIVE STUDENTS & DAILY ATTENDANCE SCREEN
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="light-content" backgroundColor="#0f172a" />
 
       {/* Header */}
@@ -386,6 +545,33 @@ export default function AttendanceActiveScreen() {
         </View>
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
           <Text style={styles.logoutText}>Logout</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Interactive Date Selector Bar */}
+      <View style={styles.dateSelectorBar}>
+        <TouchableOpacity style={styles.dateNavBtn} onPress={handlePrevDay}>
+          <Text style={styles.dateNavText}>◀ Prev</Text>
+        </TouchableOpacity>
+
+        <View style={styles.dateInputWrapper}>
+          <Text style={styles.dateIcon}>📅</Text>
+          <TextInput
+            style={styles.dateInput}
+            value={attendanceDate}
+            onChangeText={handleDateChangeText}
+            placeholder="YYYY-MM-DD"
+            placeholderTextColor="#64748b"
+            keyboardType="numbers-and-punctuation"
+          />
+        </View>
+
+        <TouchableOpacity style={styles.dateNavBtn} onPress={handleNextDay}>
+          <Text style={styles.dateNavText}>Next ▶</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.todayBtn} onPress={handleSelectToday}>
+          <Text style={styles.todayText}>Today</Text>
         </TouchableOpacity>
       </View>
 
@@ -408,17 +594,26 @@ export default function AttendanceActiveScreen() {
           </View>
         </View>
 
-        <TouchableOpacity
-          style={styles.saveAttendanceBtn}
-          onPress={handleSaveAttendance}
-          disabled={savingAttendance || students.length === 0}
-        >
-          {savingAttendance ? (
-            <ActivityIndicator color="#ffffff" />
-          ) : (
-            <Text style={styles.saveAttendanceBtnText}>💾 Save Today's Attendance</Text>
-          )}
-        </TouchableOpacity>
+        <View style={styles.summaryBtnRow}>
+          <TouchableOpacity
+            style={styles.whatsappReportBtn}
+            onPress={handleShareWhatsAppReport}
+          >
+            <Text style={styles.whatsappReportBtnText}>💬 WhatsApp Report</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.saveAttendanceBtn}
+            onPress={handleSaveAttendance}
+            disabled={savingAttendance || students.length === 0}
+          >
+            {savingAttendance ? (
+              <ActivityIndicator color="#ffffff" />
+            ) : (
+              <Text style={styles.saveAttendanceBtnText}>💾 Save Attendance</Text>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
 
       {saveSuccessMsg && (
@@ -435,6 +630,60 @@ export default function AttendanceActiveScreen() {
           </TouchableOpacity>
         </View>
       )}
+
+      {/* ATTENDANCE STATUS TABS (UNMARKED PENDING vs MARKED DONE vs ALL) */}
+      <View style={styles.mobileTabRow}>
+        <TouchableOpacity
+          style={[
+            styles.mobileTabBtn,
+            attendanceTab === 'UNMARKED' ? styles.mobileTabUnmarkedActive : styles.mobileTabInactive,
+          ]}
+          onPress={() => setAttendanceTab('UNMARKED')}
+        >
+          <Text
+            style={[
+              styles.mobileTabText,
+              attendanceTab === 'UNMARKED' ? styles.mobileTabTextActiveDark : styles.mobileTabTextInactive,
+            ]}
+          >
+            ⏳ Unmarked ({unmarkedCount})
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.mobileTabBtn,
+            attendanceTab === 'MARKED' ? styles.mobileTabMarkedActive : styles.mobileTabInactive,
+          ]}
+          onPress={() => setAttendanceTab('MARKED')}
+        >
+          <Text
+            style={[
+              styles.mobileTabText,
+              attendanceTab === 'MARKED' ? styles.mobileTabTextActiveDark : styles.mobileTabTextInactive,
+            ]}
+          >
+            ✅ Marked ({markedCount})
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.mobileTabBtn,
+            attendanceTab === 'ALL' ? styles.mobileTabAllActive : styles.mobileTabInactive,
+          ]}
+          onPress={() => setAttendanceTab('ALL')}
+        >
+          <Text
+            style={[
+              styles.mobileTabText,
+              attendanceTab === 'ALL' ? styles.mobileTabTextActiveLight : styles.mobileTabTextInactive,
+            ]}
+          >
+            🌐 All ({students.length})
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Search Bar */}
       <View style={styles.searchBar}>
@@ -455,7 +704,7 @@ export default function AttendanceActiveScreen() {
         </View>
       ) : (
         <FlatList
-          data={students}
+          data={displayedStudents}
           keyExtractor={(item) => item.id}
           renderItem={renderStudentCard}
           contentContainerStyle={{ paddingBottom: 24 }}
@@ -468,11 +717,98 @@ export default function AttendanceActiveScreen() {
           }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No ACTIVE students found.</Text>
+              <Text style={styles.emptyText}>
+                {attendanceTab === 'UNMARKED'
+                  ? '🎉 All students have been marked today!'
+                  : attendanceTab === 'MARKED'
+                  ? 'No students marked yet today.'
+                  : 'No ACTIVE students found.'}
+              </Text>
             </View>
           }
         />
       )}
+
+      {/* MOBILE FEE COLLECTION MODAL */}
+      <Modal
+        visible={!!feeModalStudent}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setFeeModalStudent(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>💳 Mobile Fee Entry</Text>
+            <Text style={styles.modalSubtitle}>
+              Student: {feeModalStudent?.fullName} ({feeModalStudent?.studentId})
+            </Text>
+
+            {feeError && (
+              <View style={styles.modalErrorBox}>
+                <Text style={styles.modalErrorText}>{feeError}</Text>
+              </View>
+            )}
+
+            <View style={styles.modalFormGroup}>
+              <Text style={styles.modalLabel}>Collection Amount (₹)</Text>
+              <TextInput
+                style={styles.modalInput}
+                value={feeAmount}
+                onChangeText={setFeeAmount}
+                keyboardType="numeric"
+                placeholder="e.g. 5000"
+                placeholderTextColor="#64748b"
+              />
+            </View>
+
+            <View style={styles.modalFormGroup}>
+              <Text style={styles.modalLabel}>Payment Mode</Text>
+              <View style={styles.modeRow}>
+                {(['CASH', 'UPI', 'CARD', 'BANK_TRANSFER'] as const).map((mode) => (
+                  <TouchableOpacity
+                    key={mode}
+                    style={[
+                      styles.modeChip,
+                      paymentMode === mode ? styles.modeChipSelected : null,
+                    ]}
+                    onPress={() => setPaymentMode(mode)}
+                  >
+                    <Text
+                      style={[
+                        styles.modeChipText,
+                        paymentMode === mode ? styles.modeChipTextSelected : null,
+                      ]}
+                    >
+                      {mode}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.modalCancelBtn}
+                onPress={() => setFeeModalStudent(null)}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.modalSubmitBtn}
+                onPress={handleCollectFeeSubmit}
+                disabled={feeSubmitting}
+              >
+                {feeSubmitting ? (
+                  <ActivityIndicator color="#ffffff" />
+                ) : (
+                  <Text style={styles.modalSubmitText}>Save Receipt</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -488,7 +824,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   title: {
     fontSize: 22,
@@ -511,6 +847,65 @@ const styles = StyleSheet.create({
   },
   logoutText: {
     color: '#fb7185',
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  dateSelectorBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#1e293b',
+    borderColor: '#334155',
+    borderWidth: 1,
+    borderRadius: 14,
+    padding: 6,
+    marginBottom: 12,
+    gap: 6,
+  },
+  dateNavBtn: {
+    backgroundColor: '#0f172a',
+    borderColor: '#334155',
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 10,
+  },
+  dateNavText: {
+    color: '#38bdf8',
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  dateInputWrapper: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0f172a',
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  dateIcon: {
+    fontSize: 12,
+    marginRight: 4,
+  },
+  dateInput: {
+    flex: 1,
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: 'bold',
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    paddingVertical: 6,
+    textAlign: 'center',
+  },
+  todayBtn: {
+    backgroundColor: '#0284c7',
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 10,
+  },
+  todayText: {
+    color: '#ffffff',
     fontSize: 11,
     fontWeight: 'bold',
   },
@@ -799,6 +1194,243 @@ const styles = StyleSheet.create({
   loginBtnText: {
     color: '#ffffff',
     fontSize: 14,
+    fontWeight: 'bold',
+  },
+
+  // Fee & WhatsApp styles
+  summaryBtnRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  whatsappReportBtn: {
+    backgroundColor: '#064e3b',
+    borderColor: '#059669',
+    borderWidth: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  whatsappReportBtnText: {
+    color: '#34d399',
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  feeDuesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  feePendingText: {
+    color: '#f87171',
+    fontSize: 11,
+    fontWeight: 'bold',
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+  },
+  feePaidText: {
+    color: '#34d399',
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  mobileActionRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
+  },
+  collectFeeBtn: {
+    flex: 1,
+    backgroundColor: '#0369a1',
+    paddingVertical: 8,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  collectFeeBtnText: {
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  whatsappReminderBtn: {
+    flex: 1,
+    backgroundColor: '#065f46',
+    borderColor: '#059669',
+    borderWidth: 1,
+    paddingVertical: 8,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  whatsappReminderBtnText: {
+    color: '#a7f3d0',
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  modalCard: {
+    backgroundColor: '#0f172a',
+    borderColor: '#1e293b',
+    borderWidth: 1,
+    borderRadius: 20,
+    padding: 20,
+    width: '100%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  modalSubtitle: {
+    color: '#94a3b8',
+    fontSize: 12,
+    marginBottom: 16,
+  },
+  modalFormGroup: {
+    marginBottom: 14,
+  },
+  modalLabel: {
+    color: '#cbd5e1',
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginBottom: 6,
+  },
+  modalInput: {
+    backgroundColor: '#1e293b',
+    borderColor: '#334155',
+    borderWidth: 1,
+    borderRadius: 10,
+    color: '#ffffff',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  modeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  modeChip: {
+    backgroundColor: '#1e293b',
+    borderColor: '#334155',
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  modeChipSelected: {
+    backgroundColor: '#0284c7',
+    borderColor: '#38bdf8',
+  },
+  modeChipText: {
+    color: '#64748b',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  modeChipTextSelected: {
+    color: '#ffffff',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 10,
+    marginTop: 12,
+  },
+  modalCancelBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: '#1e293b',
+  },
+  modalCancelText: {
+    color: '#94a3b8',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  modalSubmitBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: '#059669',
+  },
+  modalSubmitText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  modalErrorBox: {
+    backgroundColor: '#881337',
+    borderColor: '#be123c',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 10,
+  },
+  modalErrorText: {
+    color: '#fecdd3',
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+
+  // Mobile Status Tabs
+  mobileTabRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginBottom: 10,
+  },
+  mobileTabBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+  },
+  mobileTabInactive: {
+    backgroundColor: '#1e293b',
+    borderColor: '#334155',
+  },
+  mobileTabUnmarkedActive: {
+    backgroundColor: '#f59e0b',
+    borderColor: '#d97706',
+  },
+  mobileTabMarkedActive: {
+    backgroundColor: '#10b981',
+    borderColor: '#059669',
+  },
+  mobileTabAllActive: {
+    backgroundColor: '#0284c7',
+    borderColor: '#38bdf8',
+  },
+  mobileTabText: {
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  mobileTabTextInactive: {
+    color: '#94a3b8',
+  },
+  mobileTabTextActiveDark: {
+    color: '#0f172a',
+  },
+  mobileTabTextActiveLight: {
+    color: '#ffffff',
+  },
+  unmarkBtnActive: {
+    backgroundColor: '#334155',
+    borderColor: '#475569',
+  },
+  unmarkTextActive: {
+    color: '#38bdf8',
+    fontSize: 11,
     fontWeight: 'bold',
   },
 });

@@ -5,6 +5,7 @@ import {
   getAttendanceByDate,
   getAttendanceStats,
   getStudentAttendanceHistory,
+  getAttendanceWhatsAppReport,
 } from "./attendance.service.js";
 
 export const markAttendanceController = asyncHandler(async (req, res) => {
@@ -34,4 +35,11 @@ export const getStudentAttendanceHistoryController = asyncHandler(async (req, re
   const data = await getStudentAttendanceHistory(studentId);
 
   return successResponse(res, "Student attendance history fetched successfully", data, 200);
+});
+
+export const getAttendanceWhatsAppReportController = asyncHandler(async (req, res) => {
+  const { date } = req.query;
+  const data = await getAttendanceWhatsAppReport(date);
+
+  return successResponse(res, "WhatsApp attendance report generated successfully", data, 200);
 });

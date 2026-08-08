@@ -93,6 +93,18 @@ export const Fees = () => {
     }
   };
 
+  const handleSendWhatsAppFeeReminder = async (studentId) => {
+    try {
+      const res = await api.get(`/fees/student/${studentId}/whatsapp-reminder`);
+      const whatsappUrl = res.data.data?.whatsappUrl;
+      if (whatsappUrl) {
+        window.open(whatsappUrl, "_blank");
+      }
+    } catch (err) {
+      alert("Failed to generate WhatsApp fee reminder");
+    }
+  };
+
   // Analytics Switcher Tab: 'yearly' | 'monthly'
   const [analyticsTab, setAnalyticsTab] = useState("yearly");
 
@@ -872,6 +884,18 @@ export const Fees = () => {
                             <Printer className="w-3.5 h-3.5" />
                             <span>Print</span>
                           </button>
+
+                          {(p.admission?.studentId || p.admission?.student?.id || p.admission?.student?.studentId) && (
+                            <button
+                              type="button"
+                              onClick={() => handleSendWhatsAppFeeReminder(p.admission?.studentId || p.admission?.student?.id || p.admission?.student?.studentId)}
+                              className="px-2 py-1 bg-emerald-950/80 hover:bg-emerald-900 text-emerald-400 border border-emerald-800 rounded-lg font-bold text-[11px] inline-flex items-center space-x-1 transition cursor-pointer"
+                              title="Send WhatsApp Fee Reminder"
+                            >
+                              <span>💬 Reminder</span>
+                            </button>
+                          )}
+
                           {isSuperAdmin && (
                             <button
                               type="button"

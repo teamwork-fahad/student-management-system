@@ -6,6 +6,7 @@ import {
   getAttendanceByDateController,
   getAttendanceStatsController,
   getStudentAttendanceHistoryController,
+  getAttendanceWhatsAppReportController,
 } from "./attendance.controller.js";
 
 const router = Router();
@@ -15,6 +16,13 @@ router.get(
   authenticate,
   authorize("SUPER_ADMIN", "FACULTY"),
   getAttendanceStatsController
+);
+
+router.get(
+  "/whatsapp-report",
+  authenticate,
+  authorize("SUPER_ADMIN", "FACULTY"),
+  getAttendanceWhatsAppReportController
 );
 
 router.get(

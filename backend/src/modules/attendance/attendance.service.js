@@ -194,3 +194,63 @@ export const getStudentAttendanceHistory = async (studentId) => {
     })),
   };
 };
+
+/**
+ * Generate formatted WhatsApp summary report for daily attendance (for mobile app & web sharing).
+ */
+export const getAttendanceWhatsAppReport = async (dateStr) => {
+  const targetDate = parseDateToUTC(dateStr);
+  const formattedDate = targetDate.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+
+  const [totalStudents, presentCount, absentCount, lateCount] = await Promise.all([
+    prisma.student.count({
+      where: {
+        deletedAt: null,
+        status: { in: ["ACTIVE", "REVISION"] },
+        admission: { status: "ACTIVE" },
+      },
+    }),
+    prisma.attendance.count({ where: { date: targetDate, status: "PRESENT" } }),
+    prisma.attendance.count({ where: { date: targetDate, status: "ABSENT" } }),
+    prisma.attendance.count({ where: { date: targetDate, status: "LATE" } }),
+  ]);
+
+  const unmarkedCount = Math.max(0, totalStudents - (presentCount + absentCount + lateCount));
+  const markedTotal = presentCount + absentCount + lateCount;
+  const attendanceRate = markedTotal > 0 ? Math.round(((presentCount + lateCount * 0.5) / markedTotal) * 100) : 0;
+
+  const text = `📊 *DAILY STUDENT ATTENDANCE REPORT*
+📅 *Date:* ${formattedDate}
+
+👥 *Total Active Students:* ${totalStudents}
+✅ *Present:* ${presentCount}
+❌ *Absent:* ${absentCount}
+⏳ *Late:* ${lateCount}
+❓ *Unmarked:* ${unmarkedCount}
+
+📈 *Attendance Rate:* ${attendanceRate}%
+
+_Sent via Student Management System_`;
+
+  const encodedText = encodeURIComponent(text);
+
+  return {
+    date: targetDate,
+    formattedDate,
+    stats: {
+      totalStudents,
+      presentCount,
+      absentCount,
+      lateCount,
+      unmarkedCount,
+      attendanceRate,
+    },
+    text,
+    whatsappUrl: `https://wa.me/?text=${encodedText}`,
+    apiWhatsappUrl: `whatsapp://send?text=${encodedText}`,
+  };
+};

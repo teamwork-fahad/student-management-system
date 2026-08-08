@@ -26,6 +26,7 @@ export const Attendance = () => {
   const [selectedCourseId, setSelectedCourseId] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState("table"); // 'table' | 'cards'
+  const [attendanceTab, setAttendanceTab] = useState("UNMARKED"); // 'UNMARKED' | 'MARKED' | 'ALL'
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -184,7 +185,39 @@ export const Attendance = () => {
     }
   };
 
+  const handleShareWhatsAppReport = async () => {
+    try {
+      const res = await api.get(`/attendance/whatsapp-report?date=${date}`);
+      const whatsappUrl = res.data.data?.whatsappUrl;
+      if (whatsappUrl) {
+        window.open(whatsappUrl, "_blank");
+      }
+    } catch (err) {
+      alert("Failed to generate WhatsApp attendance report");
+    }
+  };
+
   const markedCount = Object.values(attendanceState).filter((s) => s && s !== "UNMARKED").length;
+  const unmarkedCount = students.length - markedCount;
+
+  const filteredStudents = students.filter((s) => {
+    const currentStatus = attendanceState[s.studentId] || "UNMARKED";
+
+    if (attendanceTab === "UNMARKED" && currentStatus !== "UNMARKED") {
+      return false;
+    }
+    if (attendanceTab === "MARKED" && currentStatus === "UNMARKED") {
+      return false;
+    }
+
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase().trim();
+    return (
+      (s.fullName || "").toLowerCase().includes(q) ||
+      (s.displayId || "").toLowerCase().includes(q) ||
+      (s.courseName || "").toLowerCase().includes(q)
+    );
+  });
 
   return (
     <div className="space-y-6 font-sans">
@@ -248,6 +281,14 @@ export const Attendance = () => {
           </div>
 
           <button
+            onClick={handleShareWhatsAppReport}
+            className="px-3.5 py-2 bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-800 font-bold text-xs rounded-xl shadow-lg flex items-center space-x-1.5 transition"
+            title="Generate & Share WhatsApp Attendance Report"
+          >
+            <span>💬 WhatsApp Report</span>
+          </button>
+
+          <button
             onClick={handleSaveAttendance}
             disabled={saving || loading || students.length === 0}
             className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl shadow-lg flex items-center space-x-2 transition disabled:opacity-50"
@@ -293,6 +334,64 @@ export const Attendance = () => {
           </div>
         </div>
       )}
+
+      {/* ATTENDANCE STATUS TABS (UNMARKED PENDING vs MARKED DONE vs ALL) */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-slate-900/80 p-2.5 rounded-2xl border border-slate-800">
+        <div className="flex items-center space-x-1.5 p-1 bg-slate-950 border border-slate-800 rounded-xl overflow-x-auto">
+          <button
+            type="button"
+            onClick={() => setAttendanceTab("UNMARKED")}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 shrink-0 ${
+              attendanceTab === "UNMARKED"
+                ? "bg-amber-500 text-slate-950 shadow"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <span>⏳ Unmarked Pending</span>
+            <span className="px-1.5 py-0.2 bg-slate-900/60 rounded-full font-mono text-[10px]">
+              {unmarkedCount}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setAttendanceTab("MARKED")}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 shrink-0 ${
+              attendanceTab === "MARKED"
+                ? "bg-emerald-500 text-slate-950 shadow"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <span>✅ Marked Done</span>
+            <span className="px-1.5 py-0.2 bg-slate-900/60 rounded-full font-mono text-[10px]">
+              {markedCount}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setAttendanceTab("ALL")}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 shrink-0 ${
+              attendanceTab === "ALL"
+                ? "bg-cyan-600 text-white shadow"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <span>🌐 All Students</span>
+            <span className="px-1.5 py-0.2 bg-slate-900/60 rounded-full font-mono text-[10px]">
+              {students.length}
+            </span>
+          </button>
+        </div>
+
+        <div className="text-[11px] text-slate-400 font-semibold px-2">
+          {attendanceTab === "UNMARKED"
+            ? "Showing students pending attendance. Marking student moves them out of list ⚡"
+            : attendanceTab === "MARKED"
+            ? "Showing students already marked today. Click Unmark to move back to pending 🔄"
+            : "Showing all enrolled active students."}
+        </div>
+      </div>
 
       {/* Mark All Quick Actions & Search Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-900/60 p-4 rounded-2xl border border-slate-800">

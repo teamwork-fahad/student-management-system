@@ -8,12 +8,12 @@ import {
   ActivityIndicator,
   RefreshControl,
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   Platform,
   ScrollView,
   Modal,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import api from '@/services/api';
 
 export interface Student {
@@ -193,7 +193,7 @@ export default function StatusManagerScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="light-content" backgroundColor="#0f172a" />
 
       {/* Title Header */}

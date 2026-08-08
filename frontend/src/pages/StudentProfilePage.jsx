@@ -439,6 +439,18 @@ export const StudentProfilePage = () => {
   const totalPaid = admissions.reduce((sum, a) => sum + Number(a.paidAmount || 0), 0);
   const totalPending = admissions.reduce((sum, a) => sum + Number(a.pendingAmount || 0), 0);
 
+  const handleSendWhatsAppFeeReminder = async () => {
+    try {
+      const res = await api.get(`/fees/student/${studentData.id}/whatsapp-reminder`);
+      const whatsappUrl = res.data.data?.whatsappUrl;
+      if (whatsappUrl) {
+        window.open(whatsappUrl, "_blank");
+      }
+    } catch (err) {
+      alert("Failed to generate WhatsApp fee reminder");
+    }
+  };
+
   return (
     <div className="space-y-6 font-sans pb-12">
       {/* Printable Receipt Modal */}
@@ -524,6 +536,14 @@ export const StudentProfilePage = () => {
           >
             <CreditCard className="w-4 h-4" />
             <span>Collect Fee</span>
+          </button>
+
+          <button
+            onClick={handleSendWhatsAppFeeReminder}
+            className="px-3.5 py-2 bg-emerald-950 hover:bg-emerald-900 text-emerald-400 border border-emerald-800 rounded-xl flex items-center space-x-1.5 transition shadow"
+            title="Send WhatsApp Fee Reminder to Student"
+          >
+            <span>💬 Fee Reminder</span>
           </button>
 
           <button

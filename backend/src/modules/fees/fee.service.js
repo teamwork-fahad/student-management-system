@@ -290,3 +290,64 @@ export const updateFeePayment = async (paymentId, payload, updatedBy) => {
     return updatedPayment;
   });
 };
+
+/**
+ * Generate personalized WhatsApp Fee Reminder for a student (for mobile app & web sharing).
+ */
+export const generateStudentFeeReminderWhatsApp = async (studentId) => {
+  const admission = await prisma.admission.findFirst({
+    where: {
+      OR: [
+        { studentId },
+        { student: { studentId } },
+        { student: { id: studentId } },
+      ],
+      deletedAt: null,
+    },
+    include: {
+      student: true,
+      course: true,
+    },
+  });
+
+  if (!admission || !admission.student) {
+    throw createHttpError("Student admission record not found", 404);
+  }
+
+  const student = admission.student;
+  const cleanMobile = String(student.mobile || "").replace(/\D/g, "");
+  const formattedMobile = cleanMobile.length === 10 ? `91${cleanMobile}` : cleanMobile;
+  const courseName = admission.courseNameSnapshot || admission.course?.name || "Enrolled Course";
+
+  const totalFees = Number(admission.finalFees || admission.courseFees || 0);
+  const paidAmount = Number(admission.paidAmount || 0);
+  const pendingAmount = Number(admission.pendingAmount || 0);
+
+  const text = `📢 *FEE PAYMENT REMINDER NOTICE*
+
+Dear *${student.fullName}* (${student.studentId}),
+
+This is a gentle reminder regarding your pending course fee balance for *${courseName}*.
+
+💰 *Total Course Fees:* ₹${totalFees.toLocaleString("en-IN")}
+✅ *Amount Paid:* ₹${paidAmount.toLocaleString("en-IN")}
+⚠️ *Pending Balance:* ₹${pendingAmount.toLocaleString("en-IN")}
+
+Please clear your pending dues at the earliest to continue your classes smoothly. If you have already paid, kindly ignore this message.
+
+Thank you!
+_Student Management System_`;
+
+  const encodedText = encodeURIComponent(text);
+
+  return {
+    studentId: student.id,
+    displayId: student.studentId,
+    fullName: student.fullName,
+    mobile: student.mobile,
+    pendingAmount,
+    text,
+    whatsappUrl: formattedMobile ? `https://wa.me/${formattedMobile}?text=${encodedText}` : `https://wa.me/?text=${encodedText}`,
+    apiWhatsappUrl: formattedMobile ? `whatsapp://send?phone=${formattedMobile}&text=${encodedText}` : `whatsapp://send?text=${encodedText}`,
+  };
+};
