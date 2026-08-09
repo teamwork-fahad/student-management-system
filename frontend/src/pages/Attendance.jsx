@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Calendar as CalendarIcon,
   CheckCircle2,
@@ -13,8 +13,10 @@ import {
   Zap,
   ExternalLink,
   User,
+  ChevronDown,
 } from "lucide-react";
 import api from "../api/axios";
+
 
 export const Attendance = () => {
 
@@ -31,6 +33,16 @@ export const Attendance = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
+  const [sundayOverride, setSundayOverride] = useState(false); // allow marking even on Sunday
+
+  // ── Sunday detection ────────────────────────────────────────────────────────
+  // date string is YYYY-MM-DD; new Date(date) parses as UTC midnight,
+  // so we manually extract the day to avoid timezone shift
+  const isSunday = useMemo(() => {
+    if (!date) return false;
+    const [y, m, d] = date.split("-").map(Number);
+    return new Date(y, m - 1, d).getDay() === 0; // 0 = Sunday
+  }, [date]);
 
   const [selectedStudentIds, setSelectedStudentIds] = useState([]);
 
@@ -45,7 +57,9 @@ export const Attendance = () => {
     fetchAttendance();
     fetchStats();
     setSelectedStudentIds([]);
+    setSundayOverride(false); // reset override when date changes
   }, [date, selectedCourseId, selectedDeptId]);
+
 
   const toggleSelectStudent = (id) => {
     setSelectedStudentIds((prev) =>
@@ -112,19 +126,31 @@ export const Attendance = () => {
       const res = await api.get(url);
       let list = res.data.data || [];
 
-      // Filter locally by department if selected and course not explicitly picked
+      // Filter locally by department if selected and no specific course chosen.
+      // ✅ FIX: Match by courseId (reliable) not courseName (unreliable/duplicate-prone).
       if (selectedDeptId && !selectedCourseId) {
+        // Build a set of courseIds that belong to this department
         const deptCourseIds = new Set(
           courses
             .filter((c) => c.departmentId === selectedDeptId || c.department?.id === selectedDeptId)
             .map((c) => c.id)
         );
+
+        // Also keep a set of course names as fallback for students whose
+        // admission.courseId doesn't directly match but name does
         const deptCourseNames = new Set(
           courses
             .filter((c) => c.departmentId === selectedDeptId || c.department?.id === selectedDeptId)
             .map((c) => c.name)
         );
-        list = list.filter((s) => deptCourseNames.has(s.courseName));
+
+        list = list.filter((s) => {
+          // ✅ PRIMARY: Match by courseId — reliable, no duplicate issue
+          if (s.courseId) return deptCourseIds.has(s.courseId);
+          // Fallback: match by courseName if courseId not available
+          return deptCourseNames.has(s.courseName);
+        });
+
       }
 
       setStudents(list);
@@ -140,6 +166,7 @@ export const Attendance = () => {
       setLoading(false);
     }
   };
+
 
   const fetchStats = async () => {
     try {
@@ -311,8 +338,89 @@ export const Attendance = () => {
           <span>{msg}</span>
         </div>
       )}
+      {/* ── SUNDAY BANNER ──────────────────────────────────────────────────── */}
+      {isSunday && (
+        <div className={`relative overflow-hidden rounded-2xl border shadow-xl transition-all duration-300 ${
+          sundayOverride
+            ? "bg-amber-950/30 border-amber-800/50"
+            : "bg-gradient-to-r from-amber-950/80 via-orange-950/80 to-amber-950/80 border-amber-700/60"
+        }`}>
+          {/* Glow blobs */}
+          {!sundayOverride && (
+            <>
+              <div className="absolute top-0 left-0 w-48 h-48 bg-amber-500/10 blur-[60px] rounded-full pointer-events-none" />
+              <div className="absolute bottom-0 right-0 w-48 h-48 bg-orange-500/10 blur-[60px] rounded-full pointer-events-none" />
+            </>
+          )}
+
+          <div className="relative z-10 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start sm:items-center gap-3.5">
+              {/* Icon */}
+              <div className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center text-2xl shadow-inner ${
+                sundayOverride
+                  ? "bg-amber-950/60 border border-amber-800/40"
+                  : "bg-amber-500/20 border border-amber-500/30"
+              }`}>
+                🌴
+              </div>
+
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={`text-sm font-black tracking-tight ${sundayOverride ? "text-amber-400" : "text-amber-300"}`}>
+                    {sundayOverride ? "Sunday Override Active" : "Aaj Sunday Hai — Institute Closed 🏖️"}
+                  </span>
+                  {sundayOverride && (
+                    <span className="px-2 py-0.5 bg-amber-500/20 border border-amber-500/30 rounded-full text-[10px] font-bold text-amber-400 uppercase tracking-wide">
+                      Rare Case Mode
+                    </span>
+                  )}
+                </div>
+                <p className={`text-[11px] mt-0.5 leading-relaxed ${sundayOverride ? "text-slate-500" : "text-amber-500/80"}`}>
+                  {sundayOverride
+                    ? "Attendance sheet open hai. Sirf aye hue students ko mark karo. Baaki ko chhod do."
+                    : "Aam taur par Sunday ko class nahi hoti. Agar koi student aaya hai toh override kar ke mark kar sakte ho."}
+                </p>
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap">
+              {!sundayOverride ? (
+                <>
+                  {/* Mark All Holiday */}
+                  <button
+                    onClick={() => handleMarkAll("HOLIDAY")}
+                    disabled={saving || students.length === 0}
+                    className="px-3.5 py-2 bg-teal-600/80 hover:bg-teal-500 text-white rounded-xl text-xs font-bold transition shadow-lg whitespace-nowrap flex items-center gap-1.5 disabled:opacity-50"
+                  >
+                    🌴 Sab ko Holiday Mark Karo
+                  </button>
+
+                  {/* Override */}
+                  <button
+                    onClick={() => setSundayOverride(true)}
+                    className="px-3.5 py-2 bg-amber-800/60 hover:bg-amber-700/70 text-amber-200 border border-amber-700/50 rounded-xl text-xs font-semibold transition whitespace-nowrap flex items-center gap-1.5"
+                  >
+                    <ChevronDown className="w-3.5 h-3.5" />
+                    Kuch Students Aaye Hain...
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setSundayOverride(false)}
+                  className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs font-semibold transition whitespace-nowrap flex items-center gap-1.5"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Wapis Sunday View
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 2. FILTER & DATE CONTROL GRID */}
+
       <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 shadow-xl">
         <div className="flex items-center space-x-2 text-slate-300 text-xs font-bold uppercase tracking-wider">
           <Filter className="w-4 h-4 text-cyan-400 shrink-0" />

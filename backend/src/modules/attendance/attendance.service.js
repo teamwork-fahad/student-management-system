@@ -94,16 +94,17 @@ export const markBatchAttendance = async ({ date, records, markedBy }) => {
 export const getAttendanceByDate = async (dateStr, courseId) => {
   const targetDate = parseDateToUTC(dateStr);
 
+  // ✅ FIX: Only filter by STUDENT status (ACTIVE / REVISION).
+  // Do NOT filter by admission.status — a student can be ACTIVE even if
+  // their admission is COMPLETED (e.g. course finished but still attending revision).
   const where = {
     deletedAt: null,
     status: { in: ["ACTIVE", "REVISION"] },
-    admission: {
-      status: "ACTIVE",
-    },
   };
 
+  // If a specific course is requested, filter via the admission's courseId
   if (courseId) {
-    where.admission.courseId = courseId;
+    where.admission = { courseId };
   }
 
   const students = await prisma.student.findMany({
@@ -126,7 +127,9 @@ export const getAttendanceByDate = async (dateStr, courseId) => {
     displayId: s.studentId,
     fullName: s.fullName,
     courseName: s.admission?.courseNameSnapshot || s.admission?.course?.name || "N/A",
+    courseId: s.admission?.courseId || null,          // ✅ expose courseId for frontend dept filter
     studentStatus: s.status,
+    admissionStatus: s.admission?.status || "N/A",
     attendance: s.attendances[0] || null,
     status: s.attendances[0]?.status || "UNMARKED",
   }));
@@ -138,12 +141,12 @@ export const getAttendanceByDate = async (dateStr, courseId) => {
 export const getAttendanceStats = async () => {
   const today = parseDateToUTC(new Date().toISOString().split("T")[0]);
 
+  // ✅ FIX: Match same filter as getAttendanceByDate — only student.status matters
   const [totalStudents, todayPresent, todayAbsent, todayLate, todayEarlyLeave, todayNoClass, todayHoliday, todayExempted] = await Promise.all([
     prisma.student.count({
       where: {
         deletedAt: null,
         status: { in: ["ACTIVE", "REVISION"] },
-        admission: { status: "ACTIVE" },
       },
     }),
     prisma.attendance.count({ where: { date: today, status: "PRESENT" } }),
@@ -240,11 +243,11 @@ export const getAttendanceWhatsAppReport = async (dateStr) => {
   });
 
   const [totalStudents, presentCount, absentCount, lateCount, earlyLeaveCount, noClassCount, holidayCount, exemptedCount] = await Promise.all([
+    // ✅ FIX: Same filter as getAttendanceByDate
     prisma.student.count({
       where: {
         deletedAt: null,
         status: { in: ["ACTIVE", "REVISION"] },
-        admission: { status: "ACTIVE" },
       },
     }),
     prisma.attendance.count({ where: { date: targetDate, status: "PRESENT" } }),
