@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
+import { usePin } from "../context/PinContext";
 import { useNavigate } from "react-router-dom";
 import { AuthModal } from "../components/auth/AuthModal";
 import {
@@ -24,6 +25,7 @@ import api from "../api/axios";
 export const LandingPage = () => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const { requestPinUnlock } = usePin();
 
   // Auth modal state
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -145,7 +147,8 @@ export const LandingPage = () => {
                   if (user?.role === "STUDENT") {
                     navigate("/student/dashboard");
                   } else {
-                    navigate("/dashboard");
+                    // 🔐 PIN guard for Admin ERP
+                    requestPinUnlock(() => navigate("/dashboard"));
                   }
                 }}
                 className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/30 flex items-center space-x-2 transition"

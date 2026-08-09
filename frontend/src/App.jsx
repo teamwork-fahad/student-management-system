@@ -1,6 +1,9 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { PinProvider } from "./context/PinContext";
+import { usePin } from "./context/PinContext";
+import { PinLockModal } from "./components/auth/PinLockModal";
 import { AppLayout } from "./components/layout/AppLayout";
 import { LandingPage } from "./pages/LandingPage";
 import { StudentDashboard } from "./pages/StudentDashboard";
@@ -17,11 +20,18 @@ import { Expenses } from "./pages/Expenses";
 
 const AdminProtectedRoute = ({ children }) => {
   const { isAuthenticated, user } = useAuth();
+  const { isPinUnlocked, requestPinUnlock } = usePin();
+
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
   }
   if (user?.role === "STUDENT") {
     return <Navigate to="/student/dashboard" replace />;
+  }
+  // If PIN is not unlocked (e.g. direct URL access or auto-lock), redirect to home
+  // The home page will show the PIN modal via requestPinUnlock
+  if (!isPinUnlocked) {
+    return <Navigate to="/" replace />;
   }
   return children;
 };
@@ -40,8 +50,10 @@ const StudentProtectedRoute = ({ children }) => {
 export const App = () => {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
+      <PinProvider>
+        <BrowserRouter>
+          <PinLockModal />
+          <Routes>
           {/* Public Landing Page at root http://localhost:5173/ */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LandingPage />} />
@@ -77,10 +89,11 @@ export const App = () => {
             <Route path="analytics" element={<AnalyticsDashboard />} />
           </Route>
 
-          {/* Fallback redirect */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
+            {/* Fallback redirect */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </PinProvider>
     </AuthProvider>
   );
 };

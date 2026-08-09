@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate, Outlet } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { usePin } from "../../context/PinContext";
 import { NotificationDropdown } from "../notifications/NotificationDropdown";
 import {
   LayoutDashboard,
@@ -18,11 +19,13 @@ import {
   CalendarCheck,
   Wallet,
   BarChart3,
+  Lock,
 } from "lucide-react";
 
 
 export const AppLayout = () => {
   const { user, logout } = useAuth();
+  const { lockPin } = usePin();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -130,6 +133,16 @@ export const AppLayout = () => {
           >
             <LogOut className="w-4 h-4 mr-2" />
             Logout Session
+          </button>
+
+          {/* 🔐 Manual Lock Button */}
+          <button
+            onClick={() => { lockPin(); navigate("/"); }}
+            className="mt-2 w-full flex items-center justify-center px-4 py-2 text-xs font-semibold text-amber-400 rounded-xl bg-amber-950/20 border border-amber-900/30 hover:bg-amber-900/40 hover:text-amber-200 transition-colors"
+            title="Lock ERP and require PIN to re-enter"
+          >
+            <Lock className="w-3.5 h-3.5 mr-2" />
+            Lock ERP
           </button>
         </div>
       </aside>
