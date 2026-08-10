@@ -14,6 +14,8 @@ import {
   ExternalLink,
   User,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import api from "../api/axios";
 
@@ -43,6 +45,22 @@ export const Attendance = () => {
     const [y, m, d] = date.split("-").map(Number);
     return new Date(y, m - 1, d).getDay() === 0; // 0 = Sunday
   }, [date]);
+
+  // ── Day label (Mon, Tue … Sun) shown next to date ─────────────────────────
+  const dayLabel = useMemo(() => {
+    if (!date) return "";
+    const [y, m, d] = date.split("-").map(Number);
+    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    return days[new Date(y, m - 1, d).getDay()];
+  }, [date]);
+
+  // ── Navigate date by ±1 day ───────────────────────────────────────────────
+  const navigateDay = (delta) => {
+    const [y, m, d] = date.split("-").map(Number);
+    const next = new Date(y, m - 1, d + delta);
+    const pad = (n) => String(n).padStart(2, "0");
+    setDate(`${next.getFullYear()}-${pad(next.getMonth() + 1)}-${pad(next.getDate())}`);
+  };
 
   const [selectedStudentIds, setSelectedStudentIds] = useState([]);
 
@@ -367,7 +385,7 @@ export const Attendance = () => {
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className={`text-sm font-black tracking-tight ${sundayOverride ? "text-amber-400" : "text-amber-300"}`}>
-                    {sundayOverride ? "Sunday Override Active" : "Aaj Sunday Hai — Institute Closed 🏖️"}
+                    {sundayOverride ? "Sunday Override — Marking Active" : "Today is Sunday — Institute Closed 🏖️"}
                   </span>
                   {sundayOverride && (
                     <span className="px-2 py-0.5 bg-amber-500/20 border border-amber-500/30 rounded-full text-[10px] font-bold text-amber-400 uppercase tracking-wide">
@@ -377,8 +395,8 @@ export const Attendance = () => {
                 </div>
                 <p className={`text-[11px] mt-0.5 leading-relaxed ${sundayOverride ? "text-slate-500" : "text-amber-500/80"}`}>
                   {sundayOverride
-                    ? "Attendance sheet open hai. Sirf aye hue students ko mark karo. Baaki ko chhod do."
-                    : "Aam taur par Sunday ko class nahi hoti. Agar koi student aaya hai toh override kar ke mark kar sakte ho."}
+                    ? "Sheet is open. Mark only the students who came in. Leave the rest unmarked."
+                    : "Sundays are usually off. If a few students came in, click override to mark their attendance."}
                 </p>
               </div>
             </div>
@@ -393,7 +411,7 @@ export const Attendance = () => {
                     disabled={saving || students.length === 0}
                     className="px-3.5 py-2 bg-teal-600/80 hover:bg-teal-500 text-white rounded-xl text-xs font-bold transition shadow-lg whitespace-nowrap flex items-center gap-1.5 disabled:opacity-50"
                   >
-                    🌴 Sab ko Holiday Mark Karo
+                    🌴 Mark All as Holiday
                   </button>
 
                   {/* Override */}
@@ -402,7 +420,7 @@ export const Attendance = () => {
                     className="px-3.5 py-2 bg-amber-800/60 hover:bg-amber-700/70 text-amber-200 border border-amber-700/50 rounded-xl text-xs font-semibold transition whitespace-nowrap flex items-center gap-1.5"
                   >
                     <ChevronDown className="w-3.5 h-3.5" />
-                    Kuch Students Aaye Hain...
+                    Some Students Came In...
                   </button>
                 </>
               ) : (
@@ -411,7 +429,7 @@ export const Attendance = () => {
                   className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs font-semibold transition whitespace-nowrap flex items-center gap-1.5"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
-                  Wapis Sunday View
+                  Back to Sunday View
                 </button>
               )}
             </div>
@@ -465,15 +483,42 @@ export const Attendance = () => {
             </select>
           </div>
 
-          {/* Date Selector */}
-          <div className="flex items-center space-x-2 bg-slate-950 border border-slate-800 px-3 py-2 rounded-xl text-xs w-full">
+          {/* Date Selector with Prev / Next navigation */}
+          <div className="flex items-center gap-2 bg-slate-950 border border-slate-800 px-3 py-2 rounded-xl text-xs w-full">
+            {/* Prev day */}
+            <button
+              onClick={() => navigateDay(-1)}
+              className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg bg-slate-800 hover:bg-cyan-700 text-slate-300 hover:text-white transition"
+              title="Previous Day"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+
             <CalendarIcon className="w-4 h-4 text-cyan-400 shrink-0" />
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="bg-transparent text-xs font-semibold text-white outline-none cursor-pointer [color-scheme:dark] w-full"
-            />
+
+            <div className="flex-1 flex flex-col min-w-0">
+              {/* Day label */}
+              <span className={`text-[10px] font-bold uppercase tracking-widest leading-none mb-0.5 ${
+                isSunday ? "text-amber-400" : "text-cyan-400"
+              }`}>
+                {dayLabel}{isSunday ? " — Holiday" : ""}
+              </span>
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="bg-transparent text-xs font-semibold text-white outline-none cursor-pointer [color-scheme:dark] w-full"
+              />
+            </div>
+
+            {/* Next day */}
+            <button
+              onClick={() => navigateDay(1)}
+              className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg bg-slate-800 hover:bg-cyan-700 text-slate-300 hover:text-white transition"
+              title="Next Day"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>
