@@ -13,10 +13,19 @@ import {
   Alert,
   Linking,
   Modal,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { safeStorage } from '@/utils/storage';
 import api, { setAuthToken } from '@/services/api';
+
+// IST-correct local date string YYYY-MM-DD
+const getLocalDateStr = (date: Date = new Date()): string => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
 
 export interface Student {
   id: string;
@@ -55,9 +64,12 @@ export default function AttendanceActiveScreen() {
   const [attendanceTab, setAttendanceTab] = useState<'UNMARKED' | 'MARKED' | 'ALL'>('UNMARKED');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Date state: YYYY-MM-DD
-  const todayStr = new Date().toISOString().split('T')[0];
+  // Date state: YYYY-MM-DD (IST local date, not UTC)
+  const todayStr = getLocalDateStr();
   const [attendanceDate, setAttendanceDate] = useState<string>(todayStr);
+  const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
+  const [calendarYear, setCalendarYear] = useState<number>(new Date().getFullYear());
+  const [calendarMonth, setCalendarMonth] = useState<number>(new Date().getMonth());
   const [attendanceMap, setAttendanceMap] = useState<Record<string, 'PRESENT' | 'ABSENT' | 'LATE' | 'EARLY_LEAVE' | 'NO_CLASS' | 'HOLIDAY' | 'EXEMPTED' | 'UNMARKED'>>({});
   const [savingAttendance, setSavingAttendance] = useState(false);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
@@ -81,14 +93,15 @@ export default function AttendanceActiveScreen() {
 
   // Date Navigation Handlers
   const changeDateByDays = (days: number) => {
-    const current = new Date(attendanceDate);
+    const parts = attendanceDate.split('-').map(Number);
+    const current = new Date(parts[0], parts[1] - 1, parts[2]);
     if (isNaN(current.getTime())) {
       setAttendanceDate(todayStr);
       fetchActiveStudentsAndAttendance(todayStr, search);
       return;
     }
     current.setDate(current.getDate() + days);
-    const newDateStr = current.toISOString().split('T')[0];
+    const newDateStr = getLocalDateStr(current);
     setAttendanceDate(newDateStr);
     fetchActiveStudentsAndAttendance(newDateStr, search);
   };
@@ -100,11 +113,34 @@ export default function AttendanceActiveScreen() {
     fetchActiveStudentsAndAttendance(todayStr, search);
   };
 
-  const handleDateChangeText = (text: string) => {
-    setAttendanceDate(text);
-    if (/^\d{4}-\d{2}-\d{2}$/.test(text)) {
-      fetchActiveStudentsAndAttendance(text, search);
-    }
+  const handleCalendarSelectDate = (dateStr: string) => {
+    setAttendanceDate(dateStr);
+    setShowDatePicker(false);
+    fetchActiveStudentsAndAttendance(dateStr, search);
+  };
+
+  const openDatePicker = () => {
+    const parts = attendanceDate.split('-').map(Number);
+    setCalendarYear(parts[0] || new Date().getFullYear());
+    setCalendarMonth((parts[1] || new Date().getMonth() + 1) - 1);
+    setShowDatePicker(true);
+  };
+
+  // Calendar helpers
+  const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const DAY_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  const getCalendarDays = (year: number, month: number): (number | null)[] => {
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const cells: (number | null)[] = Array(firstDay).fill(null);
+    for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+    while (cells.length % 7 !== 0) cells.push(null);
+    return cells;
+  };
+
+  const formatCalendarDate = (year: number, month: number, day: number): string => {
+    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
   };
 
 
@@ -440,7 +476,7 @@ export default function AttendanceActiveScreen() {
           )}
         </View>
 
-        {/* Quick Attendance Toggle Buttons */}
+        {/* Quick Attendance Toggle Buttons - Row 1 */}
         <View style={styles.attToggleRow}>
           <TouchableOpacity
             style={[
@@ -448,10 +484,10 @@ export default function AttendanceActiveScreen() {
               currentAtt === 'PRESENT' ? styles.presentBtnActive : styles.attBtnInactive,
             ]}
             onPress={() => toggleStudentAttendance(item.id, 'PRESENT')}
+            activeOpacity={0.75}
           >
-            <Text style={currentAtt === 'PRESENT' ? styles.attTextActive : styles.attTextInactive}>
-              ✓ PRESENT
-            </Text>
+            <Text style={styles.attBtnIcon}>✅</Text>
+            <Text style={[styles.attBtnLabel, currentAtt === 'PRESENT' ? styles.attLabelActive : styles.attLabelInactive]}>Present</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -460,58 +496,73 @@ export default function AttendanceActiveScreen() {
               currentAtt === 'ABSENT' ? styles.absentBtnActive : styles.attBtnInactive,
             ]}
             onPress={() => toggleStudentAttendance(item.id, 'ABSENT')}
+            activeOpacity={0.75}
           >
-            <Text style={currentAtt === 'ABSENT' ? styles.attTextActive : styles.attTextInactive}>
-              ✗ ABSENT
-            </Text>
+            <Text style={styles.attBtnIcon}>❌</Text>
+            <Text style={[styles.attBtnLabel, currentAtt === 'ABSENT' ? styles.attLabelActive : styles.attLabelInactive]}>Absent</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[
               styles.attBtn,
-              currentAtt === 'EARLY_LEAVE' ? styles.exemptedBtnActive : styles.attBtnInactive,
+              currentAtt === 'LATE' ? styles.lateBtnActive : styles.attBtnInactive,
+            ]}
+            onPress={() => toggleStudentAttendance(item.id, 'LATE')}
+            activeOpacity={0.75}
+          >
+            <Text style={styles.attBtnIcon}>⏰</Text>
+            <Text style={[styles.attBtnLabel, currentAtt === 'LATE' ? styles.attLabelActive : styles.attLabelInactive]}>Late</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Quick Attendance Toggle Buttons - Row 2 */}
+        <View style={[styles.attToggleRow, { marginTop: 6 }]}>
+          <TouchableOpacity
+            style={[
+              styles.attBtn,
+              currentAtt === 'EARLY_LEAVE' ? styles.earlyBtnActive : styles.attBtnInactive,
             ]}
             onPress={() => toggleStudentAttendance(item.id, 'EARLY_LEAVE')}
+            activeOpacity={0.75}
           >
-            <Text style={currentAtt === 'EARLY_LEAVE' ? styles.attTextActive : styles.attTextInactive}>
-              🟤 EARLY
-            </Text>
+            <Text style={styles.attBtnIcon}>🚪</Text>
+            <Text style={[styles.attBtnLabel, currentAtt === 'EARLY_LEAVE' ? styles.attLabelActive : styles.attLabelInactive]}>Early</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[
               styles.attBtn,
-              currentAtt === 'NO_CLASS' ? styles.exemptedBtnActive : styles.attBtnInactive,
+              currentAtt === 'NO_CLASS' ? styles.noClassBtnActive : styles.attBtnInactive,
             ]}
             onPress={() => toggleStudentAttendance(item.id, 'NO_CLASS')}
+            activeOpacity={0.75}
           >
-            <Text style={currentAtt === 'NO_CLASS' ? styles.attTextActive : styles.attTextInactive}>
-              ☕ NO CLASS
-            </Text>
+            <Text style={styles.attBtnIcon}>☕</Text>
+            <Text style={[styles.attBtnLabel, currentAtt === 'NO_CLASS' ? styles.attLabelActive : styles.attLabelInactive]}>No Class</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[
               styles.attBtn,
-              currentAtt === 'HOLIDAY' ? styles.exemptedBtnActive : styles.attBtnInactive,
+              currentAtt === 'HOLIDAY' ? styles.holidayBtnActive : styles.attBtnInactive,
             ]}
             onPress={() => toggleStudentAttendance(item.id, 'HOLIDAY')}
+            activeOpacity={0.75}
           >
-            <Text style={currentAtt === 'HOLIDAY' ? styles.attTextActive : styles.attTextInactive}>
-              🌴 HOLIDAY
-            </Text>
+            <Text style={styles.attBtnIcon}>🌴</Text>
+            <Text style={[styles.attBtnLabel, currentAtt === 'HOLIDAY' ? styles.attLabelActive : styles.attLabelInactive]}>Holiday</Text>
           </TouchableOpacity>
 
-          {currentAtt !== 'UNMARKED' && (
+          {currentAtt !== 'UNMARKED' ? (
             <TouchableOpacity
-              style={[styles.attBtn, styles.unmarkBtnActive]}
+              style={[styles.attBtn, styles.resetBtnActive]}
               onPress={() => toggleStudentAttendance(item.id, 'UNMARKED')}
+              activeOpacity={0.75}
             >
-              <Text style={styles.unmarkTextActive}>
-                🔄 Reset
-              </Text>
+              <Text style={styles.attBtnIcon}>🔄</Text>
+              <Text style={[styles.attBtnLabel, styles.attLabelActive]}>Reset</Text>
             </TouchableOpacity>
-          )}
+          ) : null}
         </View>
 
         {/* Mobile Action Buttons: Fee Collection & WhatsApp Reminder */}
@@ -640,32 +691,38 @@ export default function AttendanceActiveScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Interactive Date Selector Bar */}
+      {/* Beautiful Date Selector Bar */}
       <View style={styles.dateSelectorBar}>
         <TouchableOpacity style={styles.dateNavBtn} onPress={handlePrevDay}>
-          <Text style={styles.dateNavText}>◀ Prev</Text>
+          <Text style={styles.dateNavText}>◀</Text>
         </TouchableOpacity>
 
-        <View style={styles.dateInputWrapper}>
+        <TouchableOpacity style={styles.datePickerBtn} onPress={openDatePicker} activeOpacity={0.8}>
           <Text style={styles.dateIcon}>📅</Text>
-          <TextInput
-            style={styles.dateInput}
-            value={attendanceDate}
-            onChangeText={handleDateChangeText}
-            placeholder="YYYY-MM-DD"
-            placeholderTextColor="#64748b"
-            keyboardType="numbers-and-punctuation"
-          />
-        </View>
+          <View>
+            <Text style={styles.datePickerLabel}>
+              {(() => {
+                const parts = attendanceDate.split('-').map(Number);
+                const d = new Date(parts[0], parts[1] - 1, parts[2]);
+                return d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+              })()}
+            </Text>
+            <Text style={styles.datePickerSub}>Tap to change date</Text>
+          </View>
+          <Text style={styles.calDropIcon}>▾</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity style={styles.dateNavBtn} onPress={handleNextDay}>
-          <Text style={styles.dateNavText}>Next ▶</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.todayBtn} onPress={handleSelectToday}>
-          <Text style={styles.todayText}>Today</Text>
+          <Text style={styles.dateNavText}>▶</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Today Button row */}
+      {attendanceDate !== todayStr && (
+        <TouchableOpacity style={styles.goTodayStrip} onPress={handleSelectToday}>
+          <Text style={styles.goTodayText}>⚡ Jump to Today ({todayStr})</Text>
+        </TouchableOpacity>
+      )}
 
       {/* Attendance Stats Counter & Submit Bar */}
       <View style={styles.summaryBox}>
@@ -1028,6 +1085,80 @@ export default function AttendanceActiveScreen() {
           </View>
         </Modal>
       )}
+
+      {/* CALENDAR DATE PICKER MODAL */}
+      <Modal
+        visible={showDatePicker}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setShowDatePicker(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.calendarCard}>
+            {/* Month / Year Header */}
+            <View style={styles.calHeader}>
+              <TouchableOpacity
+                onPress={() => {
+                  if (calendarMonth === 0) { setCalendarMonth(11); setCalendarYear(y => y - 1); }
+                  else setCalendarMonth(m => m - 1);
+                }}
+                style={styles.calNavBtn}
+              >
+                <Text style={styles.calNavText}>◀</Text>
+              </TouchableOpacity>
+              <Text style={styles.calMonthYear}>{MONTH_NAMES[calendarMonth]} {calendarYear}</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  if (calendarMonth === 11) { setCalendarMonth(0); setCalendarYear(y => y + 1); }
+                  else setCalendarMonth(m => m + 1);
+                }}
+                style={styles.calNavBtn}
+              >
+                <Text style={styles.calNavText}>▶</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Day Labels */}
+            <View style={styles.calDayRow}>
+              {DAY_LABELS.map(d => (
+                <Text key={d} style={styles.calDayLabel}>{d}</Text>
+              ))}
+            </View>
+
+            {/* Calendar Grid */}
+            <View style={styles.calGrid}>
+              {getCalendarDays(calendarYear, calendarMonth).map((day, idx) => {
+                if (!day) return <View key={`empty-${idx}`} style={styles.calCell} />;
+                const dateStr = formatCalendarDate(calendarYear, calendarMonth, day);
+                const isSelected = dateStr === attendanceDate;
+                const isToday = dateStr === todayStr;
+                return (
+                  <TouchableOpacity
+                    key={dateStr}
+                    style={[
+                      styles.calCell,
+                      isSelected && styles.calCellSelected,
+                      isToday && !isSelected && styles.calCellToday,
+                    ]}
+                    onPress={() => handleCalendarSelectDate(dateStr)}
+                  >
+                    <Text style={[
+                      styles.calDayNum,
+                      isSelected && styles.calDayNumSelected,
+                      isToday && !isSelected && styles.calDayNumToday,
+                    ]}>{day}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <TouchableOpacity style={styles.calCloseBtn} onPress={() => setShowDatePicker(false)}>
+              <Text style={styles.calCloseBtnText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
     </SafeAreaView>
   );
 }
@@ -1094,38 +1225,138 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: 'bold',
   },
-  dateInputWrapper: {
+  datePickerBtn: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#0f172a',
     borderRadius: 10,
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#334155',
+    gap: 6,
+  },
+  dateIcon: {
+    fontSize: 14,
+  },
+  datePickerLabel: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  datePickerSub: {
+    color: '#64748b',
+    fontSize: 9,
+    marginTop: 1,
+  },
+  calDropIcon: {
+    color: '#38bdf8',
+    fontSize: 14,
+    marginLeft: 'auto',
+  },
+  goTodayStrip: {
+    backgroundColor: '#0c4a6e',
+    borderColor: '#0284c7',
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingVertical: 7,
+    alignItems: 'center',
+    marginBottom: 10,
+    marginTop: -4,
+  },
+  goTodayText: {
+    color: '#38bdf8',
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  // Calendar Modal Styles
+  calendarCard: {
+    backgroundColor: '#1e293b',
+    borderRadius: 20,
+    padding: 20,
+    width: '92%',
     borderWidth: 1,
     borderColor: '#334155',
   },
-  dateIcon: {
-    fontSize: 12,
-    marginRight: 4,
+  calHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 14,
   },
-  dateInput: {
-    flex: 1,
-    color: '#ffffff',
-    fontSize: 12,
-    fontWeight: 'bold',
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+  calNavBtn: {
+    backgroundColor: '#0f172a',
+    borderRadius: 8,
+    paddingHorizontal: 12,
     paddingVertical: 6,
-    textAlign: 'center',
+    borderWidth: 1,
+    borderColor: '#334155',
   },
-  todayBtn: {
-    backgroundColor: '#0284c7',
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    borderRadius: 10,
+  calNavText: {
+    color: '#38bdf8',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
-  todayText: {
+  calMonthYear: {
     color: '#ffffff',
-    fontSize: 11,
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  calDayRow: {
+    flexDirection: 'row',
+    marginBottom: 6,
+  },
+  calDayLabel: {
+    flex: 1,
+    textAlign: 'center',
+    color: '#64748b',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  calGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 16,
+  },
+  calCell: {
+    width: '14.28%',
+    aspectRatio: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    marginBottom: 4,
+  },
+  calCellSelected: {
+    backgroundColor: '#0284c7',
+  },
+  calCellToday: {
+    backgroundColor: '#164e63',
+    borderWidth: 1,
+    borderColor: '#38bdf8',
+  },
+  calDayNum: {
+    color: '#cbd5e1',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  calDayNumSelected: {
+    color: '#ffffff',
+    fontWeight: '900',
+  },
+  calDayNumToday: {
+    color: '#38bdf8',
+    fontWeight: '900',
+  },
+  calCloseBtn: {
+    backgroundColor: '#334155',
+    borderRadius: 12,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  calCloseBtnText: {
+    color: '#94a3b8',
+    fontSize: 13,
     fontWeight: 'bold',
   },
   summaryBox: {
@@ -1255,36 +1486,102 @@ const styles = StyleSheet.create({
   },
   attToggleRow: {
     flexDirection: 'row',
-    gap: 8,
-    marginTop: 10,
-    paddingTop: 10,
+    gap: 6,
+    marginTop: 12,
+    paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#334155',
+    borderTopColor: '#1e3a5f',
+    flexWrap: 'nowrap',
   },
   attBtn: {
     flex: 1,
-    paddingVertical: 8,
-    borderRadius: 10,
+    paddingVertical: 9,
+    paddingHorizontal: 2,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
+    borderWidth: 1.5,
+    minWidth: 54,
+  },
+  attBtnIcon: {
+    fontSize: 16,
+    marginBottom: 3,
+  },
+  attBtnLabel: {
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.2,
+    textAlign: 'center',
+  },
+  attLabelActive: {
+    color: '#ffffff',
+  },
+  attLabelInactive: {
+    color: '#475569',
   },
   attBtnInactive: {
     backgroundColor: '#0f172a',
-    borderColor: '#334155',
+    borderColor: '#1e293b',
   },
   presentBtnActive: {
-    backgroundColor: '#064e3b',
-    borderColor: '#059669',
+    backgroundColor: '#065f46',
+    borderColor: '#10b981',
+    shadowColor: '#10b981',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 4,
   },
   absentBtnActive: {
-    backgroundColor: '#881337',
-    borderColor: '#e11d48',
+    backgroundColor: '#7f1d1d',
+    borderColor: '#ef4444',
+    shadowColor: '#ef4444',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 4,
   },
-  exemptedBtnActive: {
-    backgroundColor: '#312e81',
-    borderColor: '#6366f1',
+  lateBtnActive: {
+    backgroundColor: '#78350f',
+    borderColor: '#f59e0b',
+    shadowColor: '#f59e0b',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 4,
   },
+  earlyBtnActive: {
+    backgroundColor: '#4c1d95',
+    borderColor: '#a78bfa',
+    shadowColor: '#a78bfa',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  noClassBtnActive: {
+    backgroundColor: '#1c3a4a',
+    borderColor: '#38bdf8',
+    shadowColor: '#38bdf8',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  holidayBtnActive: {
+    backgroundColor: '#14532d',
+    borderColor: '#4ade80',
+    shadowColor: '#4ade80',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  resetBtnActive: {
+    backgroundColor: '#1e293b',
+    borderColor: '#94a3b8',
+  },
+  // legacy - keep for safety
   attTextActive: {
     color: '#ffffff',
     fontSize: 11,
