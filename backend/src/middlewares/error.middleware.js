@@ -34,5 +34,10 @@ export const errorMiddleware = (error, req, res, next) => {
   const message =
     statusCode === 500 ? "Internal server error" : error.message;
 
+  // Log 500 errors with the real error so it's visible in Vercel/server logs
+  if (statusCode === 500) {
+    console.error("[ERROR]", error.message, error.stack);
+  }
+
   return errorResponse(res, message, statusCode);
 };
