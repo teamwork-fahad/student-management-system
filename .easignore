@@ -1,0 +1,6 @@
+# Ignore non-mobile directories from EAS build upload
+backend/
+frontend/
+node_modules/
+.git/
+*.log

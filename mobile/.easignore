@@ -1,0 +1,9 @@
+# Ignore everything outside mobile folder context
+node_modules
+.git
+*.log
+
+# Ignore backend and frontend (not needed for mobile build)
+../backend
+../frontend
+../node_modules
