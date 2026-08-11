@@ -177,17 +177,12 @@ export const registerStudentService = async ({
   const adminUser = await prisma.user.findFirst({ where: { role: "SUPER_ADMIN" } });
   const adminId = adminUser?.id || "admin";
 
-  let courseObj = null;
-  if (courseId) {
-    courseObj = await prisma.course.findUnique({ where: { id: courseId } });
+  if (!courseId) {
+    throw createHttpError("Please select a course for student registration.", 400);
   }
+  const courseObj = await prisma.course.findUnique({ where: { id: courseId } });
   if (!courseObj) {
-    courseObj = await prisma.course.findFirst({
-      where: { name: { contains: "General", mode: "insensitive" } },
-    });
-  }
-  if (!courseObj) {
-    courseObj = await prisma.course.findFirst({ where: { isActive: true } });
+    throw createHttpError("Selected course not found.", 400);
   }
 
   const defaultLs = (await prisma.leadSource.findFirst())?.id || "default_ls";
@@ -211,10 +206,10 @@ export const registerStudentService = async ({
         gender: gender === "female" ? "Female" : "Male",
         email: cleanEmail,
         remarks: "Online self-registration via EduMaster Portal",
-        expectedFees: courseObj ? courseObj.fees : 5000,
+        expectedFees: courseObj.fees,
         nextFollowUpDate: new Date(),
         status: "ADMISSION_DONE",
-        courseId: courseObj ? courseObj.id : (await tx.course.findFirst()).id,
+        courseId: courseObj.id,
         leadSourceId: defaultLs,
         assignedToId: adminId,
       },
@@ -224,9 +219,9 @@ export const registerStudentService = async ({
       data: {
         admissionNumber: admNum,
         inquiryId: inquiry.id,
-        courseId: courseObj ? courseObj.id : (await tx.course.findFirst()).id,
-        courseNameSnapshot: courseObj ? courseObj.name : "General Course",
-        courseFeesSnapshot: courseObj ? courseObj.fees : 5000,
+        courseId: courseObj.id,
+        courseNameSnapshot: courseObj.name,
+        courseFeesSnapshot: courseObj.fees,
         admissionDate: new Date(),
         admissionYear: String(new Date().getFullYear()),
         courseFees: courseObj ? courseObj.fees : 5000,

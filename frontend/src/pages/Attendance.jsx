@@ -236,7 +236,7 @@ export const Attendance = () => {
       setTimeout(() => setMsg(""), 2000);
     } catch (err) {
       console.error("Auto save error:", err);
-      setMsg("Failed to auto-save status.");
+      setMsg(err.response?.data?.message || "Failed to auto-save status.");
     }
   };
 

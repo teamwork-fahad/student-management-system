@@ -28,15 +28,16 @@ export const errorMiddleware = (error, req, res, next) => {
     return errorResponse(res, "Duplicate value already exists", 409);
   }
 
-  const statusCode = allowedStatusCodes.includes(error.statusCode)
-    ? error.statusCode
-    : 500;
-  const message =
-    statusCode === 500 ? "Internal server error" : error.message;
+  const statusCode =
+    typeof error.statusCode === "number" && error.statusCode >= 400 && error.statusCode < 600
+      ? error.statusCode
+      : 500;
 
-  // Log 500 errors with the real error so it's visible in Vercel/server logs
-  if (statusCode === 500) {
-    console.error("[ERROR]", error.message, error.stack);
+  const message = error.message || "Internal server error";
+
+  // Log server errors so they are visible in logs
+  if (statusCode >= 500) {
+    console.error("[SERVER ERROR]", error.message, error.stack);
   }
 
   return errorResponse(res, message, statusCode);

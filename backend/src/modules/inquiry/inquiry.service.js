@@ -451,10 +451,14 @@ export const createPublicInquiry = async (data) => {
 
   let adminUser = await prisma.user.findFirst({ where: { role: "SUPER_ADMIN" } });
   let leadSource = await prisma.leadSource.findFirst();
-  let course = courseId ? await prisma.course.findUnique({ where: { id: courseId } }) : await prisma.course.findFirst();
+  
+  if (!courseId) {
+    throw createHttpError("Please select a course for your inquiry.", 400);
+  }
 
+  let course = await prisma.course.findUnique({ where: { id: courseId } });
   if (!course) {
-    throw createHttpError("No active course found for inquiry", 400);
+    throw createHttpError("Selected course does not exist.", 400);
   }
 
   const nextInquiryNumber = await getNextInquiryNumber(prisma);

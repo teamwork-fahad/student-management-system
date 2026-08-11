@@ -28,6 +28,7 @@ import {
   Sparkles,
   ShieldCheck,
   Save,
+  Award,
   X,
 } from "lucide-react";
 
@@ -125,6 +126,65 @@ export const StudentProfilePage = () => {
   const [departments, setDepartments] = useState([]);
   const [addCourseDeptId, setAddCourseDeptId] = useState("");
   const [editCourseDeptId, setEditCourseDeptId] = useState("");
+
+  // Certificate & Completion State
+  const [certSubmitting, setCertSubmitting] = useState(false);
+  const [certMsg, setCertMsg] = useState("");
+  const [certForm, setCertForm] = useState({
+    completionDate: "",
+    isCertificateEligible: false,
+    certificateUrl: "",
+    certificateFileName: "",
+  });
+
+  useEffect(() => {
+    if (studentData) {
+      setCertForm({
+        completionDate: studentData.completionDate ? new Date(studentData.completionDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+        isCertificateEligible: Boolean(studentData.isCertificateEligible),
+        certificateUrl: studentData.certificateUrl || "",
+        certificateFileName: studentData.certificateFileName || "",
+      });
+    }
+  }, [studentData]);
+
+  const handleSaveCertificateDetails = async (e) => {
+    e.preventDefault();
+    setCertSubmitting(true);
+    setCertMsg("");
+    try {
+      await api.put(`/students/${id}`, {
+        status: "COMPLETED",
+        completionDate: certForm.completionDate,
+        isCertificateEligible: certForm.isCertificateEligible,
+        certificateUrl: certForm.certificateUrl,
+        certificateFileName: certForm.certificateFileName || "Course_Certificate.pdf",
+      });
+      setCertMsg("🎉 Student marked as COMPLETED & Certificate details saved successfully!");
+      notifyStudentUpdated();
+      fetchStudentProfile();
+      setTimeout(() => setCertMsg(""), 4000);
+    } catch (err) {
+      setCertMsg(err.response?.data?.message || "Failed to save certificate details");
+    } finally {
+      setCertSubmitting(false);
+    }
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (uploadEvent) => {
+      const base64Data = uploadEvent.target.result;
+      setCertForm((prev) => ({
+        ...prev,
+        certificateUrl: base64Data,
+        certificateFileName: file.name,
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
 
   useEffect(() => {
     fetchStudentProfile();
@@ -749,6 +809,17 @@ export const StudentProfilePage = () => {
 
         <button
           type="button"
+          onClick={() => setActiveTab("certificate")}
+          className={`px-4 py-2.5 rounded-xl flex items-center space-x-2 transition whitespace-nowrap shrink-0 ${
+            activeTab === "certificate" ? "bg-emerald-600 text-white shadow-lg font-bold" : "bg-slate-900 text-slate-400 hover:text-white"
+          }`}
+        >
+          <Award className="w-4 h-4 shrink-0" />
+          <span>🎓 Certificate & Completion</span>
+        </button>
+
+        <button
+          type="button"
           onClick={() => setActiveTab("personal")}
           className={`px-4 py-2.5 rounded-xl flex items-center space-x-2 transition whitespace-nowrap shrink-0 ${
             activeTab === "personal" ? "bg-purple-600 text-white shadow-lg font-bold" : "bg-slate-900 text-slate-400 hover:text-white"
@@ -1052,7 +1123,144 @@ export const StudentProfilePage = () => {
           </div>
         )}
 
-        {/* TAB 4: FULL PERSONAL INFO */}
+        {/* TAB 4: CERTIFICATE & COMPLETION */}
+        {activeTab === "certificate" && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
+              <div>
+                <h3 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
+                  <span>🎓 Course Completion & Certificate Management</span>
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Mark completion date, approve certificate eligibility, and upload PDF for student login panel download.
+                </p>
+              </div>
+
+              <span className={`px-3 py-1 rounded-full text-xs font-bold shrink-0 ${
+                studentData.status === "COMPLETED"
+                  ? "bg-emerald-950 text-emerald-300 border border-emerald-800"
+                  : "bg-amber-950 text-amber-300 border border-amber-800"
+              }`}>
+                {studentData.status === "COMPLETED" ? "✓ Course Completed" : "In Progress"}
+              </span>
+            </div>
+
+            {certMsg && (
+              <div className={`p-4 rounded-xl text-xs font-bold border ${
+                certMsg.includes("successfully") ? "bg-emerald-950/80 border-emerald-800 text-emerald-300" : "bg-rose-950/80 border-rose-800 text-rose-300"
+              }`}>
+                {certMsg}
+              </div>
+            )}
+
+            <form onSubmit={handleSaveCertificateDetails} className="space-y-6 bg-slate-950 p-5 sm:p-6 border border-slate-800 rounded-2xl shadow-lg">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 text-xs">
+                {/* Completion Date */}
+                <div className="space-y-1.5">
+                  <label className="text-slate-300 font-bold block">Course Completion Date</label>
+                  <input
+                    type="date"
+                    value={certForm.completionDate}
+                    onChange={(e) => setCertForm((prev) => ({ ...prev, completionDate: e.target.value }))}
+                    className="w-full p-3 bg-slate-900 border border-slate-800 rounded-xl text-white font-semibold outline-none focus:border-cyan-500 [color-scheme:dark]"
+                  />
+                </div>
+
+                {/* Certificate Eligible Toggle */}
+                <div className="space-y-1.5">
+                  <label className="text-slate-300 font-bold block">Is Student Eligible for Certificate?</label>
+                  <div className="flex items-center space-x-3 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setCertForm((prev) => ({ ...prev, isCertificateEligible: true }))}
+                      className={`flex-1 py-2.5 px-4 rounded-xl font-bold transition text-xs flex items-center justify-center space-x-2 border ${
+                        certForm.isCertificateEligible
+                          ? "bg-emerald-600 text-white border-emerald-500 shadow-lg"
+                          : "bg-slate-900 text-slate-400 border-slate-800 hover:text-white"
+                      }`}
+                    >
+                      <span>YES — Approved ✅</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setCertForm((prev) => ({ ...prev, isCertificateEligible: false }))}
+                      className={`flex-1 py-2.5 px-4 rounded-xl font-bold transition text-xs flex items-center justify-center space-x-2 border ${
+                        !certForm.isCertificateEligible
+                          ? "bg-rose-950 text-rose-300 border-rose-800 shadow-lg"
+                          : "bg-slate-900 text-slate-400 border-slate-800 hover:text-white"
+                      }`}
+                    >
+                      <span>NO — Not Eligible ❌</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Certificate PDF File Upload */}
+              <div className="space-y-3 pt-3 border-t border-slate-800">
+                <label className="text-slate-300 font-bold text-xs block">
+                  Upload Certificate PDF File (Direct Upload)
+                </label>
+                
+                <div className="flex flex-col sm:flex-row items-center gap-3">
+                  <input
+                    type="file"
+                    accept="application/pdf,image/*"
+                    onChange={handleFileUpload}
+                    className="block w-full text-xs text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-cyan-950 file:text-cyan-300 hover:file:bg-cyan-900 cursor-pointer"
+                  />
+
+                  {certForm.certificateFileName && (
+                    <span className="text-xs font-mono text-cyan-400 font-bold truncate max-w-[200px]">
+                      📄 {certForm.certificateFileName}
+                    </span>
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-slate-400 text-[11px]">Or Paste Direct Certificate PDF / Drive Link:</label>
+                  <input
+                    type="url"
+                    value={certForm.certificateUrl?.startsWith("data:") ? "" : certForm.certificateUrl}
+                    onChange={(e) => setCertForm((prev) => ({ ...prev, certificateUrl: e.target.value, certificateFileName: e.target.value ? "Online_Certificate.pdf" : prev.certificateFileName }))}
+                    placeholder="https://drive.google.com/... or https://..."
+                    className="w-full p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 outline-none focus:border-cyan-500"
+                  />
+                </div>
+
+                {certForm.certificateUrl && (
+                  <div className="p-3 bg-emerald-950/50 border border-emerald-800/60 rounded-xl flex items-center justify-between">
+                    <span className="text-xs text-emerald-300 font-bold flex items-center gap-1.5">
+                      <span>✓ Certificate Ready for Student Download</span>
+                    </span>
+                    <a
+                      href={certForm.certificateUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-xs shadow"
+                    >
+                      Preview PDF
+                    </a>
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-2 flex justify-end">
+                <button
+                  type="submit"
+                  disabled={certSubmitting}
+                  className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl shadow-lg flex items-center space-x-2 transition disabled:opacity-50"
+                >
+                  <Award className="w-4 h-4" />
+                  <span>{certSubmitting ? "Saving Certificate..." : "Mark Completed & Save Certificate Status"}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* TAB 5: FULL PERSONAL INFO */}
         {activeTab === "personal" && (
           <div className="space-y-4">
             <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">

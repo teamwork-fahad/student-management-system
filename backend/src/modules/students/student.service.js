@@ -422,6 +422,10 @@ export const updateStudentFullService = async (idOrStudentId, updateData) => {
     discount,
     finalFees,
     remarks,
+    completionDate,
+    isCertificateEligible,
+    certificateUrl,
+    certificateFileName,
   } = updateData;
 
   const formattedName = fullName ? toTitleCase(fullName) : undefined;
@@ -436,6 +440,13 @@ export const updateStudentFullService = async (idOrStudentId, updateData) => {
   });
 
   for (const s of matchingStudents) {
+    let finalCompletionDate = s.completionDate;
+    if (status === "COMPLETED") {
+      finalCompletionDate = completionDate ? new Date(completionDate) : (s.completionDate || new Date());
+    } else if (status && status !== "COMPLETED") {
+      finalCompletionDate = null;
+    }
+
     await prisma.student.update({
       where: { id: s.id },
       data: {
@@ -444,6 +455,11 @@ export const updateStudentFullService = async (idOrStudentId, updateData) => {
         ...(email !== undefined && { email }),
         ...(address !== undefined && { address }),
         ...(status && { status }),
+        completionDate: finalCompletionDate,
+        ...(isCertificateEligible !== undefined && { isCertificateEligible: Boolean(isCertificateEligible) }),
+        ...(certificateUrl !== undefined && { certificateUrl }),
+        ...(certificateFileName !== undefined && { certificateFileName }),
+        ...(certificateUrl ? { certificateUploadedAt: new Date() } : {}),
       },
     });
 

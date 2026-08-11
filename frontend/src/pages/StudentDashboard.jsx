@@ -21,6 +21,7 @@ import {
   ShieldAlert,
   LayoutGrid,
   List,
+  Download,
 } from "lucide-react";
 import api from "../api/axios";
 
@@ -178,6 +179,51 @@ export const StudentDashboard = () => {
             <div className="w-12 h-12 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center shrink-0">
               <BookOpen className="w-6 h-6" />
             </div>
+
+        {/* CERTIFICATE ELIGIBILITY & DOWNLOAD BANNER */}
+        {(studentData?.isCertificateEligible || studentData?.status === "COMPLETED") && (
+          <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-cyan-950/90 via-blue-950/90 to-indigo-950/90 border border-cyan-500/40 shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-start space-x-4">
+              <div className="w-12 h-12 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 flex items-center justify-center text-2xl shrink-0 shadow-inner">
+                🎓
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="text-base sm:text-lg font-black text-white tracking-tight">
+                    Official Course Completion Certificate
+                  </h3>
+                  <span className="px-2.5 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-full font-bold text-[10px] uppercase">
+                    Approved by Admin
+                  </span>
+                </div>
+                <p className="text-xs text-slate-300">
+                  {studentData?.completionDate
+                    ? `Course Completed on: ${new Date(studentData.completionDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}`
+                    : "Congratulations on completing your course modules!"}
+                </p>
+              </div>
+            </div>
+
+            <div className="shrink-0 flex items-center gap-3">
+              {studentData?.certificateUrl ? (
+                <a
+                  href={studentData.certificateUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download={studentData.certificateFileName || "Course_Certificate.pdf"}
+                  className="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-xs rounded-xl shadow-lg transition flex items-center space-x-2 border border-emerald-400/40 whitespace-nowrap"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Download Certificate PDF 📥</span>
+                </a>
+              ) : (
+                <div className="px-4 py-2 bg-amber-950/80 border border-amber-800 text-amber-300 font-bold text-xs rounded-xl">
+                  ⏳ Certificate Approved — PDF Upload Pending by Admin
+                </div>
+              )}
+            </div>
+          </div>
+        )}
             <div>
               <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Enrolled Course</span>
               <span className="text-sm font-bold text-white block truncate max-w-[160px]">

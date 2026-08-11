@@ -24,6 +24,10 @@ const updateStudentSchema = z.object({
   discount: z.union([z.string(), z.number()]).transform(val => Number(val)).refine(val => val >= 0, "Discount must be non-negative").optional(),
   finalFees: z.union([z.string(), z.number()]).transform(val => Number(val)).refine(val => val >= 0, "Final fees must be non-negative").optional(),
   remarks: z.string().trim().optional(),
+  completionDate: z.string().trim().optional(),
+  isCertificateEligible: z.boolean().optional(),
+  certificateUrl: z.string().trim().optional(),
+  certificateFileName: z.string().trim().optional(),
 });
 
 const bulkUpdateStudentStatusSchema = z.object({

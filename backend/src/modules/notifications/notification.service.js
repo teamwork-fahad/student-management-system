@@ -33,20 +33,23 @@ export const createNotification = async ({
 export const checkAndGenerateBirthdayNotifications = async () => {
   try {
     const today = new Date();
-    const currentMonth = today.getMonth() + 1; // 1-12
-    const currentDate = today.getDate(); // 1-31
+    const currentMonth = today.getMonth() + 1; // 1-12 (Local)
+    const currentDate = today.getDate(); // 1-31 (Local)
+    const currentUTCMonth = today.getUTCMonth() + 1;
+    const currentUTCDate = today.getUTCDate();
 
-    // Find active students with dob
+    // Find active & revision students with a registered date of birth
     const activeStudents = await prisma.student.findMany({
       where: {
         deletedAt: null,
-        status: "ACTIVE",
+        status: { in: ["ACTIVE", "REVISION"] },
         dob: { not: null },
       },
       select: {
         id: true,
         studentId: true,
         fullName: true,
+        mobile: true,
         dob: true,
       },
     });
@@ -55,21 +58,36 @@ export const checkAndGenerateBirthdayNotifications = async () => {
 
     for (const student of activeStudents) {
       if (!student.dob) continue;
-      const studentDob = new Date(student.dob);
-      if (studentDob.getMonth() + 1 === currentMonth && studentDob.getDate() === currentDate) {
-        // Check if birthday notification already generated today
+      const dobObj = new Date(student.dob);
+      
+      const dobLocalMonth = dobObj.getMonth() + 1;
+      const dobLocalDate = dobObj.getDate();
+      const dobUTCMonth = dobObj.getUTCMonth() + 1;
+      const dobUTCDate = dobObj.getUTCDate();
+
+      // Match either local or UTC month & date
+      const isBirthdayToday =
+        (dobLocalMonth === currentMonth && dobLocalDate === currentDate) ||
+        (dobUTCMonth === currentUTCMonth && dobUTCDate === currentUTCDate) ||
+        (dobUTCMonth === currentMonth && dobUTCDate === currentDate);
+
+      if (isBirthdayToday) {
+        // Check if birthday notification was already created today for this student
         const existingNotice = await prisma.notification.findFirst({
           where: {
             type: "STUDENT_BIRTHDAY",
-            message: { contains: student.studentId },
+            OR: [
+              { message: { contains: student.studentId } },
+              { message: { contains: student.fullName } },
+            ],
             createdAt: { gte: startOfToday },
           },
         });
 
         if (!existingNotice) {
           await createNotification({
-            title: `🎂 Birthday Alert Today!`,
-            message: `Happy Birthday to ${student.fullName} (${student.studentId})! Wish them today.`,
+            title: `🎂 Today is ${student.fullName}'s Birthday!`,
+            message: `🎉 Happy Birthday to ${student.fullName} (${student.studentId})! Contact/WhatsApp: ${student.mobile}. Wish them today!`,
             type: "STUDENT_BIRTHDAY",
             link: `/dashboard/students`,
           });

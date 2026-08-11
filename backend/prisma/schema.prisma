@@ -290,6 +290,11 @@ model Student {
   leftDate         DateTime?
   status           StudentStatus     @default(ACTIVE)
   profileCompleted Boolean           @default(false)
+  completionDate   DateTime?
+  isCertificateEligible Boolean        @default(false)
+  certificateUrl   String?
+  certificateFileName String?
+  certificateUploadedAt DateTime?
   deletedAt        DateTime?
   instituteId      String?
   createdAt        DateTime          @default(now())

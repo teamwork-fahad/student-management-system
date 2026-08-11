@@ -13,10 +13,10 @@ const globalForPrisma = globalThis;
 function buildDbUrl() {
   const base = process.env.DATABASE_URL || "";
   if (!base) return base;
-  const separator = base.includes("?") ? "&" : "?";
-  // Avoid double-appending if already set
   if (base.includes("connection_limit")) return base;
-  return `${base}${separator}connection_limit=1`;
+  const separator = base.includes("?") ? "&" : "?";
+  const limit = process.env.DATABASE_CONNECTION_LIMIT || (process.env.NODE_ENV === "development" ? "10" : "5");
+  return `${base}${separator}connection_limit=${limit}`;
 }
 
 const prisma =

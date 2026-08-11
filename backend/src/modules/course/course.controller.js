@@ -16,15 +16,25 @@ import {
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { successResponse } from "../../utils/response.js";
 
+import { queryCache } from "../../utils/cache.js";
+
 export const createCourseController = asyncHandler(async (req, res) => {
   const validatedData = createCourseSchema.parse(req.body);
   const course = await createCourse(validatedData);
+  queryCache.flushPattern("courses:");
 
   return successResponse(res, "Course created successfully", course, 201);
 });
 
 export const getAllCoursesController = asyncHandler(async (req, res) => {
+  const cacheKey = `courses:${JSON.stringify(req.query)}`;
+  const cached = queryCache.get(cacheKey);
+  if (cached) {
+    return successResponse(res, "Courses fetched successfully", cached, 200);
+  }
+
   const courses = await getAllCourses(req.query);
+  queryCache.set(cacheKey, courses, 30);
 
   return successResponse(res, "Courses fetched successfully", courses, 200);
 });
@@ -38,12 +48,14 @@ export const getCourseByIdController = asyncHandler(async (req, res) => {
 export const updateCourseController = asyncHandler(async (req, res) => {
   const validatedData = updateCourseSchema.parse(req.body);
   const course = await updateCourse(req.params.id, validatedData);
+  queryCache.flushPattern("courses:");
 
   return successResponse(res, "Course updated successfully", course, 200);
 });
 
 export const deleteCourseController = asyncHandler(async (req, res) => {
   const course = await deleteCourse(req.params.id);
+  queryCache.flushPattern("courses:");
 
   return successResponse(res, "Course deleted successfully", course, 200);
 });
