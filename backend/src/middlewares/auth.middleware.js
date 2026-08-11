@@ -4,6 +4,14 @@ import { errorResponse } from "../utils/response.js";
 
 export const authenticate = (req, res, next) => {
   try {
+    const apiKey = req.headers["x-api-key"] || req.query?.apiKey;
+    const validKey = process.env.SYNC_API_KEY || "appxwind-erp-secret-key";
+
+    if (apiKey && apiKey === validKey) {
+      req.user = { id: "system-sync", role: "SUPER_ADMIN", name: "Google Sheets Sync" };
+      return next();
+    }
+
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {

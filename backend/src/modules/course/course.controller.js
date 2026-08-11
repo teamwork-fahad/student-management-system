@@ -83,7 +83,7 @@ export const bulkDeleteCoursesController = asyncHandler(async (req, res) => {
 
 export const bulkUpdateCourseCategoryController = asyncHandler(async (req, res) => {
   const validated = bulkUpdateCourseCategorySchema.parse(req.body);
-  const result = await bulkUpdateCourseCategory(validated.courseIds, validated.category);
+  const result = await bulkUpdateCourseCategory(validated.category, validated.courseIds);
 
   return successResponse(res, "Bulk course category updated successfully", result, 200);
 });

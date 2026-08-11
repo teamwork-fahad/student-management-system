@@ -9,6 +9,7 @@ import attendanceRoutes from "../modules/attendance/attendance.routes.js";
 import expenseRoutes from "../modules/expense/expense.routes.js";
 import notificationRoutes from "../modules/notifications/notification.routes.js";
 import departmentRoutes from "../modules/department/department.routes.js";
+import syncRoutes from "../modules/sync/sync.routes.js";
 
 const router = Router();
 
@@ -22,6 +23,8 @@ router.use("/v1/attendance", attendanceRoutes);
 router.use("/v1/expenses", expenseRoutes);
 router.use("/v1/notifications", notificationRoutes);
 router.use("/v1/departments", departmentRoutes);
+router.use("/v1/sync", syncRoutes);
+router.use("/sync", syncRoutes);
 router.use("/departments", departmentRoutes);
 router.use("/courses", courseRoutes);
 

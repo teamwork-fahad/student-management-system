@@ -12,7 +12,9 @@
     "db:sync": "node src/scripts/ensureDb.js",
     "db:push": "prisma db push",
     "seed": "node src/seed/superAdmin.js",
-    "import-old-data": "node src/seed/importOldData.js"
+    "import-old-data": "node src/seed/importOldData.js",
+    "import-internship": "node src/scripts/importInternshipStudents.js",
+    "merge-internship-courses": "node src/scripts/mergeInternshipCourses.js"
   },
   "keywords": [],
   "author": "",
