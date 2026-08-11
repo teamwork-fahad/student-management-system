@@ -116,5 +116,12 @@ export const fixAdmissionLinksController = asyncHandler(async (req, res) => {
   return successResponse(res, "Admission student links fixed successfully", result, 200);
 });
 
+export const fixActiveStudentsController = asyncHandler(async (req, res) => {
+  const { fixStudentStatus } = await import("../../scripts/ensureActiveStudentStatus.js");
+  const result = await fixStudentStatus();
+  return successResponse(res, "Active student statuses synced successfully", result, 200);
+});
+
+
 
 

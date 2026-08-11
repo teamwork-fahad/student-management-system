@@ -16,7 +16,9 @@
     "import-internship": "node src/scripts/importInternshipStudents.js",
     "merge-internship-courses": "node src/scripts/mergeInternshipCourses.js",
     "fix-admission-links": "node src/scripts/fixAdmissionStudentLinks.js",
-    "debug-adm": "node src/scripts/debugAdmissions.js"
+    "debug-adm": "node src/scripts/debugAdmissions.js",
+    "debug-student-attendance": "node src/scripts/debugStudentAttendance.js",
+    "fix-active-students": "node src/scripts/ensureActiveStudentStatus.js"
   },
   "keywords": [],
   "author": "",

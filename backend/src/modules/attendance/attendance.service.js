@@ -132,20 +132,25 @@ export const markBatchAttendance = async ({ date, records, markedBy }) => {
 export const getAttendanceByDate = async (dateStr, courseId) => {
   try {
     const targetDate = parseDateToUTC(dateStr);
-    
-    // Include end of target date to cover full 24h of target date
-    const targetDateEnd = new Date(targetDate.getTime() + 24 * 60 * 60 * 1000 - 1);
 
-    // Filter by active/revision status AND joining date (must have joined on or before target date)
     const where = {
       deletedAt: null,
-      status: { in: ["ACTIVE", "REVISION"] },
-      joinedDate: { lte: targetDateEnd },
-      admission: {
-        status: { notIn: ["COMPLETED", "CANCELLED"] },
-        ...(courseId ? { courseId } : {}),
-      },
+      OR: [
+        { status: { in: ["ACTIVE", "REVISION"] } },
+        { admission: { status: "ACTIVE" } },
+      ],
     };
+
+    if (courseId && courseId !== "ALL") {
+      where.AND = [
+        {
+          OR: [
+            { admission: { courseId } },
+            { admission: { course: { id: courseId } } },
+          ],
+        },
+      ];
+    }
 
     const students = await prisma.student.findMany({
       where,

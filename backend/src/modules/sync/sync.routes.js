@@ -4,6 +4,7 @@ import {
   importInternshipStudentsController,
   mergeInternshipCoursesController,
   fixAdmissionLinksController,
+  fixActiveStudentsController,
 } from "./sync.controller.js";
 
 const router = Router();
@@ -23,7 +24,12 @@ router.get("/merge-internship-courses", mergeInternshipCoursesController);
 router.post("/fix-admission-links", fixAdmissionLinksController);
 router.get("/fix-admission-links", fixAdmissionLinksController);
 
+// POST /api/v1/sync/fix-active-students - Sync Active Statuses for Students
+router.post("/fix-active-students", fixActiveStudentsController);
+router.get("/fix-active-students", fixActiveStudentsController);
+
 export default router;
+
 
 
 
