@@ -27,14 +27,8 @@ export const createCourseController = asyncHandler(async (req, res) => {
 });
 
 export const getAllCoursesController = asyncHandler(async (req, res) => {
-  const cacheKey = `courses:${JSON.stringify(req.query)}`;
-  const cached = queryCache.get(cacheKey);
-  if (cached) {
-    return successResponse(res, "Courses fetched successfully", cached, 200);
-  }
-
+  queryCache.flushPattern("courses:");
   const courses = await getAllCourses(req.query);
-  queryCache.set(cacheKey, courses, 30);
 
   return successResponse(res, "Courses fetched successfully", courses, 200);
 });

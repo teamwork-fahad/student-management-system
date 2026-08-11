@@ -105,20 +105,28 @@ export const getAllCourses = async (query = {}) => {
     ).length;
     const droppedStudents = admissions.filter(
       (a) =>
-        a.status === "DROPPED" ||
-        a.status === "CANCELLED" ||
-        a.student?.status === "DROPPED" ||
-        a.student?.status === "CANCELLED"
+        (a.status === "DROPPED" ||
+          a.status === "CANCELLED" ||
+          a.student?.status === "DROPPED" ||
+          a.student?.status === "CANCELLED") &&
+        a.status !== "COMPLETED" &&
+        a.student?.status !== "COMPLETED"
     ).length;
     const activeStudents = admissions.filter(
       (a) =>
         (a.status === "ACTIVE" || !a.status) &&
+        a.status !== "COMPLETED" &&
+        a.status !== "DROPPED" &&
+        a.status !== "CANCELLED" &&
         a.student?.status !== "COMPLETED" &&
         a.student?.status !== "DROPPED" &&
         a.student?.status !== "CANCELLED"
     ).length;
     const cancelledStudents = admissions.filter(
-      (a) => a.status === "CANCELLED" || a.student?.status === "CANCELLED"
+      (a) =>
+        (a.status === "CANCELLED" || a.student?.status === "CANCELLED") &&
+        a.status !== "COMPLETED" &&
+        a.student?.status !== "COMPLETED"
     ).length;
     const totalStudents = admissions.length;
 
@@ -229,11 +237,17 @@ export const getCourseStudents = async (courseId, status) => {
         { student: { status: "COMPLETED" } },
       ];
     } else if (status === "DROPPED" || status === "CANCELLED") {
-      where.OR = [
-        { status: "DROPPED" },
-        { status: "CANCELLED" },
-        { student: { status: "DROPPED" } },
-        { student: { status: "CANCELLED" } },
+      where.AND = [
+        {
+          OR: [
+            { status: "DROPPED" },
+            { status: "CANCELLED" },
+            { student: { status: "DROPPED" } },
+            { student: { status: "CANCELLED" } },
+          ],
+        },
+        { status: { not: "COMPLETED" } },
+        { student: { status: { not: "COMPLETED" } } },
       ];
     } else if (status === "ACTIVE") {
       where.AND = [
