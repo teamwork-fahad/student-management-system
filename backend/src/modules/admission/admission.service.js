@@ -858,6 +858,7 @@ export const getAdmissionStatistics = async () => {
     categoryCounts,
     yearCounts,
     financialAggregates,
+    totalUniqueStudents,
   ] = await Promise.all([
     prisma.admission.count({ where: { deletedAt: null } }),
     prisma.admission.count({ where: { status: "ACTIVE", deletedAt: null } }),
@@ -892,6 +893,8 @@ export const getAdmissionStatistics = async () => {
         pendingAmount: true,
       },
     }),
+
+    prisma.student.count({ where: { deletedAt: null } }),
   ]);
 
   const studentStatusBreakdown = studentStatusCounts.reduce((acc, curr) => {
@@ -911,6 +914,7 @@ export const getAdmissionStatistics = async () => {
 
   return {
     totalAdmissions,
+    totalUniqueStudents,
     statusBreakdown: {
       ACTIVE: activeAdmissions,
       COMPLETED: completedAdmissions,

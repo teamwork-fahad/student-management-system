@@ -9,6 +9,8 @@
     "vercel-build": "prisma generate",
     "postinstall": "prisma generate",
     "dev": "nodemon src/server.js",
+    "db:sync": "node src/scripts/ensureDb.js",
+    "db:push": "prisma db push",
     "seed": "node src/seed/superAdmin.js",
     "import-old-data": "node src/seed/importOldData.js"
   },

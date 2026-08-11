@@ -76,15 +76,16 @@ export const Dashboard = () => {
 
   if (loading) return <LoadingSpinner label="Loading ERP Dashboard..." />;
 
-  const fin        = stats?.financialSummary || {};
-  const brk        = stats?.statusBreakdown  || {};
-  const totalS     = stats?.totalAdmissions  || 0;
-  const activeC    = brk.ACTIVE    || 0;
-  const completedC = brk.COMPLETED || 0;
-  const totalRev   = Number(fin.totalPaidAmount    || 0);
-  const pendingAmt = Number(fin.totalPendingAmount || 0);
-  const totalFees  = Number(fin.totalFinalFees     || 0);
-  const collRate   = totalFees > 0
+  const fin          = stats?.financialSummary || {};
+  const brk          = stats?.statusBreakdown  || {};
+  const totalS       = stats?.totalAdmissions  || 0;
+  const totalUniqueS = stats?.totalUniqueStudents || totalS;
+  const activeC      = brk.ACTIVE    || 0;
+  const completedC   = brk.COMPLETED || 0;
+  const totalRev     = Number(fin.totalPaidAmount    || 0);
+  const pendingAmt   = Number(fin.totalPendingAmount || 0);
+  const totalFees    = Number(fin.totalFinalFees     || 0);
+  const collRate     = totalFees > 0
     ? Math.round((totalRev / totalFees) * 100)
     : (totalRev + pendingAmt > 0 ? Math.round(totalRev/(totalRev+pendingAmt)*100) : 0);
 
@@ -97,7 +98,7 @@ export const Dashboard = () => {
   };
 
   const kpis = [
-    { label:"Total Students",  value:totalS.toLocaleString("en-IN"),  sub:activeC + " currently active",    icon:<Users className="w-5 h-5"/>,            accent:"#60a5fa", iconBg:"rgba(59,130,246,0.18)",  bg:"linear-gradient(145deg,#0d1b3e,#0f2255)", cls:"an2" },
+    { label:"Total Students",  value:totalUniqueS.toLocaleString("en-IN"), sub:`${totalS} course enrollments (${activeC} active)`, icon:<Users className="w-5 h-5"/>, accent:"#60a5fa", iconBg:"rgba(59,130,246,0.18)",  bg:"linear-gradient(145deg,#0d1b3e,#0f2255)", cls:"an2" },
     { label:"Fees Collected",  value:fmtK(totalRev),                   sub:collRate + "% collection rate",   icon:<CircleDollarSign className="w-5 h-5"/>, accent:"#4ade80", iconBg:"rgba(74,222,128,0.15)", bg:"linear-gradient(145deg,#0a2218,#032215)", cls:"an3" },
     { label:"Pending Dues",    value:fmtK(pendingAmt),                 sub:"Outstanding balance",            icon:<Clock className="w-5 h-5"/>,             accent:"#fb923c", iconBg:"rgba(251,146,60,0.18)", bg:"linear-gradient(145deg,#1c0e00,#1a0900)", cls:"an4" },
     { label:"Graduated",       value:completedC.toLocaleString("en-IN"),sub:"Successfully completed",       icon:<GraduationCap className="w-5 h-5"/>,     accent:"#38bdf8", iconBg:"rgba(56,189,248,0.15)", bg:"linear-gradient(145deg,#0d1b3e,#0c2a45)", cls:"an5" },
