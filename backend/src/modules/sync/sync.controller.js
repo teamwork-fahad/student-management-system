@@ -52,8 +52,8 @@ export const getSyncExportDataController = asyncHandler(async (req, res) => {
 
   const admissions = admissionsRaw.map((a) => ({
     admissionNumber: a.admissionNumber,
-    studentName: a.student?.fullName || "N/A",
-    mobile: a.student?.mobile || a.guardianMobile || "N/A",
+    studentName: a.student?.fullName || a.inquiry?.fullName || a.guardianName || "N/A",
+    mobile: a.student?.mobile || a.inquiry?.mobile || a.guardianMobile || "N/A",
     courseName: a.courseNameSnapshot || a.course?.name || "N/A",
     courseFees: Number(a.courseFees || 0),
     discount: Number(a.discount || 0),
@@ -109,5 +109,12 @@ export const mergeInternshipCoursesController = asyncHandler(async (req, res) =>
   const stats = await mergeCourses();
   return successResponse(res, "Internship courses merged successfully", stats, 200);
 });
+
+export const fixAdmissionLinksController = asyncHandler(async (req, res) => {
+  const { fixAdmissions } = await import("../../scripts/fixAdmissionStudentLinks.js");
+  const result = await fixAdmissions();
+  return successResponse(res, "Admission student links fixed successfully", result, 200);
+});
+
 
 

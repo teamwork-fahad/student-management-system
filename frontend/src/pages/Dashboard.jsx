@@ -278,11 +278,11 @@ export const Dashboard = () => {
                           <div className="flex items-center space-x-2.5">
                             <div className="w-8 h-8 rounded-xl flex items-center justify-center font-black text-[11px] shrink-0"
                                  style={{ background:"linear-gradient(135deg,#1e3a5f,#1d4ed8)",color:"#93c5fd" }}>
-                              {adm.student?.fullName?.[0]?.toUpperCase()||"?"}
+                              {(adm.student?.fullName || adm.inquiry?.fullName || adm.guardianName || adm.studentName || "?")[0]?.toUpperCase()}
                             </div>
                             <div>
-                              <div className="font-bold text-white text-xs">{adm.student?.fullName||"N/A"}</div>
-                              <div className="text-[10px] text-slate-500">{adm.student?.studentId||adm.studentId}</div>
+                              <div className="font-bold text-white text-xs">{adm.student?.fullName || adm.inquiry?.fullName || adm.guardianName || adm.studentName || "N/A"}</div>
+                              <div className="text-[10px] text-slate-500">{adm.student?.studentId||adm.studentId||"—"}</div>
                             </div>
                           </div>
                         </td>

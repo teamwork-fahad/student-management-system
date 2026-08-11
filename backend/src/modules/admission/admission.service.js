@@ -686,10 +686,28 @@ export const getAllAdmissions = async (queryParams = {}) => {
     }),
   ]);
 
+  const formattedAdmissions = admissions.map((adm) => {
+    let studentObj = adm.student;
+    if (!studentObj && (adm.inquiry || adm.guardianName)) {
+      studentObj = {
+        id: adm.studentId || adm.id,
+        studentId: adm.studentId || adm.admissionNumber,
+        fullName: adm.inquiry?.fullName || adm.guardianName || "Student",
+        mobile: adm.inquiry?.mobile || adm.guardianMobile || "N/A",
+        email: adm.inquiry?.email || null,
+        gender: adm.inquiry?.gender || "Male",
+      };
+    }
+    return {
+      ...adm,
+      student: studentObj,
+    };
+  });
+
   const totalPages = Math.ceil(total / limitNum) || 1;
 
   return {
-    admissions,
+    admissions: formattedAdmissions,
     pagination: {
       total,
       page: pageNum,
@@ -754,6 +772,17 @@ export const getAdmissionById = async (id) => {
 
   if (!admission) {
     throw createHttpError("Admission not found", 404);
+  }
+
+  if (!admission.student && (admission.inquiry || admission.guardianName)) {
+    admission.student = {
+      id: admission.studentId || admission.id,
+      studentId: admission.studentId || admission.admissionNumber,
+      fullName: admission.inquiry?.fullName || admission.guardianName || "Student",
+      mobile: admission.inquiry?.mobile || admission.guardianMobile || "N/A",
+      email: admission.inquiry?.email || null,
+      gender: admission.inquiry?.gender || "Male",
+    };
   }
 
   return admission;

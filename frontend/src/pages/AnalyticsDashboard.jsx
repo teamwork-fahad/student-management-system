@@ -434,7 +434,7 @@ export const AnalyticsDashboard = () => {
   const handleExportPendingDues = () => {
     const rows = highPend.map((a) => ({
       admissionNumber: a.admissionNumber || "",
-      studentName: a.student?.fullName || "N/A",
+      studentName: a.student?.fullName || a.inquiry?.fullName || a.guardianName || a.studentName || "N/A",
       studentId: a.student?.studentId || a.studentId || "",
       mobile: a.student?.mobile || "",
       courseName: a.courseNameSnapshot || "",
@@ -483,7 +483,7 @@ export const AnalyticsDashboard = () => {
   const handleExportRecentAdmissions = () => {
     const rows = recentAdmissions.map((a) => ({
       admissionNumber: a.admissionNumber || "",
-      studentName: a.student?.fullName || "N/A",
+      studentName: a.student?.fullName || a.inquiry?.fullName || a.guardianName || a.studentName || "N/A",
       mobile: a.student?.mobile || "",
       courseName: a.courseNameSnapshot || "",
       paidAmount: Number(a.paidAmount || 0),
@@ -867,10 +867,10 @@ export const AnalyticsDashboard = () => {
                         className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm shrink-0"
                         style={{ background: `${urg}20`, color: urg }}
                       >
-                        {adm.student?.fullName?.[0]?.toUpperCase() || "?"}
+                        {(adm.student?.fullName || adm.inquiry?.fullName || adm.guardianName || adm.studentName || "?")[0]?.toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs font-bold text-white truncate">{adm.student?.fullName || "Student"}</div>
+                        <div className="text-xs font-bold text-white truncate">{adm.student?.fullName || adm.inquiry?.fullName || adm.guardianName || adm.studentName || "Student"}</div>
                         <div className="text-[10px] text-slate-500 truncate">{adm.courseNameSnapshot}</div>
                         <div className="mt-1 w-full h-1 rounded-full overflow-hidden bg-slate-800">
                           <div
@@ -1070,11 +1070,11 @@ export const AnalyticsDashboard = () => {
                               className="w-8 h-8 rounded-xl flex items-center justify-center font-black text-[11px] shrink-0"
                               style={{ background: "linear-gradient(135deg,#1e3a5f,#1d4ed8)", color: "#93c5fd" }}
                             >
-                              {adm.student?.fullName?.[0]?.toUpperCase() || "?"}
+                              {(adm.student?.fullName || adm.inquiry?.fullName || adm.guardianName || adm.studentName || "?")[0]?.toUpperCase()}
                             </div>
                             <div>
                               <div className="font-bold text-white text-xs leading-tight">
-                                {adm.student?.fullName || "N/A"}
+                                {adm.student?.fullName || adm.inquiry?.fullName || adm.guardianName || adm.studentName || "N/A"}
                               </div>
                               <div className="text-[10px] text-slate-500">{adm.student?.studentId || adm.studentId}</div>
                             </div>
