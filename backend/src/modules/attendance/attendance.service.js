@@ -186,10 +186,11 @@ export const getAttendanceByDate = async (dateStr, courseId) => {
 
 /**
  * Get overall attendance summary statistics using single groupBy query.
+ * Supports passing an optional dateStr (defaults to today).
  */
-export const getAttendanceStats = async () => {
+export const getAttendanceStats = async (dateStr) => {
   try {
-    const today = parseDateToUTC(new Date().toISOString().split("T")[0]);
+    const targetDate = parseDateToUTC(dateStr);
 
     const [totalStudents, statusCounts] = await Promise.all([
       prisma.student.count({
@@ -203,7 +204,7 @@ export const getAttendanceStats = async () => {
       }),
       prisma.attendance.groupBy({
         by: ["status"],
-        where: { date: today },
+        where: { date: targetDate },
         _count: { status: true },
       }),
     ]);
@@ -250,6 +251,159 @@ export const getAttendanceStats = async () => {
       todayExempted: 0,
       todayUnmarked: 0,
     };
+  }
+};
+
+/**
+ * Get aggregated attendance report for public view (7, 15, or 30 days).
+ */
+export const getPublicAttendanceReport = async ({ range = "15days" } = {}) => {
+  try {
+    const numDays = range === "30days" ? 30 : range === "7days" ? 7 : 15;
+    const now = new Date();
+    const endDate = parseDateToUTC(now.toISOString().split("T")[0]);
+    const startDate = new Date(endDate.getTime() - (numDays - 1) * 24 * 60 * 60 * 1000);
+
+    const activeStudents = await prisma.student.findMany({
+      where: {
+        deletedAt: null,
+        status: { in: ["ACTIVE", "REVISION"] },
+        admission: {
+          status: { notIn: ["COMPLETED", "CANCELLED"] },
+        },
+      },
+      select: {
+        id: true,
+        studentId: true,
+        fullName: true,
+        admission: {
+          select: {
+            courseNameSnapshot: true,
+            course: { select: { name: true } },
+          },
+        },
+      },
+      orderBy: { fullName: "asc" },
+    });
+
+    const studentIds = activeStudents.map((s) => s.id);
+
+    const attendances = await prisma.attendance.findMany({
+      where: {
+        date: { gte: startDate, lte: endDate },
+        studentId: { in: studentIds },
+      },
+      select: {
+        id: true,
+        studentId: true,
+        date: true,
+        status: true,
+      },
+      orderBy: { date: "asc" },
+    });
+
+    // Build date-wise breakdown map
+    const datesMap = new Map();
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+      const dateKey = d.toISOString().split("T")[0];
+      datesMap.set(dateKey, {
+        date: dateKey,
+        dayLabel: d.toLocaleDateString("en-IN", { weekday: "short", day: "2-digit", month: "short" }),
+        PRESENT: 0,
+        ABSENT: 0,
+        LATE: 0,
+        EARLY_LEAVE: 0,
+        NO_CLASS: 0,
+        HOLIDAY: 0,
+        EXEMPTED: 0,
+        totalMarked: 0,
+      });
+    }
+
+    // Build student stats map
+    const studentMap = new Map();
+    activeStudents.forEach((s) => {
+      studentMap.set(s.id, {
+        studentId: s.id,
+        displayId: s.studentId,
+        fullName: s.fullName,
+        courseName: s.admission?.courseNameSnapshot || s.admission?.course?.name || "N/A",
+        PRESENT: 0,
+        ABSENT: 0,
+        LATE: 0,
+        EARLY_LEAVE: 0,
+        NO_CLASS: 0,
+        HOLIDAY: 0,
+        EXEMPTED: 0,
+        totalMarked: 0,
+      });
+    });
+
+    attendances.forEach((att) => {
+      const dateKey = att.date.toISOString().split("T")[0];
+      const dayObj = datesMap.get(dateKey);
+      if (dayObj && dayObj[att.status] !== undefined) {
+        dayObj[att.status] += 1;
+        dayObj.totalMarked += 1;
+      }
+
+      const studObj = studentMap.get(att.studentId);
+      if (studObj && studObj[att.status] !== undefined) {
+        studObj[att.status] += 1;
+        studObj.totalMarked += 1;
+      }
+    });
+
+    let overallPresent = 0;
+    let overallAbsent = 0;
+    let overallLate = 0;
+    let overallEarlyLeave = 0;
+    let overallNoClass = 0;
+    let overallHoliday = 0;
+
+    const studentList = Array.from(studentMap.values()).map((s) => {
+      overallPresent += s.PRESENT;
+      overallAbsent += s.ABSENT;
+      overallLate += s.LATE;
+      overallEarlyLeave += s.EARLY_LEAVE;
+      overallNoClass += s.NO_CLASS;
+      overallHoliday += s.HOLIDAY;
+
+      const activeLogs = s.PRESENT + s.ABSENT + s.LATE + s.EARLY_LEAVE;
+      const rate = activeLogs > 0 ? Math.round(((s.PRESENT + s.LATE * 0.5 + s.EARLY_LEAVE * 0.75) / activeLogs) * 100) : 100;
+
+      return {
+        ...s,
+        attendanceRate: rate,
+      };
+    });
+
+    const activeTotalLogs = overallPresent + overallAbsent + overallLate + overallEarlyLeave;
+    const overallAttendanceRate = activeTotalLogs > 0
+      ? Math.round(((overallPresent + overallLate * 0.5 + overallEarlyLeave * 0.75) / activeTotalLogs) * 100)
+      : 100;
+
+    return {
+      range,
+      numDays,
+      startDate: startDate.toISOString().split("T")[0],
+      endDate: endDate.toISOString().split("T")[0],
+      summary: {
+        totalStudents: activeStudents.length,
+        overallPresent,
+        overallAbsent,
+        overallLate,
+        overallEarlyLeave,
+        overallNoClass,
+        overallHoliday,
+        overallAttendanceRate,
+      },
+      dailyBreakdown: Array.from(datesMap.values()),
+      students: studentList,
+    };
+  } catch (err) {
+    console.error("[GET_PUBLIC_ATTENDANCE_REPORT_ERROR]", err);
+    throw createHttpError(err.message || "Failed to generate public attendance report", 400);
   }
 };
 

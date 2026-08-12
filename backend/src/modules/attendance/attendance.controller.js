@@ -7,6 +7,7 @@ import {
   getAttendanceStats,
   getStudentAttendanceHistory,
   getAttendanceWhatsAppReport,
+  getPublicAttendanceReport,
 } from "./attendance.service.js";
 
 const markAttendanceSchema = z.object({
@@ -53,7 +54,8 @@ export const getAttendanceByDateController = asyncHandler(async (req, res) => {
 });
 
 export const getAttendanceStatsController = asyncHandler(async (req, res) => {
-  const stats = await getAttendanceStats();
+  const { date } = req.query;
+  const stats = await getAttendanceStats(date);
 
   return successResponse(res, "Attendance statistics fetched successfully", stats, 200);
 });
@@ -71,3 +73,11 @@ export const getAttendanceWhatsAppReportController = asyncHandler(async (req, re
 
   return successResponse(res, "WhatsApp attendance report generated successfully", data, 200);
 });
+
+export const getPublicAttendanceReportController = asyncHandler(async (req, res) => {
+  const { range } = req.query;
+  const report = await getPublicAttendanceReport({ range });
+
+  return successResponse(res, "Public attendance report fetched successfully", report, 200);
+});
+

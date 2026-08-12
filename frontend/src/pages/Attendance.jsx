@@ -188,7 +188,7 @@ export const Attendance = () => {
 
   const fetchStats = async () => {
     try {
-      const res = await api.get("/attendance/stats");
+      const res = await api.get(`/attendance/stats?date=${date}`);
       setStats(res.data.data);
     } catch (err) {
       console.error("Failed to load stats", err);
@@ -216,6 +216,23 @@ export const Attendance = () => {
       (s.courseName || "").toLowerCase().includes(q)
     );
   });
+
+  const handleShareWhatsAppReport = async () => {
+    try {
+      const res = await api.get(`/attendance/whatsapp-report?date=${date}`);
+      const whatsappUrl = res.data.data?.whatsappUrl;
+      if (whatsappUrl) {
+        window.open(whatsappUrl, "_blank");
+      }
+    } catch (err) {
+      alert("Failed to generate WhatsApp attendance report");
+    }
+  };
+
+  const handleOpenPublicReport = () => {
+    const url = `${window.location.origin}/public/attendance?range=15days`;
+    window.open(url, "_blank");
+  };
 
   // Instant save on individual button click
   const handleStatusChange = async (studentId, status) => {
@@ -297,18 +314,6 @@ export const Attendance = () => {
     }
   };
 
-  const handleShareWhatsAppReport = async () => {
-    try {
-      const res = await api.get(`/attendance/whatsapp-report?date=${date}`);
-      const whatsappUrl = res.data.data?.whatsappUrl;
-      if (whatsappUrl) {
-        window.open(whatsappUrl, "_blank");
-      }
-    } catch (err) {
-      alert("Failed to generate WhatsApp attendance report");
-    }
-  };
-
   return (
     <div className="space-y-6 font-sans">
       {/* Header */}
@@ -327,6 +332,15 @@ export const Attendance = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            onClick={handleOpenPublicReport}
+            className="px-3.5 py-2 bg-slate-950 hover:bg-slate-800 text-cyan-400 border border-cyan-800/60 font-bold text-xs rounded-xl shadow-lg flex items-center space-x-1.5 transition whitespace-nowrap"
+            title="Open 15-Day Public Attendance Report Link"
+          >
+            <ExternalLink className="w-4 h-4 shrink-0" />
+            <span>🔗 Public Attendance URL</span>
+          </button>
+
           <button
             onClick={handleShareWhatsAppReport}
             className="px-3.5 py-2 bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-800 font-bold text-xs rounded-xl shadow-lg flex items-center space-x-1.5 transition whitespace-nowrap"
@@ -525,25 +539,35 @@ export const Attendance = () => {
 
       {/* 3. STATS OVERVIEW CARDS */}
       {stats && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          <div className="bg-slate-900/80 border border-slate-800 p-3.5 sm:p-4 rounded-2xl shadow-lg">
-            <span className="text-[10px] uppercase font-bold text-slate-500 block whitespace-nowrap">Total Active Students</span>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+          <div className="bg-slate-900/80 border border-slate-800 p-3.5 rounded-2xl shadow-lg">
+            <span className="text-[10px] uppercase font-bold text-slate-400 block whitespace-nowrap">Total Active</span>
             <span className="text-lg sm:text-xl font-black text-white whitespace-nowrap">{stats.totalStudents}</span>
           </div>
 
-          <div className="bg-slate-900/80 border border-slate-800 p-3.5 sm:p-4 rounded-2xl shadow-lg">
-            <span className="text-[10px] uppercase font-bold text-emerald-400 block whitespace-nowrap">Present Today</span>
+          <div className="bg-slate-900/80 border border-slate-800 p-3.5 rounded-2xl shadow-lg">
+            <span className="text-[10px] uppercase font-bold text-emerald-400 block whitespace-nowrap">Present</span>
             <span className="text-lg sm:text-xl font-black text-emerald-400 whitespace-nowrap">{stats.todayPresent}</span>
           </div>
 
-          <div className="bg-slate-900/80 border border-slate-800 p-3.5 sm:p-4 rounded-2xl shadow-lg">
-            <span className="text-[10px] uppercase font-bold text-rose-400 block whitespace-nowrap">Absent Today</span>
+          <div className="bg-slate-900/80 border border-slate-800 p-3.5 rounded-2xl shadow-lg">
+            <span className="text-[10px] uppercase font-bold text-rose-400 block whitespace-nowrap">Absent</span>
             <span className="text-lg sm:text-xl font-black text-rose-400 whitespace-nowrap">{stats.todayAbsent}</span>
           </div>
 
-          <div className="bg-slate-900/80 border border-slate-800 p-3.5 sm:p-4 rounded-2xl shadow-lg">
-            <span className="text-[10px] uppercase font-bold text-amber-400 block whitespace-nowrap">Late Today</span>
+          <div className="bg-slate-900/80 border border-slate-800 p-3.5 rounded-2xl shadow-lg">
+            <span className="text-[10px] uppercase font-bold text-amber-400 block whitespace-nowrap">Late</span>
             <span className="text-lg sm:text-xl font-black text-amber-400 whitespace-nowrap">{stats.todayLate}</span>
+          </div>
+
+          <div className="bg-slate-900/80 border border-slate-800 p-3.5 rounded-2xl shadow-lg">
+            <span className="text-[10px] uppercase font-bold text-cyan-400 block whitespace-nowrap">No Class ☕</span>
+            <span className="text-lg sm:text-xl font-black text-cyan-400 whitespace-nowrap">{stats.todayNoClass || 0}</span>
+          </div>
+
+          <div className="bg-slate-900/80 border border-slate-800 p-3.5 rounded-2xl shadow-lg">
+            <span className="text-[10px] uppercase font-bold text-slate-400 block whitespace-nowrap">Unmarked / Holiday</span>
+            <span className="text-lg sm:text-xl font-black text-slate-300 whitespace-nowrap">{(stats.todayUnmarked || 0) + (stats.todayHoliday || 0)}</span>
           </div>
         </div>
       )}

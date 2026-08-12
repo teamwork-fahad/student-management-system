@@ -7,9 +7,12 @@ import {
   getAttendanceStatsController,
   getStudentAttendanceHistoryController,
   getAttendanceWhatsAppReportController,
+  getPublicAttendanceReportController,
 } from "./attendance.controller.js";
 
 const router = Router();
+
+router.get("/public-report", getPublicAttendanceReportController);
 
 router.get(
   "/stats",
@@ -46,3 +49,4 @@ router.post(
 );
 
 export default router;
+

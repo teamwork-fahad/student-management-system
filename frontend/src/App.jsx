@@ -15,6 +15,7 @@ import { Students } from "./pages/Students";
 import { StudentProfilePage } from "./pages/StudentProfilePage";
 import { Courses } from "./pages/Courses";
 import { Attendance } from "./pages/Attendance";
+import { PublicAttendanceReport } from "./pages/PublicAttendanceReport";
 import { Fees } from "./pages/Fees";
 import { Expenses } from "./pages/Expenses";
 
@@ -54,9 +55,11 @@ export const App = () => {
         <BrowserRouter>
           <PinLockModal />
           <Routes>
-          {/* Public Landing Page at root http://localhost:5173/ */}
+          {/* Public Landing Page & Reports */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LandingPage />} />
+          <Route path="/public/attendance" element={<PublicAttendanceReport />} />
+
 
           {/* Student Portal Protected Route */}
           <Route
