@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { X, UserCheck, GraduationCap, ShieldCheck, User, Lock, Phone, Mail, MapPin, AlertCircle, CheckCircle2, BookOpen, KeyRound, ArrowRight, Eye, EyeOff } from "lucide-react";
+import { X, UserCheck, GraduationCap, ShieldCheck, User, Lock, Mail, AlertCircle, CheckCircle2, KeyRound, ArrowRight, Eye, EyeOff } from "lucide-react";
 import api from "../../api/axios";
 
 export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMode = "login" }) => {
@@ -30,13 +30,12 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
   const [regAddress, setRegAddress] = useState("");
 
   // Forgot Password state
-  const [forgotStep, setForgotStep] = useState(1); // 1: Identifier input, 2: OTP & New Password input
+  const [forgotStep, setForgotStep] = useState(1);
   const [forgotId, setForgotId] = useState("");
   const [forgotOtp, setForgotOtp] = useState("");
   const [forgotNewPass, setForgotNewPass] = useState("");
   const [forgotConfirmPass, setForgotConfirmPass] = useState("");
   const [forgotSubmitting, setForgotSubmitting] = useState(false);
-
 
   // Courses dropdown list
   const [courses, setCourses] = useState([]);
@@ -146,7 +145,6 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
       setForgotStep(2);
       setForgotOtp("");
     } catch (err) {
-
       setErrorMessage(err.response?.data?.message || "Failed to generate OTP.");
     } finally {
       setForgotSubmitting(false);
@@ -197,11 +195,11 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
   const isAlreadyRegisteredError = errorMessage.toLowerCase().includes("already registered");
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-md p-4 overflow-y-auto font-sans">
-      <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 my-8">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-md p-4 overflow-y-auto font-sans animate-fade-in">
+      <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 my-8 animate-scale-in">
         
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-800 text-white p-6 relative">
+        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 text-white p-6 relative">
           <button
             onClick={onClose}
             className="absolute top-5 right-5 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition"
@@ -215,18 +213,18 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
             </div>
             <div>
               <h2 className="text-xl font-bold tracking-tight">EduMaster Portal</h2>
-              <p className="text-xs text-blue-200">Role-Based Student & Staff System</p>
+              <p className="text-xs text-blue-200">Role-Based Student & Staff Portal</p>
             </div>
           </div>
 
           {/* Role Selector Tabs */}
-          <div className="mt-4 grid grid-cols-3 gap-1.5 p-1 bg-black/20 rounded-xl backdrop-blur">
+          <div className="mt-4 grid grid-cols-3 gap-1.5 p-1 bg-black/20 rounded-2xl backdrop-blur">
             <button
               type="button"
               onClick={() => { setRole("STUDENT"); setErrorMessage(""); setSuccessMessage(""); }}
-              className={`flex items-center justify-center space-x-1.5 py-2 px-2 rounded-lg text-xs font-semibold transition ${
+              className={`flex items-center justify-center space-x-1.5 py-2 px-2 rounded-xl text-xs font-bold transition ${
                 role === "STUDENT"
-                  ? "bg-white text-blue-800 shadow-md"
+                  ? "bg-white text-blue-700 shadow-md"
                   : "text-white/80 hover:text-white hover:bg-white/10"
               }`}
             >
@@ -237,9 +235,9 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
             <button
               type="button"
               onClick={() => { setRole("FACULTY"); setMode("login"); setErrorMessage(""); setSuccessMessage(""); }}
-              className={`flex items-center justify-center space-x-1.5 py-2 px-2 rounded-lg text-xs font-semibold transition ${
+              className={`flex items-center justify-center space-x-1.5 py-2 px-2 rounded-xl text-xs font-bold transition ${
                 role === "FACULTY"
-                  ? "bg-white text-indigo-800 shadow-md"
+                  ? "bg-white text-indigo-700 shadow-md"
                   : "text-white/80 hover:text-white hover:bg-white/10"
               }`}
             >
@@ -250,9 +248,9 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
             <button
               type="button"
               onClick={() => { setRole("SUPER_ADMIN"); setMode("login"); setErrorMessage(""); setSuccessMessage(""); }}
-              className={`flex items-center justify-center space-x-1.5 py-2 px-2 rounded-lg text-xs font-semibold transition ${
+              className={`flex items-center justify-center space-x-1.5 py-2 px-2 rounded-xl text-xs font-bold transition ${
                 role === "SUPER_ADMIN"
-                  ? "bg-white text-purple-800 shadow-md"
+                  ? "bg-white text-purple-700 shadow-md"
                   : "text-white/80 hover:text-white hover:bg-white/10"
               }`}
             >
@@ -262,16 +260,16 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
           </div>
         </div>
 
-        {/* Mode Switcher (Login vs Register vs Forgot Password) */}
+        {/* Mode Switcher */}
         {role === "STUDENT" && (
-          <div className="flex border-b border-slate-100 bg-slate-50 text-xs font-bold text-slate-600">
+          <div className="flex border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs font-bold">
             <button
               type="button"
               onClick={() => { setMode("login"); setErrorMessage(""); setSuccessMessage(""); }}
               className={`flex-1 py-3 text-center border-b-2 transition ${
                 mode === "login"
-                  ? "border-blue-600 text-blue-700 bg-white"
-                  : "border-transparent hover:text-blue-600"
+                  ? "border-blue-600 text-blue-600 dark:text-blue-400 bg-white dark:bg-slate-900"
+                  : "border-transparent text-slate-500 hover:text-blue-600"
               }`}
             >
               Sign In
@@ -281,8 +279,8 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
               onClick={() => { setMode("register"); setErrorMessage(""); setSuccessMessage(""); }}
               className={`flex-1 py-3 text-center border-b-2 transition ${
                 mode === "register"
-                  ? "border-blue-600 text-blue-700 bg-white"
-                  : "border-transparent hover:text-blue-600"
+                  ? "border-blue-600 text-blue-600 dark:text-blue-400 bg-white dark:bg-slate-900"
+                  : "border-transparent text-slate-500 hover:text-blue-600"
               }`}
             >
               Register Account
@@ -295,15 +293,14 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
           
           {/* Alerts */}
           {errorMessage && (
-            <div className="mb-4 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs space-y-2">
+            <div className="mb-4 p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs space-y-2">
               <div className="flex items-start space-x-2">
-                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
                 <span className="font-semibold leading-relaxed">{errorMessage}</span>
               </div>
 
-              {/* Special Action Buttons if Already Registered */}
               {isAlreadyRegisteredError && (
-                <div className="pt-2 flex items-center space-x-2 border-t border-rose-200/60">
+                <div className="pt-2 flex items-center space-x-2 border-t border-rose-200 dark:border-rose-900">
                   <button
                     type="button"
                     onClick={() => { setMode("login"); setErrorMessage(""); }}
@@ -324,8 +321,8 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
           )}
 
           {successMessage && (
-            <div className="mb-4 p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center space-x-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <div className="mb-4 p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs flex items-center space-x-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
               <span>{successMessage}</span>
             </div>
           )}
@@ -334,17 +331,17 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
           {mode === "forgot-password" ? (
             <div className="space-y-4">
               <div className="text-center pb-2">
-                <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto mb-2">
+                <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto mb-2 border border-amber-200 dark:border-amber-800">
                   <KeyRound className="w-6 h-6" />
                 </div>
-                <h3 className="text-base font-bold text-slate-800">Reset Account Password</h3>
-                <p className="text-xs text-slate-500">Enter your identifier to receive a password reset OTP.</p>
+                <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Reset Account Password</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Enter your identifier to receive a password reset OTP.</p>
               </div>
 
               {forgotStep === 1 ? (
                 <form onSubmit={handleRequestOtp} className="space-y-4 text-xs">
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">Email, Mobile, or Student ID *</label>
+                    <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Email, Mobile, or Student ID *</label>
                     <div className="relative">
                       <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                       <input
@@ -353,7 +350,7 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
                         value={forgotId}
                         onChange={(e) => setForgotId(e.target.value)}
                         placeholder="e.g. STU-2025-001 or 9876543210 or email@domain.com"
-                        className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-blue-600"
+                        className="w-full pl-9 pr-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 outline-none focus:border-blue-600 transition"
                       />
                     </div>
                   </div>
@@ -370,7 +367,7 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
                   <button
                     type="button"
                     onClick={() => setMode("login")}
-                    className="w-full text-center text-xs text-blue-600 font-semibold hover:underline block pt-2"
+                    className="w-full text-center text-xs text-blue-600 dark:text-blue-400 font-semibold hover:underline block pt-2"
                   >
                     Back to Sign In
                   </button>
@@ -378,19 +375,19 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
               ) : (
                 <form onSubmit={handleResetPassword} className="space-y-4 text-xs">
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">Enter 6-Digit OTP Code *</label>
+                    <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Enter 6-Digit OTP Code *</label>
                     <input
                       type="text"
                       required
                       value={forgotOtp}
                       onChange={(e) => setForgotOtp(e.target.value)}
                       placeholder="Enter 6-digit OTP code"
-                      className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-center font-mono font-bold text-lg outline-none focus:border-blue-600"
+                      className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-center font-mono font-bold text-lg outline-none focus:border-blue-600 transition"
                     />
                   </div>
 
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">New Password *</label>
+                    <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">New Password *</label>
                     <div className="relative">
                       <input
                         type={showNewPass ? "text" : "password"}
@@ -399,13 +396,12 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
                         value={forgotNewPass}
                         onChange={(e) => setForgotNewPass(e.target.value)}
                         placeholder="Enter new strong password"
-                        className="w-full pl-3 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-blue-600"
+                        className="w-full pl-3 pr-10 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 outline-none focus:border-blue-600 transition"
                       />
                       <button
                         type="button"
                         onClick={() => setShowNewPass(!showNewPass)}
                         className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 transition"
-                        title={showNewPass ? "Hide password" : "Show password"}
                       >
                         {showNewPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -413,7 +409,7 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
                   </div>
 
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1">Confirm New Password *</label>
+                    <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Confirm New Password *</label>
                     <div className="relative">
                       <input
                         type={showConfirmPass ? "text" : "password"}
@@ -422,13 +418,12 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
                         value={forgotConfirmPass}
                         onChange={(e) => setForgotConfirmPass(e.target.value)}
                         placeholder="Re-enter new password to confirm"
-                        className="w-full pl-3 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-blue-600"
+                        className="w-full pl-3 pr-10 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 outline-none focus:border-blue-600 transition"
                       />
                       <button
                         type="button"
                         onClick={() => setShowConfirmPass(!showConfirmPass)}
                         className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 transition"
-                        title={showConfirmPass ? "Hide password" : "Show password"}
                       >
                         {showConfirmPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -457,7 +452,7 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
             /* LOGIN FORM */
             <form onSubmit={handleLoginSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
                   {role === "STUDENT" ? "Email / Mobile / Student ID *" : "Email Address *"}
                 </label>
                 <div className="relative">
@@ -472,19 +467,19 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
                         ? "STU-2025-001 or 9876543210 or email"
                         : "admin@appxwind.com"
                     }
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600"
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-blue-600 transition"
                   />
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between items-center mb-1">
-                  <label className="font-semibold text-slate-700">Password *</label>
+                  <label className="font-bold text-slate-700 dark:text-slate-300">Password *</label>
                   {role === "STUDENT" && (
                     <button
                       type="button"
                       onClick={() => { setMode("forgot-password"); setForgotId(identifier); setErrorMessage(""); }}
-                      className="text-[11px] text-blue-600 hover:underline font-bold"
+                      className="text-[11px] text-blue-600 dark:text-blue-400 hover:underline font-bold"
                     >
                       Forgot Password?
                     </button>
@@ -498,13 +493,12 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter password"
-                    className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600"
+                    className="w-full pl-10 pr-10 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-blue-600 transition"
                   />
                   <button
                     type="button"
                     onClick={() => setShowLoginPass(!showLoginPass)}
                     className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 transition"
-                    title={showLoginPass ? "Hide password" : "Show password"}
                   >
                     {showLoginPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -514,7 +508,7 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-600 hover:to-indigo-600 text-white font-bold rounded-xl shadow-lg transition duration-200 disabled:opacity-50"
+                className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition duration-200 disabled:opacity-50"
               >
                 {loading ? "Authenticating..." : `Sign In as ${role.replace("_", " ")}`}
               </button>
@@ -523,20 +517,20 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
             /* REGISTER FORM */
             <form onSubmit={handleRegisterSubmit} className="space-y-3.5 text-xs">
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Full Student Name *</label>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Full Student Name *</label>
                 <input
                   type="text"
                   required
                   value={regFullName}
                   onChange={(e) => setRegFullName(e.target.value)}
                   placeholder="Enter full legal name"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-blue-600"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 outline-none focus:border-blue-600 transition"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Mobile Number *</label>
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Mobile Number *</label>
                   <input
                     type="text"
                     required
@@ -544,24 +538,24 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
                     value={regMobile}
                     onChange={(e) => setRegMobile(e.target.value)}
                     placeholder="10-digit mobile"
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-blue-600"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 outline-none focus:border-blue-600 transition"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Email Address</label>
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Email Address</label>
                   <input
                     type="email"
                     value={regEmail}
                     onChange={(e) => setRegEmail(e.target.value)}
                     placeholder="student@gmail.com"
-                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-blue-600"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 outline-none focus:border-blue-600 transition"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Set Password *</label>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Set Password *</label>
                 <div className="relative">
                   <input
                     type={showRegPass ? "text" : "password"}
@@ -570,26 +564,24 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
                     value={regPassword}
                     onChange={(e) => setRegPassword(e.target.value)}
                     placeholder="At least 6 characters"
-                    className="w-full pl-3.5 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-blue-600"
+                    className="w-full pl-3.5 pr-10 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 outline-none focus:border-blue-600 transition"
                   />
                   <button
                     type="button"
                     onClick={() => setShowRegPass(!showRegPass)}
                     className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 transition"
-                    title={showRegPass ? "Hide password" : "Show password"}
                   >
                     {showRegPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
 
-
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Enrolled / Interested Course</label>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Enrolled / Interested Course</label>
                 <select
                   value={regCourseId}
                   onChange={(e) => setRegCourseId(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-blue-600"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 outline-none focus:border-blue-600 transition"
                 >
                   <option value="">Select Academic Program...</option>
                   {courses.map((c) => (
@@ -601,20 +593,20 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Address / City</label>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Address / City</label>
                 <input
                   type="text"
                   value={regAddress}
                   onChange={(e) => setRegAddress(e.target.value)}
                   placeholder="Residential address"
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 outline-none focus:border-blue-600"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 outline-none focus:border-blue-600 transition"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl shadow-lg transition duration-200 disabled:opacity-50 mt-2"
+                className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition duration-200 disabled:opacity-50 mt-2"
               >
                 {loading ? "Creating Account..." : "Create Student Account"}
               </button>

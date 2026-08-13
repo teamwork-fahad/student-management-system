@@ -144,26 +144,21 @@ const KPICardAnimated = ({ card, delay }) => {
   const count = useCounter(card.target, 1200, delay);
   return (
     <div
-      className="kpi-card relative overflow-hidden rounded-2xl border p-4 sm:p-5 transition-all duration-300 group cursor-default"
-      style={{
-        background: card.cardBg,
-        borderColor: "rgba(255,255,255,0.07)",
-        boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
-      }}
+      className="kpi-card relative overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 transition-all duration-300 group cursor-default shadow-sm hover:shadow-md hover:-translate-y-1"
     >
       <div className="flex items-start justify-between mb-3">
         <div
-          className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110"
+          className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110"
           style={{ background: card.iconBg, color: card.accent }}
         >
           {card.icon}
         </div>
         {card.trend != null && (
           <span
-            className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full flex items-center space-x-0.5 border ${
+            className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full flex items-center space-x-0.5 border ${
               card.trend >= 0
-                ? "bg-emerald-950/70 text-emerald-400 border-emerald-800/40"
-                : "bg-rose-950/70 text-rose-400 border-rose-800/40"
+                ? "bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/40"
+                : "bg-rose-50 dark:bg-rose-950/70 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800/40"
             }`}
           >
             {card.trend >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
@@ -172,22 +167,12 @@ const KPICardAnimated = ({ card, delay }) => {
         )}
       </div>
 
-      <div className="text-2xl sm:text-3xl font-black text-white tracking-tight mb-1">
+      <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-1">
         {card.displayFn ? card.displayFn(count) : count}
       </div>
 
-      <div className="text-xs font-bold text-slate-300">{card.label}</div>
-
-      {card.sub && (
-        <div className="text-[11px] text-slate-400 mt-1 flex items-center space-x-1 font-medium">
-          <span>{card.sub}</span>
-        </div>
-      )}
-
-      <div
-        className="absolute bottom-0 left-0 right-0 h-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-        style={{ background: `linear-gradient(90deg, transparent, ${card.accent}, transparent)` }}
-      />
+      <div className="text-xs font-bold text-slate-700 dark:text-slate-300">{card.label}</div>
+      <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">{card.sub}</div>
     </div>
   );
 };
@@ -516,26 +501,24 @@ export const AnalyticsDashboard = () => {
           <div>
             <div className="flex items-center space-x-3 mb-1.5">
               <div
-                className="w-1.5 h-8 rounded-full shrink-0"
-                style={{ background: "linear-gradient(to bottom, #3b82f6, #1d4ed8)" }}
+                className="w-1.5 h-8 rounded-full shrink-0 bg-gradient-to-b from-blue-600 to-indigo-600"
               />
-              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Analytics Dashboard</h1>
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Analytics Dashboard</h1>
               <span
-                className="hidden sm:flex items-center space-x-1.5 px-3 py-1 rounded-full border text-[10px] font-bold"
-                style={{ background: "rgba(34,197,94,0.1)", borderColor: "rgba(34,197,94,0.3)", color: "#4ade80" }}
+                className="hidden sm:flex items-center space-x-1.5 px-3 py-1 rounded-full border text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800"
               >
                 <span className="live-dot" />
                 <span>LIVE</span>
               </span>
             </div>
-            <p className="text-xs text-slate-400 ml-5">
+            <p className="text-xs text-slate-500 dark:text-slate-400 ml-5 font-medium">
               {now.toLocaleDateString("en-IN", {
                 weekday: "long",
                 day: "numeric",
                 month: "long",
                 year: "numeric",
               })}
-              &nbsp;&middot;&nbsp;AppXwinD Technology ERP ({totalUniqueS} Unique Students &middot; {totalS} Admissions)
+              &nbsp;&middot;&nbsp;EduMaster Academy ERP ({totalUniqueS} Unique Students &middot; {totalS} Admissions)
             </p>
           </div>
           <div className="flex items-center flex-wrap gap-2">
@@ -549,7 +532,7 @@ export const AnalyticsDashboard = () => {
             </button>
             <button
               onClick={fetchData}
-              className="px-3 py-2 bg-slate-900 border border-slate-700 text-slate-300 text-xs font-semibold rounded-xl flex items-center space-x-1.5 hover:border-blue-600 hover:text-white transition"
+              className="px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl flex items-center space-x-1.5 hover:border-blue-600 hover:text-slate-900 dark:hover:text-white transition shadow-sm"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Refresh</span>
@@ -591,16 +574,15 @@ export const AnalyticsDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 s2">
           {/* Monthly Fee Bar Chart */}
           <div
-            className="glass-card lg:col-span-2 rounded-2xl border border-slate-800 p-5"
-            style={{ background: "linear-gradient(160deg, #0d1b3e 0%, #0a0f1e 100%)" }}
+            className="glass-card lg:col-span-2 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 bg-white dark:bg-slate-900 shadow-sm"
           >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
               <div>
-                <h3 className="text-sm font-bold text-white flex items-center space-x-2">
-                  <BarChart3 className="w-4 h-4 text-blue-400" />
+                <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center space-x-2">
+                  <BarChart3 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                   <span>Monthly Revenue Trend</span>
                 </h3>
-                <p className="text-[11px] text-slate-500 mt-0.5">Fee collection performance &mdash; last 6 months</p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">Fee collection performance &mdash; last 6 months</p>
               </div>
               <div className="flex items-center space-x-3">
                 <button
@@ -689,12 +671,11 @@ export const AnalyticsDashboard = () => {
 
           {/* Donut Chart */}
           <div
-            className="glass-card rounded-2xl border border-slate-800 p-5 flex flex-col"
-            style={{ background: "linear-gradient(160deg, #0d1b3e 0%, #0a0f1e 100%)" }}
+            className="glass-card rounded-3xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 bg-white dark:bg-slate-900 shadow-sm flex flex-col"
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-white flex items-center space-x-2">
-                <Activity className="w-4 h-4 text-blue-400" />
+              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center space-x-2">
+                <Activity className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 <span>Enrollment Status</span>
               </h3>
               <button
@@ -702,9 +683,9 @@ export const AnalyticsDashboard = () => {
                   setModalSearch("");
                   setActiveModal("statusBreakdown");
                 }}
-                className="px-2.5 py-1 text-[11px] font-bold text-blue-400 bg-blue-950/60 border border-blue-800/50 rounded-lg flex items-center space-x-1 hover:bg-blue-900 transition"
+                className="px-3 py-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800/50 rounded-xl flex items-center space-x-1 hover:bg-blue-100 dark:hover:bg-blue-900 transition"
               >
-                <Eye className="w-3 h-3" />
+                <Eye className="w-3.5 h-3.5" />
                 <span>Details</span>
               </button>
             </div>
@@ -712,8 +693,8 @@ export const AnalyticsDashboard = () => {
               <div className="relative">
                 <DonutChart segments={donut} size={136} thickness={18} ready={chartsReady} />
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-2xl font-black text-white leading-none">{totalUniqueS}</span>
-                  <span className="text-[10px] text-slate-400 font-semibold mt-0.5">Students</span>
+                  <span className="text-2xl font-black text-slate-900 dark:text-white leading-none">{totalUniqueS}</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5">Students</span>
                 </div>
               </div>
             </div>
@@ -724,10 +705,10 @@ export const AnalyticsDashboard = () => {
                   <div key={seg.label} className="flex items-center justify-between text-xs">
                     <div className="flex items-center space-x-2.5">
                       <div className="w-3 h-3 rounded-sm shrink-0" style={{ background: seg.color }} />
-                      <span className="text-slate-400 font-semibold">{seg.label}</span>
+                      <span className="text-slate-600 dark:text-slate-400 font-bold">{seg.label}</span>
                     </div>
                     <div className="flex items-center space-x-2 shrink-0">
-                      <div className="w-16 h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                      <div className="w-16 h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
                         <div
                           className="h-full rounded-full bar-h"
                           style={{
@@ -737,7 +718,7 @@ export const AnalyticsDashboard = () => {
                           }}
                         />
                       </div>
-                      <span className="font-extrabold text-white w-6 text-right">{seg.value}</span>
+                      <span className="font-black text-slate-900 dark:text-white w-6 text-right">{seg.value}</span>
                     </div>
                   </div>
                 );
@@ -750,12 +731,11 @@ export const AnalyticsDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 s3">
           {/* Top Courses */}
           <div
-            className="glass-card rounded-2xl border border-slate-800 p-5"
-            style={{ background: "linear-gradient(160deg, #0d1b3e 0%, #0a0f1e 100%)" }}
+            className="glass-card rounded-3xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 bg-white dark:bg-slate-900 shadow-sm"
           >
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-sm font-bold text-white flex items-center space-x-2">
-                <BookOpen className="w-4 h-4 text-blue-400" />
+              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center space-x-2">
+                <BookOpen className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 <span>Top Enrolled Courses</span>
               </h3>
               <button
@@ -763,7 +743,7 @@ export const AnalyticsDashboard = () => {
                   setModalSearch("");
                   setActiveModal("topCourses");
                 }}
-                className="px-2.5 py-1 text-[11px] font-bold text-blue-400 bg-blue-950/60 border border-blue-800/50 rounded-lg flex items-center space-x-1 hover:bg-blue-900 transition"
+                className="px-3 py-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800/50 rounded-xl flex items-center space-x-1 hover:bg-blue-100 dark:hover:bg-blue-900 transition"
               >
                 <Eye className="w-3.5 h-3.5" />
                 <span>View All & Export</span>
@@ -787,7 +767,7 @@ export const AnalyticsDashboard = () => {
                           >
                             {i + 1}
                           </div>
-                          <span className="font-semibold text-slate-200 truncate" title={c.name}>
+                          <span className="font-extrabold text-slate-800 dark:text-slate-200 truncate" title={c.name}>
                             {c.name}
                           </span>
                         </div>
@@ -796,8 +776,7 @@ export const AnalyticsDashboard = () => {
                         </span>
                       </div>
                       <div
-                        className="w-full h-2 rounded-full overflow-hidden"
-                        style={{ background: "rgba(255,255,255,0.06)" }}
+                        className="w-full h-2 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800"
                       >
                         <div
                           className="h-full rounded-full bar-h"
@@ -818,12 +797,11 @@ export const AnalyticsDashboard = () => {
 
           {/* High Pending Dues */}
           <div
-            className="glass-card rounded-2xl border border-slate-800 p-5"
-            style={{ background: "linear-gradient(160deg, #1a0800 0%, #0a0f1e 100%)" }}
+            className="glass-card rounded-3xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 bg-white dark:bg-slate-900 shadow-sm"
           >
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-sm font-bold text-white flex items-center space-x-2">
-                <AlertCircle className="w-4 h-4 text-amber-400" />
+              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 text-amber-500" />
                 <span>High Pending Dues</span>
               </h3>
               <button
@@ -831,7 +809,7 @@ export const AnalyticsDashboard = () => {
                   setModalSearch("");
                   setActiveModal("pendingDues");
                 }}
-                className="px-2.5 py-1 text-[11px] font-bold text-amber-400 bg-amber-950/60 border border-amber-800/50 rounded-lg flex items-center space-x-1 hover:bg-amber-900 transition"
+                className="px-3 py-1.5 text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/50 rounded-xl flex items-center space-x-1 hover:bg-amber-100 dark:hover:bg-amber-900 transition"
               >
                 <Eye className="w-3.5 h-3.5" />
                 <span>View All ({highPend.length}) & Export</span>
@@ -840,13 +818,12 @@ export const AnalyticsDashboard = () => {
             {highPend.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 space-y-3">
                 <div
-                  className="w-12 h-12 rounded-2xl flex items-center justify-center"
-                  style={{ background: "rgba(16,185,129,0.15)" }}
+                  className="w-12 h-12 rounded-2xl flex items-center justify-center bg-emerald-50 dark:bg-emerald-950/50"
                 >
-                  <CheckCircle className="w-6 h-6 text-emerald-400" />
+                  <CheckCircle className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                 </div>
-                <p className="text-sm font-bold text-emerald-400">All dues cleared!</p>
-                <p className="text-[11px] text-slate-500">No outstanding balances</p>
+                <p className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400">All dues cleared!</p>
+                <p className="text-[11px] text-slate-500 font-medium">No outstanding balances</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -859,8 +836,7 @@ export const AnalyticsDashboard = () => {
                   return (
                     <div
                       key={adm.id}
-                      className="flex items-center gap-3 p-3 rounded-xl border cursor-pointer tr-hover"
-                      style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.06)" }}
+                      className="flex items-center gap-3 p-3 rounded-2xl border border-slate-200 dark:border-slate-800/60 bg-slate-50/70 dark:bg-slate-950/40 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/50 transition"
                       onClick={() => window.open(url, "_blank")}
                     >
                       <div
@@ -870,9 +846,9 @@ export const AnalyticsDashboard = () => {
                         {(adm.student?.fullName || adm.inquiry?.fullName || adm.guardianName || adm.studentName || "?")[0]?.toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs font-bold text-white truncate">{adm.student?.fullName || adm.inquiry?.fullName || adm.guardianName || adm.studentName || "Student"}</div>
-                        <div className="text-[10px] text-slate-500 truncate">{adm.courseNameSnapshot}</div>
-                        <div className="mt-1 w-full h-1 rounded-full overflow-hidden bg-slate-800">
+                        <div className="text-xs font-bold text-slate-900 dark:text-white truncate">{adm.student?.fullName || adm.inquiry?.fullName || adm.guardianName || adm.studentName || "Student"}</div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate font-medium">{adm.courseNameSnapshot}</div>
+                        <div className="mt-1 w-full h-1 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-800">
                           <div
                             className="h-full rounded-full bar-h"
                             style={{
@@ -887,7 +863,7 @@ export const AnalyticsDashboard = () => {
                         <div className="text-xs font-extrabold" style={{ color: urg }}>
                           {fmtK(pA)}
                         </div>
-                        <div className="text-[10px] text-slate-500">{dp}% due</div>
+                        <div className="text-[10px] text-slate-500 font-medium">{dp}% due</div>
                       </div>
                     </div>
                   );
@@ -901,17 +877,16 @@ export const AnalyticsDashboard = () => {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 s4">
           {/* Collection Gauge */}
           <div
-            className="glass-card rounded-2xl border border-slate-800 p-5 text-center cursor-pointer hover:border-blue-700 transition"
-            style={{ background: "linear-gradient(160deg, #0d1b3e 0%, #060d1f 100%)" }}
+            className="glass-card rounded-3xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 bg-white dark:bg-slate-900 shadow-sm text-center cursor-pointer hover:border-blue-500 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
             onClick={() => setActiveModal("financialOverview")}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Collection Efficiency</span>
-              <Eye className="w-3.5 h-3.5 text-blue-400" />
+              <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Collection Efficiency</span>
+              <Eye className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
             </div>
             <div className="flex justify-center relative mb-3">
               <svg width="120" height="70" viewBox="0 0 120 70">
-                <path d="M 16 60 A 44 44 0 0 1 104 60" fill="none" stroke="#1e293b" strokeWidth="12" strokeLinecap="round" />
+                <path d="M 16 60 A 44 44 0 0 1 104 60" fill="none" className="stroke-slate-200 dark:stroke-slate-800" strokeWidth="12" strokeLinecap="round" />
                 <path
                   d="M 16 60 A 44 44 0 0 1 104 60"
                   fill="none"
@@ -924,65 +899,63 @@ export const AnalyticsDashboard = () => {
                 />
                 <defs>
                   <linearGradient id="gaugeG" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#1d4ed8" />
-                    <stop offset="100%" stopColor="#34d399" />
+                    <stop offset="0%" stopColor="#2563eb" />
+                    <stop offset="100%" stopColor="#10b981" />
                   </linearGradient>
                 </defs>
               </svg>
               <div className="absolute bottom-1 inset-x-0 text-center">
-                <span className="text-2xl font-black text-white">{collRate}%</span>
+                <span className="text-2xl font-black text-slate-900 dark:text-white">{collRate}%</span>
               </div>
             </div>
-            <p className="text-[11px] text-slate-400">
-              <span className="text-emerald-400 font-bold">{fmtINR(totalRev)}</span>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+              <span className="text-emerald-600 dark:text-emerald-400 font-bold">{fmtINR(totalRev)}</span>
               {" collected of "}
-              <span className="text-white font-bold">{fmtINR(totalFees || totalRev + pendingAmt)}</span>
+              <span className="text-slate-900 dark:text-white font-bold">{fmtINR(totalFees || totalRev + pendingAmt)}</span>
             </p>
           </div>
 
           {/* Net Revenue */}
           <div
-            className="glass-card rounded-2xl border border-emerald-900/30 p-5 text-center cursor-pointer hover:border-emerald-500 transition"
-            style={{ background: "linear-gradient(160deg, #0a2218 0%, #021408 100%)" }}
+            className="glass-card rounded-3xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 bg-white dark:bg-slate-900 shadow-sm text-center cursor-pointer hover:border-emerald-500 transition"
             onClick={() => setActiveModal("financialOverview")}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Net Profit / Revenue</span>
-              <Eye className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Net Profit / Revenue</span>
+              <Eye className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
             </div>
-            <DollarSign className="w-7 h-7 text-emerald-400 mx-auto mb-2" />
-            <div className="text-2xl sm:text-3xl font-black text-emerald-400 mb-1">{fmtINR(Math.max(netRev, 0))}</div>
-            <p className="text-[10px] text-slate-500 mb-4">After {fmtINR(totalExp)} in expenses</p>
-            <div className="border-t border-emerald-900/30 pt-3 grid grid-cols-2 gap-2 text-[10px]">
+            <DollarSign className="w-7 h-7 text-emerald-600 dark:text-emerald-400 mx-auto mb-2" />
+            <div className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 mb-1">{fmtINR(Math.max(netRev, 0))}</div>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mb-4">After {fmtINR(totalExp)} in expenses</p>
+            <div className="border-t border-slate-100 dark:border-slate-800 pt-3 grid grid-cols-2 gap-2 text-[10px]">
               <div>
-                <div className="text-slate-500">Revenue</div>
-                <div className="font-extrabold text-emerald-400">{fmtK(totalRev)}</div>
+                <div className="text-slate-500 dark:text-slate-400 font-medium">Revenue</div>
+                <div className="font-extrabold text-emerald-600 dark:text-emerald-400">{fmtK(totalRev)}</div>
               </div>
               <div>
-                <div className="text-slate-500">Expenses</div>
-                <div className="font-extrabold text-rose-400">{fmtK(totalExp)}</div>
+                <div className="text-slate-500 dark:text-slate-400 font-medium">Expenses</div>
+                <div className="font-extrabold text-rose-600 dark:text-rose-400">{fmtK(totalExp)}</div>
               </div>
             </div>
           </div>
 
           {/* Completion Rate */}
           <div
-            className="glass-card rounded-2xl border border-blue-900/30 p-5 text-center cursor-pointer hover:border-blue-500 transition"
-            style={{ background: "linear-gradient(160deg, #0d1b3e 0%, #060d1f 100%)" }}
+            className="glass-card rounded-3xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 bg-white dark:bg-slate-900 shadow-sm text-center cursor-pointer hover:border-blue-500 transition"
             onClick={() => setActiveModal("statusBreakdown")}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Completion Rate</span>
-              <Eye className="w-3.5 h-3.5 text-blue-400" />
+              <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Completion Rate</span>
+              <Eye className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
             </div>
-            <Award className="w-7 h-7 text-blue-400 mx-auto mb-2" />
-            <div className="text-2xl sm:text-3xl font-black text-blue-400 mb-1">
+            <Award className="w-7 h-7 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
+            <div className="text-2xl sm:text-3xl font-black text-blue-600 dark:text-blue-400 mb-1">
               {totalS > 0 ? Math.round((completedC / totalS) * 100) : 0}%
             </div>
-            <p className="text-[10px] text-slate-500 mb-4">
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium mb-4">
               {completedC} of {totalUniqueS} unique students
             </p>
-            <div className="w-full h-2.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+            <div className="w-full h-2.5 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800">
               <div
                 className="h-full rounded-full bar-h"
                 style={{
@@ -998,30 +971,29 @@ export const AnalyticsDashboard = () => {
 
         {/* ── RECENT ADMISSIONS TABLE ────────────────────────────────────── */}
         <div
-          className="glass-card rounded-2xl border border-slate-800 p-5 s4"
-          style={{ background: "linear-gradient(160deg, #0d1b3e 0%, #0a0f1e 100%)" }}
+          className="glass-card rounded-3xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 bg-white dark:bg-slate-900 shadow-sm s4"
         >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
             <div>
-              <h3 className="text-sm font-bold text-white flex items-center space-x-2">
-                <Users className="w-4 h-4 text-blue-400" />
+              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center space-x-2">
+                <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 <span>Recent Student Admissions</span>
               </h3>
-              <p className="text-[11px] text-slate-500 mt-0.5">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
                 Latest student enrollments &middot; Click any row to open student profile
               </p>
             </div>
             <div className="flex items-center space-x-2 shrink-0">
               <button
                 onClick={handleExportRecentAdmissions}
-                className="px-3 py-1.5 bg-slate-900 border border-slate-700 text-emerald-400 hover:text-emerald-300 text-xs font-bold rounded-xl flex items-center space-x-1.5 transition"
+                className="px-3.5 py-2 bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-emerald-700 dark:text-emerald-400 hover:bg-slate-200 dark:hover:bg-slate-800 text-xs font-bold rounded-2xl flex items-center space-x-1.5 transition shadow-sm"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Export CSV</span>
               </button>
               <Link
                 to="/dashboard/students"
-                className="text-xs font-semibold text-blue-400 hover:text-blue-300 flex items-center space-x-1 whitespace-nowrap shrink-0 transition"
+                className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center space-x-1 whitespace-nowrap shrink-0 transition ml-2"
               >
                 <span>View All Students</span>
                 <ArrowRight className="w-4 h-4" />
@@ -1032,11 +1004,10 @@ export const AnalyticsDashboard = () => {
           {recentAdmissions.length === 0 ? (
             <p className="text-sm text-slate-500 py-10 text-center">No admissions found.</p>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-slate-800/60">
-              <table className="w-full text-left text-xs text-slate-300 min-w-[720px]">
+            <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800/80">
+              <table className="w-full text-left text-xs text-slate-800 dark:text-slate-200 min-w-[720px]">
                 <thead
-                  className="text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800"
-                  style={{ background: "rgba(13,27,62,0.7)" }}
+                  className="bg-slate-50 dark:bg-slate-950/80 text-slate-500 dark:text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-200 dark:border-slate-800"
                 >
                   <tr>
                     <th className="py-3.5 px-4 whitespace-nowrap">#ID</th>
@@ -1135,23 +1106,23 @@ export const AnalyticsDashboard = () => {
 
         {/* ── INTERACTIVE ANALYTICS DETAIL MODALS ───────────────────────── */}
         {activeModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
-            <div className="relative w-full max-w-4xl max-h-[90vh] bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-fade-in">
+            <div className="relative w-full max-w-4xl max-h-[90vh] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden text-slate-900 dark:text-slate-100">
               {/* Modal Header */}
-              <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/90 shrink-0">
+              <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/80 dark:bg-slate-900/90 shrink-0">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-2xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
+                  <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/80 border border-blue-200 dark:border-blue-800/50 flex items-center justify-center text-blue-600 dark:text-blue-400">
                     <FileSpreadsheet className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-white">
+                    <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
                       {activeModal === "monthly" && "Monthly Revenue & Collection Analysis"}
                       {activeModal === "topCourses" && "Course-wise Enrollment Analysis"}
                       {activeModal === "pendingDues" && "Detailed Pending Dues & Outstanding Balances"}
                       {activeModal === "statusBreakdown" && "Student Status Breakdown"}
                       {activeModal === "financialOverview" && "Financial & Revenue Executive Summary"}
                     </h3>
-                    <p className="text-xs text-slate-400">Complete inspection & export report</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Complete inspection & export report</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -1163,14 +1134,14 @@ export const AnalyticsDashboard = () => {
                       else if (activeModal === "statusBreakdown") handleExportStatusBreakdown();
                       else if (activeModal === "financialOverview") handleExportFullReport();
                     }}
-                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl flex items-center space-x-1.5 shadow-lg transition"
+                    className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-2xl flex items-center space-x-1.5 shadow-md transition"
                   >
                     <Download className="w-4 h-4" />
                     <span>Export CSV / Excel</span>
                   </button>
                   <button
                     onClick={() => setActiveModal(null)}
-                    className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition"
+                    className="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -1179,15 +1150,15 @@ export const AnalyticsDashboard = () => {
 
               {/* Modal Search Bar if applicable */}
               {(activeModal === "pendingDues" || activeModal === "topCourses") && (
-                <div className="px-6 py-3 border-b border-slate-800 bg-slate-900/50 flex items-center justify-between shrink-0">
+                <div className="px-6 py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 flex items-center justify-between shrink-0">
                   <div className="relative w-full max-w-sm">
-                    <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
                       placeholder="Search by student name, course or STU ID..."
                       value={modalSearch}
                       onChange={(e) => setModalSearch(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                      className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl pl-9 pr-4 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 shadow-sm"
                     />
                   </div>
                 </div>
@@ -1197,9 +1168,9 @@ export const AnalyticsDashboard = () => {
               <div className="p-6 overflow-y-auto flex-1 space-y-4">
                 {/* 1. Monthly Revenue Modal */}
                 {activeModal === "monthly" && (
-                  <div className="overflow-x-auto rounded-xl border border-slate-800">
-                    <table className="w-full text-left text-xs text-slate-300">
-                      <thead className="text-slate-400 uppercase text-[10px] bg-slate-950 border-b border-slate-800">
+                  <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+                    <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+                      <thead className="text-slate-500 dark:text-slate-400 uppercase text-[10px] bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800">
                         <tr>
                           <th className="py-3 px-4">Month</th>
                           <th className="py-3 px-4">Year-Month Key</th>
@@ -1207,13 +1178,13 @@ export const AnalyticsDashboard = () => {
                           <th className="py-3 px-4 text-right">Amount Collected (₹)</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-800/60">
+                      <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
                         {monthly.map((m) => (
-                          <tr key={m.key} className="hover:bg-slate-800/40">
-                            <td className="py-3 px-4 font-bold text-white">{m.label}</td>
-                            <td className="py-3 px-4 font-mono text-slate-400">{m.key}</td>
-                            <td className="py-3 px-4 text-right font-semibold text-slate-300">{m.count}</td>
-                            <td className="py-3 px-4 text-right font-bold text-emerald-400">{fmtINR(m.amount)}</td>
+                          <tr key={m.key} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                            <td className="py-3 px-4 font-bold text-slate-900 dark:text-white">{m.label}</td>
+                            <td className="py-3 px-4 font-mono text-slate-500 dark:text-slate-400">{m.key}</td>
+                            <td className="py-3 px-4 text-right font-semibold text-slate-700 dark:text-slate-300">{m.count}</td>
+                            <td className="py-3 px-4 text-right font-bold text-emerald-600 dark:text-emerald-400">{fmtINR(m.amount)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -1223,9 +1194,9 @@ export const AnalyticsDashboard = () => {
 
                 {/* 2. Top Courses Modal */}
                 {activeModal === "topCourses" && (
-                  <div className="overflow-x-auto rounded-xl border border-slate-800">
-                    <table className="w-full text-left text-xs text-slate-300">
-                      <thead className="text-slate-400 uppercase text-[10px] bg-slate-950 border-b border-slate-800">
+                  <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+                    <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+                      <thead className="text-slate-500 dark:text-slate-400 uppercase text-[10px] bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800">
                         <tr>
                           <th className="py-3 px-4"># Rank</th>
                           <th className="py-3 px-4">Course Name</th>
@@ -1233,15 +1204,15 @@ export const AnalyticsDashboard = () => {
                           <th className="py-3 px-4 text-right">Share (%)</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-800/60">
+                      <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
                         {topCourses
                           .filter((c) => c.name.toLowerCase().includes(modalSearch.toLowerCase()))
                           .map((c, i) => (
-                            <tr key={c.name} className="hover:bg-slate-800/40">
-                              <td className="py-3 px-4 font-bold text-blue-400">#{i + 1}</td>
-                              <td className="py-3 px-4 font-bold text-white">{c.name}</td>
-                              <td className="py-3 px-4 text-right font-extrabold text-blue-400">{c.count}</td>
-                              <td className="py-3 px-4 text-right font-semibold text-slate-400">
+                            <tr key={c.name} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                              <td className="py-3 px-4 font-bold text-blue-600 dark:text-blue-400">#{i + 1}</td>
+                              <td className="py-3 px-4 font-bold text-slate-900 dark:text-white">{c.name}</td>
+                              <td className="py-3 px-4 text-right font-extrabold text-blue-600 dark:text-blue-400">{c.count}</td>
+                              <td className="py-3 px-4 text-right font-semibold text-slate-500 dark:text-slate-400">
                                 {totalS > 0 ? `${Math.round((c.count / totalS) * 100)}%` : "0%"}
                               </td>
                             </tr>
@@ -1253,9 +1224,9 @@ export const AnalyticsDashboard = () => {
 
                 {/* 3. Pending Dues Modal */}
                 {activeModal === "pendingDues" && (
-                  <div className="overflow-x-auto rounded-xl border border-slate-800">
-                    <table className="w-full text-left text-xs text-slate-300">
-                      <thead className="text-slate-400 uppercase text-[10px] bg-slate-950 border-b border-slate-800">
+                  <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+                    <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+                      <thead className="text-slate-500 dark:text-slate-400 uppercase text-[10px] bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800">
                         <tr>
                           <th className="py-3 px-4">Student</th>
                           <th className="py-3 px-4">Mobile</th>
@@ -1266,7 +1237,7 @@ export const AnalyticsDashboard = () => {
                           <th className="py-3 px-4 text-center">Status</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-800/60">
+                      <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
                         {highPend
                           .filter((a) => {
                             const q = modalSearch.toLowerCase();
@@ -1279,18 +1250,18 @@ export const AnalyticsDashboard = () => {
                           .map((a) => {
                             const pA = Number(a.pendingAmount);
                             return (
-                              <tr key={a.id} className="hover:bg-slate-800/40">
+                              <tr key={a.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
                                 <td className="py-3 px-4">
-                                  <div className="font-bold text-white">{a.student?.fullName || "N/A"}</div>
-                                  <div className="text-[10px] text-slate-500">{a.student?.studentId || a.studentId}</div>
+                                  <div className="font-bold text-slate-900 dark:text-white">{a.student?.fullName || "N/A"}</div>
+                                  <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">{a.student?.studentId || a.studentId}</div>
                                 </td>
-                                <td className="py-3 px-4 text-slate-300 font-mono">{a.student?.mobile || "—"}</td>
-                                <td className="py-3 px-4 text-slate-300">{a.courseNameSnapshot || "—"}</td>
-                                <td className="py-3 px-4 text-right text-slate-300">{fmtINR(a.finalFees || a.courseFees)}</td>
-                                <td className="py-3 px-4 text-right text-emerald-400 font-semibold">{fmtINR(a.paidAmount)}</td>
-                                <td className="py-3 px-4 text-right text-amber-400 font-extrabold">{fmtINR(pA)}</td>
+                                <td className="py-3 px-4 text-slate-600 dark:text-slate-300 font-mono">{a.student?.mobile || "—"}</td>
+                                <td className="py-3 px-4 text-slate-600 dark:text-slate-300">{a.courseNameSnapshot || "—"}</td>
+                                <td className="py-3 px-4 text-right text-slate-700 dark:text-slate-300">{fmtINR(a.finalFees || a.courseFees)}</td>
+                                <td className="py-3 px-4 text-right text-emerald-600 dark:text-emerald-400 font-semibold">{fmtINR(a.paidAmount)}</td>
+                                <td className="py-3 px-4 text-right text-amber-600 dark:text-amber-400 font-extrabold">{fmtINR(pA)}</td>
                                 <td className="py-3 px-4 text-center">
-                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30">
                                     {a.status}
                                   </span>
                                 </td>
@@ -1304,21 +1275,21 @@ export const AnalyticsDashboard = () => {
 
                 {/* 4. Status Breakdown Modal */}
                 {activeModal === "statusBreakdown" && (
-                  <div className="overflow-x-auto rounded-xl border border-slate-800">
-                    <table className="w-full text-left text-xs text-slate-300">
-                      <thead className="text-slate-400 uppercase text-[10px] bg-slate-950 border-b border-slate-800">
+                  <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+                    <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+                      <thead className="text-slate-500 dark:text-slate-400 uppercase text-[10px] bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800">
                         <tr>
                           <th className="py-3 px-4">Status Category</th>
                           <th className="py-3 px-4 text-right">Student Count</th>
                           <th className="py-3 px-4 text-right">Share of Total</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-800/60">
+                      <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
                         {Object.entries(brk).map(([st, cnt]) => (
-                          <tr key={st} className="hover:bg-slate-800/40">
-                            <td className="py-3 px-4 font-bold text-white">{st}</td>
-                            <td className="py-3 px-4 text-right font-extrabold text-blue-400">{cnt}</td>
-                            <td className="py-3 px-4 text-right font-semibold text-slate-400">
+                          <tr key={st} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                            <td className="py-3 px-4 font-bold text-slate-900 dark:text-white">{st}</td>
+                            <td className="py-3 px-4 text-right font-extrabold text-blue-600 dark:text-blue-400">{cnt}</td>
+                            <td className="py-3 px-4 text-right font-semibold text-slate-500 dark:text-slate-400">
                               {totalS > 0 ? `${Math.round((cnt / totalS) * 100)}%` : "0%"}
                             </td>
                           </tr>
@@ -1332,21 +1303,21 @@ export const AnalyticsDashboard = () => {
                 {activeModal === "financialOverview" && (
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-                      <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
-                        <div className="text-[10px] text-slate-400 uppercase">Total Final Fees</div>
-                        <div className="text-base font-black text-white mt-1">{fmtINR(totalFees)}</div>
+                      <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold">Total Final Fees</div>
+                        <div className="text-base font-black text-slate-900 dark:text-white mt-1">{fmtINR(totalFees)}</div>
                       </div>
-                      <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
-                        <div className="text-[10px] text-slate-400 uppercase">Collected Revenue</div>
-                        <div className="text-base font-black text-emerald-400 mt-1">{fmtINR(totalRev)}</div>
+                      <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold">Collected Revenue</div>
+                        <div className="text-base font-black text-emerald-600 dark:text-emerald-400 mt-1">{fmtINR(totalRev)}</div>
                       </div>
-                      <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
-                        <div className="text-[10px] text-slate-400 uppercase">Pending Dues</div>
-                        <div className="text-base font-black text-amber-400 mt-1">{fmtINR(pendingAmt)}</div>
+                      <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold">Pending Dues</div>
+                        <div className="text-base font-black text-amber-600 dark:text-amber-400 mt-1">{fmtINR(pendingAmt)}</div>
                       </div>
-                      <div className="p-3 rounded-xl bg-slate-950 border border-slate-800">
-                        <div className="text-[10px] text-slate-400 uppercase">Net Revenue / Profit</div>
-                        <div className="text-base font-black text-blue-400 mt-1">{fmtINR(netRev)}</div>
+                      <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-semibold">Net Revenue / Profit</div>
+                        <div className="text-base font-black text-blue-600 dark:text-blue-400 mt-1">{fmtINR(netRev)}</div>
                       </div>
                     </div>
                   </div>
