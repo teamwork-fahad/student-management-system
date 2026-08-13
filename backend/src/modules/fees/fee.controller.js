@@ -2,6 +2,11 @@ import { z } from "zod";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { successResponse } from "../../utils/response.js";
 import {
+  buildCacheKey,
+  fetchWithCache,
+  clearCachePatterns,
+} from "../../utils/cacheHelper.js";
+import {
   collectFee,
   getFeeHistory,
   getStudentFeeSummary,
@@ -34,6 +39,8 @@ export const collectFeeController = asyncHandler(async (req, res) => {
 
   const result = await collectFee(validatedData, req.user.id);
 
+  await clearCachePatterns(["sms:fees:*", "sms:students:*", "sms:admissions:*"]);
+
   return successResponse(
     res,
     "Fee payment collected successfully",
@@ -43,7 +50,8 @@ export const collectFeeController = asyncHandler(async (req, res) => {
 });
 
 export const getFeeHistoryController = asyncHandler(async (req, res) => {
-  const result = await getFeeHistory(req.query);
+  const cacheKey = buildCacheKey("sms:fees:history", req.query);
+  const result = await fetchWithCache(cacheKey, 60, () => getFeeHistory(req.query));
 
   return successResponse(
     res,
@@ -54,7 +62,8 @@ export const getFeeHistoryController = asyncHandler(async (req, res) => {
 });
 
 export const getStudentFeeSummaryController = asyncHandler(async (req, res) => {
-  const result = await getStudentFeeSummary(req.params.studentId);
+  const cacheKey = `sms:fees:student:${req.params.studentId}`;
+  const result = await fetchWithCache(cacheKey, 60, () => getStudentFeeSummary(req.params.studentId));
 
   return successResponse(
     res,
@@ -96,6 +105,8 @@ export const updateFeePaymentController = asyncHandler(async (req, res) => {
   const validatedData = updateFeePaymentSchema.parse(req.body);
   const result = await updateFeePayment(req.params.id, validatedData, req.user.id);
 
+  await clearCachePatterns(["sms:fees:*", "sms:students:*", "sms:admissions:*"]);
+
   return successResponse(
     res,
     "Fee payment details updated successfully",
@@ -106,6 +117,8 @@ export const updateFeePaymentController = asyncHandler(async (req, res) => {
 
 export const deleteFeePaymentController = asyncHandler(async (req, res) => {
   const result = await deleteFeePayment(req.params.id, req.user.id);
+
+  await clearCachePatterns(["sms:fees:*", "sms:students:*", "sms:admissions:*"]);
 
   return successResponse(
     res,

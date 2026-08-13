@@ -12,6 +12,8 @@ const envSchema = z.object({
   SUPER_ADMIN_NAME: z.string().optional(),
   SUPER_ADMIN_EMAIL: z.string().optional(),
   SUPER_ADMIN_PASSWORD: z.string().optional(),
+  UPSTASH_REDIS_REST_URL: z.string().optional(),
+  UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -28,6 +30,8 @@ const env = parsedEnv.success
       JWT_EXPIRES_IN: "7d",
       PORT: 3000,
       NODE_ENV: process.env.NODE_ENV || "production",
+      UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL || "",
+      UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN || "",
     };
 
 export default env;

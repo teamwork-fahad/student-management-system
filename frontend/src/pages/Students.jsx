@@ -64,7 +64,7 @@ export const Students = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  
+
   // Bulk selection state
   const [selectedStudentIds, setSelectedStudentIds] = useState([]);
 
@@ -223,7 +223,7 @@ export const Students = () => {
           refreshCurrentView();
         }
       };
-    } catch (e) {}
+    } catch (e) { }
 
     const handleFocusOrVisibility = () => {
       if (document.visibilityState === "visible") {
@@ -693,9 +693,8 @@ export const Students = () => {
           <button
             type="button"
             onClick={() => setViewMode("table")}
-            className={`p-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
-              viewMode === "table" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
-            }`}
+            className={`p-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${viewMode === "table" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
+              }`}
             title="Table List View"
           >
             <List className="w-3.5 h-3.5" />
@@ -704,9 +703,8 @@ export const Students = () => {
           <button
             type="button"
             onClick={() => setViewMode("grid")}
-            className={`p-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
-              viewMode === "grid" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
-            }`}
+            className={`p-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${viewMode === "grid" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
+              }`}
             title="Grid Cards View"
           >
             <LayoutGrid className="w-3.5 h-3.5" />
@@ -808,27 +806,26 @@ export const Students = () => {
                           <div className="flex items-center space-x-2">
                             <p className="text-xs font-bold text-white">{toTitleCase(s.fullName)}</p>
                             <span
-                              className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold border ${
-                                st === "ACTIVE"
+                              className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold border ${st === "ACTIVE"
                                   ? "bg-emerald-950 text-emerald-400 border-emerald-800"
                                   : st === "REVISION"
-                                  ? "bg-purple-950 text-purple-300 border-purple-800"
-                                  : st === "ON_HOLD"
-                                  ? "bg-amber-950 text-amber-300 border-amber-800"
-                                  : st === "COMPLETED"
-                                  ? "bg-blue-950 text-blue-300 border-blue-800"
-                                  : "bg-rose-950 text-rose-400 border-rose-800"
-                              }`}
+                                    ? "bg-purple-950 text-purple-300 border-purple-800"
+                                    : st === "ON_HOLD"
+                                      ? "bg-amber-950 text-amber-300 border-amber-800"
+                                      : st === "COMPLETED"
+                                        ? "bg-blue-950 text-blue-300 border-blue-800"
+                                        : "bg-rose-950 text-rose-400 border-rose-800"
+                                }`}
                             >
                               {st === "ACTIVE"
                                 ? "🟢 ACTIVE"
                                 : st === "REVISION"
-                                ? "🔄 REVISION"
-                                : st === "ON_HOLD"
-                                ? "🟡 ON HOLD"
-                                : st === "COMPLETED"
-                                ? "🔵 COMPLETED"
-                                : "🔴 INACTIVE"}
+                                  ? "🔄 REVISION"
+                                  : st === "ON_HOLD"
+                                    ? "🟡 ON HOLD"
+                                    : st === "COMPLETED"
+                                      ? "🔵 COMPLETED"
+                                      : "🔴 INACTIVE"}
                             </span>
                           </div>
                           <p className="text-[10px] text-slate-400">
@@ -980,73 +977,72 @@ export const Students = () => {
                 <button
                   type="button"
                   onClick={() => setShowColumnCustomizer(!showColumnCustomizer)}
-                  className={`px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold flex items-center space-x-1 transition ${
-                    showColumnCustomizer ? "border-cyan-500 text-cyan-400 bg-cyan-950/40" : "text-slate-300 hover:text-white"
-                  }`}
+                  className={`px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs font-bold flex items-center space-x-1 transition ${showColumnCustomizer ? "border-cyan-500 text-cyan-400 bg-cyan-950/40" : "text-slate-300 hover:text-white"
+                    }`}
                   title="Customize Display Columns & Fields"
                 >
                   <SlidersHorizontal className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
                   <span className="hidden min-[400px]:inline">Fields ({Object.values(columns).filter(Boolean).length})</span>
                 </button>
 
-              {showColumnCustomizer && (
-                <div className="absolute right-0 top-11 w-64 bg-slate-950 border border-cyan-800/80 rounded-2xl shadow-2xl p-4 z-50 space-y-3 font-sans text-xs">
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                    <span className="font-bold text-cyan-400 uppercase text-[10px] tracking-wider">
-                      Display Columns / Fields
-                    </span>
-                    <button onClick={() => setShowColumnCustomizer(false)} className="text-slate-400 hover:text-white">
-                      <X className="w-4 h-4" />
-                    </button>
+                {showColumnCustomizer && (
+                  <div className="absolute right-0 top-11 w-64 bg-slate-950 border border-cyan-800/80 rounded-2xl shadow-2xl p-4 z-50 space-y-3 font-sans text-xs">
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                      <span className="font-bold text-cyan-400 uppercase text-[10px] tracking-wider">
+                        Display Columns / Fields
+                      </span>
+                      <button onClick={() => setShowColumnCustomizer(false)} className="text-slate-400 hover:text-white">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                      <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={columns.fullName}
+                          onChange={(e) => setColumns({ ...columns, fullName: e.target.checked })}
+                          className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
+                        />
+                        <span className="text-slate-200 font-bold">Student Name & Contact</span>
+                      </label>
+
+                      <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={columns.course}
+                          onChange={(e) => setColumns({ ...columns, course: e.target.checked })}
+                          className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
+                        />
+                        <span className="text-slate-200 font-bold">Enrolled Course(s)</span>
+                      </label>
+
+                      <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={columns.pendingAmount}
+                          onChange={(e) => setColumns({ ...columns, pendingAmount: e.target.checked })}
+                          className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
+                        />
+                        <span className="text-amber-400 font-bold">Pending Dues Balance (₹)</span>
+                      </label>
+
+                      <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={columns.status}
+                          onChange={(e) => setColumns({ ...columns, status: e.target.checked })}
+                          className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
+                        />
+                        <span className="text-slate-200 font-bold">Academic Status</span>
+                      </label>
+                    </div>
                   </div>
-
-                  <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-                    <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={columns.fullName}
-                        onChange={(e) => setColumns({ ...columns, fullName: e.target.checked })}
-                        className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
-                      />
-                      <span className="text-slate-200 font-bold">Student Name & Contact</span>
-                    </label>
-
-                    <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={columns.course}
-                        onChange={(e) => setColumns({ ...columns, course: e.target.checked })}
-                        className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
-                      />
-                      <span className="text-slate-200 font-bold">Enrolled Course(s)</span>
-                    </label>
-
-                    <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={columns.pendingAmount}
-                        onChange={(e) => setColumns({ ...columns, pendingAmount: e.target.checked })}
-                        className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
-                      />
-                      <span className="text-amber-400 font-bold">Pending Dues Balance (₹)</span>
-                    </label>
-
-                    <label className="flex items-center space-x-2.5 p-1.5 hover:bg-slate-900 rounded-xl cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={columns.status}
-                        onChange={(e) => setColumns({ ...columns, status: e.target.checked })}
-                        className="w-4 h-4 rounded text-cyan-600 bg-slate-900 border-slate-700 cursor-pointer"
-                      />
-                      <span className="text-slate-200 font-bold">Academic Status</span>
-                    </label>
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
       </div>
 
       {/* FLOATING BULK ACTIONS BAR */}
@@ -1145,9 +1141,8 @@ export const Students = () => {
                   return (
                     <tr
                       key={student.id}
-                      className={`hover:bg-slate-800/40 transition ${
-                        isSelected ? "bg-cyan-950/20" : ""
-                      }`}
+                      className={`hover:bg-slate-800/40 transition ${isSelected ? "bg-cyan-950/20" : ""
+                        }`}
                     >
                       <td className="p-3.5 text-center whitespace-nowrap">
                         <input
@@ -1242,23 +1237,22 @@ export const Students = () => {
                       {/* 4. ACADEMIC STATUS */}
                       <td className="p-3.5 text-center whitespace-nowrap">
                         <span
-                          className={`inline-flex items-center px-3 py-1 rounded-xl text-xs font-bold border ${
-                            st === "ACTIVE"
+                          className={`inline-flex items-center px-3 py-1 rounded-xl text-xs font-bold border ${st === "ACTIVE"
                               ? "bg-emerald-950 text-emerald-400 border-emerald-800"
                               : st === "ON_HOLD"
-                              ? "bg-amber-950 text-amber-300 border-amber-800"
-                              : st === "COMPLETED"
-                              ? "bg-blue-950 text-blue-300 border-blue-800"
-                              : "bg-rose-950 text-rose-400 border-rose-800"
-                          }`}
+                                ? "bg-amber-950 text-amber-300 border-amber-800"
+                                : st === "COMPLETED"
+                                  ? "bg-blue-950 text-blue-300 border-blue-800"
+                                  : "bg-rose-950 text-rose-400 border-rose-800"
+                            }`}
                         >
                           {st === "ACTIVE"
                             ? "🟢 ACTIVE"
                             : st === "ON_HOLD"
-                            ? "🟡 ON HOLD"
-                            : st === "COMPLETED"
-                            ? "🔵 COMPLETED"
-                            : "🔴 DROPPED"}
+                              ? "🟡 ON HOLD"
+                              : st === "COMPLETED"
+                                ? "🔵 COMPLETED"
+                                : "🔴 DROPPED"}
                         </span>
                       </td>
 
@@ -1294,8 +1288,8 @@ export const Students = () => {
                         </button>
                       </td>
                     </tr>
-                );
-              })}
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -1305,9 +1299,8 @@ export const Students = () => {
             {students.map((student) => (
               <div
                 key={student.id}
-                className={`p-5 bg-slate-950/80 border rounded-2xl space-y-3 hover:border-cyan-500/40 transition relative ${
-                  selectedStudentIds.includes(student.id) ? "border-cyan-500 bg-cyan-950/20" : "border-slate-800"
-                }`}
+                className={`p-5 bg-slate-950/80 border rounded-2xl space-y-3 hover:border-cyan-500/40 transition relative ${selectedStudentIds.includes(student.id) ? "border-cyan-500 bg-cyan-950/20" : "border-slate-800"
+                  }`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
@@ -1320,15 +1313,14 @@ export const Students = () => {
                     <span className="font-mono text-xs font-bold text-cyan-400">{student.studentId}</span>
                   </div>
                   <span
-                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                      student.status === "ACTIVE"
+                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${student.status === "ACTIVE"
                         ? "bg-emerald-950 text-emerald-400 border border-emerald-800/60"
                         : student.status === "COMPLETED"
-                        ? "bg-blue-950 text-blue-300 border border-blue-800/60"
-                        : student.status === "DROPPED"
-                        ? "bg-rose-950 text-rose-400 border border-rose-800/60"
-                        : "bg-slate-800 text-slate-400 border border-slate-700"
-                    }`}
+                          ? "bg-blue-950 text-blue-300 border border-blue-800/60"
+                          : student.status === "DROPPED"
+                            ? "bg-rose-950 text-rose-400 border border-rose-800/60"
+                            : "bg-slate-800 text-slate-400 border border-slate-700"
+                      }`}
                   >
                     {student.status}
                   </span>
@@ -1629,9 +1621,8 @@ export const Students = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab("courses")}
-                className={`px-3.5 py-2 rounded-xl flex items-center space-x-1.5 transition ${
-                  activeTab === "courses" ? "bg-cyan-600 text-white shadow-lg" : "bg-slate-900 text-slate-400 hover:text-white"
-                }`}
+                className={`px-3.5 py-2 rounded-xl flex items-center space-x-1.5 transition ${activeTab === "courses" ? "bg-cyan-600 text-white shadow-lg" : "bg-slate-900 text-slate-400 hover:text-white"
+                  }`}
               >
                 <BookOpen className="w-4 h-4" />
                 <span>Enrolled Courses ({fullStudentData?.allAdmissions?.length || 1})</span>
@@ -1640,9 +1631,8 @@ export const Students = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab("payments")}
-                className={`px-3.5 py-2 rounded-xl flex items-center space-x-1.5 transition ${
-                  activeTab === "payments" ? "bg-emerald-600 text-white shadow-lg" : "bg-slate-900 text-slate-400 hover:text-white"
-                }`}
+                className={`px-3.5 py-2 rounded-xl flex items-center space-x-1.5 transition ${activeTab === "payments" ? "bg-emerald-600 text-white shadow-lg" : "bg-slate-900 text-slate-400 hover:text-white"
+                  }`}
               >
                 <Receipt className="w-4 h-4" />
                 <span>Payment Receipts ({fullStudentData?.allPayments?.length || 0})</span>
@@ -1651,9 +1641,8 @@ export const Students = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab("attendance")}
-                className={`px-3.5 py-2 rounded-xl flex items-center space-x-1.5 transition ${
-                  activeTab === "attendance" ? "bg-indigo-600 text-white shadow-lg" : "bg-slate-900 text-slate-400 hover:text-white"
-                }`}
+                className={`px-3.5 py-2 rounded-xl flex items-center space-x-1.5 transition ${activeTab === "attendance" ? "bg-indigo-600 text-white shadow-lg" : "bg-slate-900 text-slate-400 hover:text-white"
+                  }`}
               >
                 <Calendar className="w-4 h-4" />
                 <span>Attendance Log ({fullStudentData?.attendanceStats?.attendancePercentage || 100}%)</span>
@@ -1681,15 +1670,14 @@ export const Students = () => {
                                 <span className="font-bold text-white text-sm">
                                   {adm.courseNameSnapshot || adm.course?.name || "General Course"}
                                 </span>
-                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
-                                  admStatus === "ACTIVE"
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${admStatus === "ACTIVE"
                                     ? "bg-emerald-950 text-emerald-400 border-emerald-800"
                                     : admStatus === "COMPLETED"
-                                    ? "bg-blue-950 text-blue-300 border-blue-800"
-                                    : admStatus === "DROPPED"
-                                    ? "bg-rose-950 text-rose-400 border-rose-800"
-                                    : "bg-amber-950 text-amber-300 border-amber-800"
-                                }`}>
+                                      ? "bg-blue-950 text-blue-300 border-blue-800"
+                                      : admStatus === "DROPPED"
+                                        ? "bg-rose-950 text-rose-400 border-rose-800"
+                                        : "bg-amber-950 text-amber-300 border-amber-800"
+                                  }`}>
                                   {admStatus}
                                 </span>
                               </div>
@@ -1881,11 +1869,10 @@ export const Students = () => {
                                   {formatDate(log.date)}
                                 </td>
                                 <td className="py-2.5 px-3">
-                                  <span className={`px-2 py-0.5 rounded font-bold text-[10px] ${
-                                    log.status === "PRESENT"
+                                  <span className={`px-2 py-0.5 rounded font-bold text-[10px] ${log.status === "PRESENT"
                                       ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
                                       : "bg-rose-950 text-rose-400 border border-rose-800"
-                                  }`}>
+                                    }`}>
                                     {log.status}
                                   </span>
                                 </td>

@@ -2,6 +2,11 @@ import { z } from "zod";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { successResponse } from "../../utils/response.js";
 import {
+  buildCacheKey,
+  fetchWithCache,
+  clearCachePatterns,
+} from "../../utils/cacheHelper.js";
+import {
   completeAdmission,
   getAdmissionById,
   getAdmissionStatistics,
@@ -28,6 +33,8 @@ export const createAdmissionController = asyncHandler(async (req, res) => {
     admittedBy: req.user.id,
   });
 
+  await clearCachePatterns(["sms:admissions:*", "sms:students:*"]);
+
   return successResponse(
     res,
     "Admission completed successfully",
@@ -40,7 +47,8 @@ export const createAdmissionController = asyncHandler(async (req, res) => {
  * Controller to fetch all Admissions with pagination, filters, search, and sorting
  */
 export const getAdmissionsController = asyncHandler(async (req, res) => {
-  const result = await getAllAdmissions(req.query);
+  const cacheKey = buildCacheKey("sms:admissions:list", req.query);
+  const result = await fetchWithCache(cacheKey, 60, () => getAllAdmissions(req.query));
 
   return successResponse(
     res,
@@ -55,7 +63,8 @@ export const getAdmissionsController = asyncHandler(async (req, res) => {
  */
 export const searchAdmissionsController = asyncHandler(async (req, res) => {
   const query = req.query.q || req.query.query || req.query.search || "";
-  const result = await searchAdmissions(query, req.query);
+  const cacheKey = buildCacheKey("sms:admissions:search", req.query);
+  const result = await fetchWithCache(cacheKey, 60, () => searchAdmissions(query, req.query));
 
   return successResponse(
     res,
@@ -69,7 +78,8 @@ export const searchAdmissionsController = asyncHandler(async (req, res) => {
  * Controller to fetch aggregate Admission Statistics
  */
 export const getAdmissionStatisticsController = asyncHandler(async (req, res) => {
-  const statistics = await getAdmissionStatistics();
+  const cacheKey = "sms:admissions:stats";
+  const statistics = await fetchWithCache(cacheKey, 60, () => getAdmissionStatistics());
 
   return successResponse(
     res,
@@ -83,7 +93,8 @@ export const getAdmissionStatisticsController = asyncHandler(async (req, res) =>
  * Controller to fetch a single Admission by ID
  */
 export const getAdmissionByIdController = asyncHandler(async (req, res) => {
-  const admission = await getAdmissionById(req.params.id);
+  const cacheKey = `sms:admissions:detail:${req.params.id}`;
+  const admission = await fetchWithCache(cacheKey, 60, () => getAdmissionById(req.params.id));
 
   return successResponse(
     res,
@@ -104,6 +115,8 @@ export const updateAdmissionController = asyncHandler(async (req, res) => {
     validatedData,
     req.user.id
   );
+
+  await clearCachePatterns(["sms:admissions:*", "sms:students:*"]);
 
   return successResponse(
     res,
@@ -127,16 +140,19 @@ const bulkUpdateAdmissionStatusSchema = z.object({
 export const updateAdmissionStatusController = asyncHandler(async (req, res) => {
   const validated = updateAdmissionStatusSchema.parse(req.body);
   const result = await updateAdmissionStatusService(req.params.id, validated.status);
+  await clearCachePatterns(["sms:admissions:*", "sms:students:*"]);
   return successResponse(res, "Course status updated successfully", result, 200);
 });
 
 export const deleteAdmissionController = asyncHandler(async (req, res) => {
   const result = await deleteAdmissionService(req.params.id);
+  await clearCachePatterns(["sms:admissions:*", "sms:students:*"]);
   return successResponse(res, "Course enrollment deleted successfully", result, 200);
 });
 
 export const bulkUpdateAdmissionStatusController = asyncHandler(async (req, res) => {
   const validated = bulkUpdateAdmissionStatusSchema.parse(req.body);
   const result = await bulkUpdateAdmissionStatusService(validated.admissionIds, validated.status);
+  await clearCachePatterns(["sms:admissions:*", "sms:students:*"]);
   return successResponse(res, "Bulk course status updated successfully", result, 200);
 });

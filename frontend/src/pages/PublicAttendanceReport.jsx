@@ -40,7 +40,7 @@ export const PublicAttendanceReport = () => {
       setReport(res.data.data);
     } catch (err) {
       console.error("Failed to load public attendance report", err);
-    } fontally {
+    } finally {
       setLoading(false);
     }
   };
@@ -119,33 +119,30 @@ export const PublicAttendanceReport = () => {
           <div className="flex items-center space-x-2 bg-slate-950 p-1 rounded-xl border border-slate-800 w-full sm:w-auto">
             <button
               onClick={() => handleRangeChange("7days")}
-              className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-extrabold transition ${
-                range === "7days"
-                  ? "bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/20"
-                  : "text-slate-400 hover:text-white"
-              }`}
+              className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-extrabold transition ${range === "7days"
+                ? "bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/20"
+                : "text-slate-400 hover:text-white"
+                }`}
             >
               📅 Last 7 Days (Week)
             </button>
 
             <button
               onClick={() => handleRangeChange("15days")}
-              className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-extrabold transition ${
-                range === "15days"
-                  ? "bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/20"
-                  : "text-slate-400 hover:text-white"
-              }`}
+              className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-extrabold transition ${range === "15days"
+                ? "bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/20"
+                : "text-slate-400 hover:text-white"
+                }`}
             >
               🗓️ Last 15 Days
             </button>
 
             <button
               onClick={() => handleRangeChange("30days")}
-              className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-extrabold transition ${
-                range === "30days"
-                  ? "bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/20"
-                  : "text-slate-400 hover:text-white"
-              }`}
+              className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-extrabold transition ${range === "30days"
+                ? "bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/20"
+                : "text-slate-400 hover:text-white"
+                }`}
             >
               📆 Last 30 Days (Month)
             </button>
@@ -293,13 +290,12 @@ export const PublicAttendanceReport = () => {
                             {s.NO_CLASS}
                           </td>
                           <td className="p-3.5 text-center">
-                            <span className={`px-2.5 py-1 rounded-full text-xs font-black ${
-                              s.attendanceRate >= 80
-                                ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
-                                : s.attendanceRate >= 60
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-black ${s.attendanceRate >= 80
+                              ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
+                              : s.attendanceRate >= 60
                                 ? "bg-amber-950 text-amber-400 border border-amber-800"
                                 : "bg-rose-950 text-rose-400 border border-rose-800"
-                            }`}>
+                              }`}>
                               {s.attendanceRate}%
                             </span>
                           </td>

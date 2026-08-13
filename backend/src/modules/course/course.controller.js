@@ -15,26 +15,30 @@ import {
 } from "./course.validation.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { successResponse } from "../../utils/response.js";
-
-import { queryCache } from "../../utils/cache.js";
+import {
+  buildCacheKey,
+  fetchWithCache,
+  clearCachePatterns,
+} from "../../utils/cacheHelper.js";
 
 export const createCourseController = asyncHandler(async (req, res) => {
   const validatedData = createCourseSchema.parse(req.body);
   const course = await createCourse(validatedData);
-  queryCache.flushPattern("courses:");
+  await clearCachePatterns(["sms:courses:*"]);
 
   return successResponse(res, "Course created successfully", course, 201);
 });
 
 export const getAllCoursesController = asyncHandler(async (req, res) => {
-  queryCache.flushPattern("courses:");
-  const courses = await getAllCourses(req.query);
+  const cacheKey = buildCacheKey("sms:courses:list", req.query);
+  const courses = await fetchWithCache(cacheKey, 300, () => getAllCourses(req.query));
 
   return successResponse(res, "Courses fetched successfully", courses, 200);
 });
 
 export const getCourseByIdController = asyncHandler(async (req, res) => {
-  const course = await getCourseById(req.params.id);
+  const cacheKey = `sms:courses:detail:${req.params.id}`;
+  const course = await fetchWithCache(cacheKey, 300, () => getCourseById(req.params.id));
 
   return successResponse(res, "Course fetched successfully", course, 200);
 });
@@ -42,21 +46,22 @@ export const getCourseByIdController = asyncHandler(async (req, res) => {
 export const updateCourseController = asyncHandler(async (req, res) => {
   const validatedData = updateCourseSchema.parse(req.body);
   const course = await updateCourse(req.params.id, validatedData);
-  queryCache.flushPattern("courses:");
+  await clearCachePatterns(["sms:courses:*"]);
 
   return successResponse(res, "Course updated successfully", course, 200);
 });
 
 export const deleteCourseController = asyncHandler(async (req, res) => {
   const course = await deleteCourse(req.params.id);
-  queryCache.flushPattern("courses:");
+  await clearCachePatterns(["sms:courses:*"]);
 
   return successResponse(res, "Course deleted successfully", course, 200);
 });
 
 export const getCourseStudentsController = asyncHandler(async (req, res) => {
   const { status } = req.query;
-  const students = await getCourseStudents(req.params.id, status);
+  const cacheKey = buildCacheKey(`sms:courses:students:${req.params.id}`, req.query);
+  const students = await fetchWithCache(cacheKey, 60, () => getCourseStudents(req.params.id, status));
 
   return successResponse(res, "Course students fetched successfully", students, 200);
 });
@@ -77,6 +82,7 @@ const bulkUpdateCourseCategorySchema = z.object({
 export const bulkDeleteCoursesController = asyncHandler(async (req, res) => {
   const validated = bulkDeleteCoursesSchema.parse(req.body);
   const result = await bulkDeleteCourses(validated.courseIds);
+  await clearCachePatterns(["sms:courses:*"]);
 
   return successResponse(res, "Bulk courses deleted successfully", result, 200);
 });
@@ -84,6 +90,7 @@ export const bulkDeleteCoursesController = asyncHandler(async (req, res) => {
 export const bulkUpdateCourseCategoryController = asyncHandler(async (req, res) => {
   const validated = bulkUpdateCourseCategorySchema.parse(req.body);
   const result = await bulkUpdateCourseCategory(validated.category, validated.courseIds);
+  await clearCachePatterns(["sms:courses:*"]);
 
   return successResponse(res, "Bulk course category updated successfully", result, 200);
 });

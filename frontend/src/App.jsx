@@ -55,42 +55,42 @@ export const App = () => {
         <BrowserRouter>
           <PinLockModal />
           <Routes>
-          {/* Public Landing Page & Reports */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LandingPage />} />
-          <Route path="/public/attendance" element={<PublicAttendanceReport />} />
+            {/* Public Landing Page & Reports */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LandingPage />} />
+            <Route path="/public/attendance" element={<PublicAttendanceReport />} />
 
 
-          {/* Student Portal Protected Route */}
-          <Route
-            path="/student/dashboard"
-            element={
-              <StudentProtectedRoute>
-                <StudentDashboard />
-              </StudentProtectedRoute>
-            }
-          />
+            {/* Student Portal Protected Route */}
+            <Route
+              path="/student/dashboard"
+              element={
+                <StudentProtectedRoute>
+                  <StudentDashboard />
+                </StudentProtectedRoute>
+              }
+            />
 
-          {/* Admin ERP Layout Routes */}
-          <Route
-            path="/dashboard"
-            element={
-              <AdminProtectedRoute>
-                <AppLayout />
-              </AdminProtectedRoute>
-            }
-          >
-            <Route index element={<Dashboard />} />
-            <Route path="inquiries" element={<Inquiries />} />
-            <Route path="admissions" element={<Admissions />} />
-            <Route path="students" element={<Students />} />
-            <Route path="students/:id" element={<StudentProfilePage />} />
-            <Route path="courses" element={<Courses />} />
-            <Route path="attendance" element={<Attendance />} />
-            <Route path="fees" element={<Fees />} />
-            <Route path="expenses" element={<Expenses />} />
-            <Route path="analytics" element={<AnalyticsDashboard />} />
-          </Route>
+            {/* Admin ERP Layout Routes */}
+            <Route
+              path="/dashboard"
+              element={
+                <AdminProtectedRoute>
+                  <AppLayout />
+                </AdminProtectedRoute>
+              }
+            >
+              <Route index element={<Dashboard />} />
+              <Route path="inquiries" element={<Inquiries />} />
+              <Route path="admissions" element={<Admissions />} />
+              <Route path="students" element={<Students />} />
+              <Route path="students/:id" element={<StudentProfilePage />} />
+              <Route path="courses" element={<Courses />} />
+              <Route path="attendance" element={<Attendance />} />
+              <Route path="fees" element={<Fees />} />
+              <Route path="expenses" element={<Expenses />} />
+              <Route path="analytics" element={<AnalyticsDashboard />} />
+            </Route>
 
             {/* Fallback redirect */}
             <Route path="*" element={<Navigate to="/" replace />} />

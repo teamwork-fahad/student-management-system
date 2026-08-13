@@ -2,6 +2,11 @@ import { z } from "zod";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { successResponse } from "../../utils/response.js";
 import {
+  buildCacheKey,
+  fetchWithCache,
+  clearCachePatterns,
+} from "../../utils/cacheHelper.js";
+import {
   getAllStudents,
   getStudentById,
   updateStudentFullService,
@@ -49,7 +54,8 @@ const addCourseToStudentSchema = z.object({
 });
 
 export const getAllStudentsController = asyncHandler(async (req, res) => {
-  const result = await getAllStudents(req.query);
+  const cacheKey = buildCacheKey("sms:students:list", req.query);
+  const result = await fetchWithCache(cacheKey, 60, () => getAllStudents(req.query));
 
   return successResponse(
     res,
@@ -60,7 +66,8 @@ export const getAllStudentsController = asyncHandler(async (req, res) => {
 });
 
 export const getStudentByIdController = asyncHandler(async (req, res) => {
-  const student = await getStudentById(req.params.id);
+  const cacheKey = `sms:students:detail:${req.params.id}`;
+  const student = await fetchWithCache(cacheKey, 60, () => getStudentById(req.params.id));
 
   return successResponse(
     res,
@@ -74,6 +81,8 @@ export const updateStudentController = asyncHandler(async (req, res) => {
   const validatedData = updateStudentSchema.parse(req.body);
   const updatedStudent = await updateStudentFullService(req.params.id, validatedData);
 
+  await clearCachePatterns(["sms:students:*", "sms:admissions:*"]);
+
   return successResponse(
     res,
     "Student details, status, and fee structure updated successfully",
@@ -85,6 +94,8 @@ export const updateStudentController = asyncHandler(async (req, res) => {
 export const bulkUpdateStudentStatusController = asyncHandler(async (req, res) => {
   const validatedData = bulkUpdateStudentStatusSchema.parse(req.body);
   const result = await bulkUpdateStudentStatus(validatedData.studentIds, validatedData.status);
+
+  await clearCachePatterns(["sms:students:*", "sms:admissions:*"]);
 
   return successResponse(
     res,
@@ -101,6 +112,8 @@ export const addCourseToStudentController = asyncHandler(async (req, res) => {
     admittedBy: req.user.id,
   });
 
+  await clearCachePatterns(["sms:students:*", "sms:admissions:*"]);
+
   return successResponse(
     res,
     "New course added to student profile successfully",
@@ -111,6 +124,8 @@ export const addCourseToStudentController = asyncHandler(async (req, res) => {
 
 export const deleteStudentController = asyncHandler(async (req, res) => {
   const result = await deleteStudent(req.params.id);
+
+  await clearCachePatterns(["sms:students:*", "sms:admissions:*"]);
 
   return successResponse(
     res,

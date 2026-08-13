@@ -66,9 +66,8 @@ export const AppLayout = () => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900/95 border-r border-slate-800/80 flex flex-col transition-transform duration-300 ease-in-out md:static md:translate-x-0 ${
-          mobileOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900/95 border-r border-slate-800/80 flex flex-col transition-transform duration-300 ease-in-out md:static md:translate-x-0 ${mobileOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         {/* Brand Header */}
         <div className="flex items-center justify-between h-16 px-6 border-b border-slate-800 bg-slate-900">
@@ -99,11 +98,10 @@ export const AppLayout = () => {
                 key={item.name}
                 to={item.href}
                 onClick={() => setMobileOpen(false)}
-                className={`flex items-center px-4 py-3 text-xs font-semibold rounded-xl transition-all duration-150 ${
-                  isActive
+                className={`flex items-center px-4 py-3 text-xs font-semibold rounded-xl transition-all duration-150 ${isActive
                     ? "bg-gradient-to-r from-cyan-600/90 to-blue-600/90 text-white shadow-lg shadow-cyan-950/50"
                     : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-200"
-                }`}
+                  }`}
               >
                 <Icon className={`w-4 h-4 mr-3 ${isActive ? "text-white" : "text-slate-400"}`} />
                 {item.name}

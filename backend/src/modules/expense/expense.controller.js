@@ -7,6 +7,11 @@ import {
 } from "./expense.service.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { successResponse } from "../../utils/response.js";
+import {
+  buildCacheKey,
+  fetchWithCache,
+  clearCachePatterns,
+} from "../../utils/cacheHelper.js";
 
 const createExpenseSchema = z.object({
   title: z.string().trim().min(2, "Expense title must be at least 2 characters"),
@@ -23,7 +28,8 @@ const createExpenseSchema = z.object({
 });
 
 export const getExpenses = asyncHandler(async (req, res) => {
-  const result = await getExpensesService(req.query);
+  const cacheKey = buildCacheKey("sms:expenses:list", req.query);
+  const result = await fetchWithCache(cacheKey, 60, () => getExpensesService(req.query));
   return successResponse(res, "Expenses fetched successfully", result, 200);
 });
 
@@ -33,15 +39,22 @@ export const createExpense = asyncHandler(async (req, res) => {
     ...validatedData,
     createdBy: req.user?.id,
   });
+
+  await clearCachePatterns(["sms:expenses:*"]);
+
   return successResponse(res, "Expense recorded successfully", expense, 201);
 });
 
 export const deleteExpense = asyncHandler(async (req, res) => {
   await deleteExpenseService(req.params.id);
+
+  await clearCachePatterns(["sms:expenses:*"]);
+
   return successResponse(res, "Expense deleted successfully", {}, 200);
 });
 
 export const getExpenseStats = asyncHandler(async (req, res) => {
-  const stats = await getExpenseStatsService();
+  const cacheKey = "sms:expenses:stats";
+  const stats = await fetchWithCache(cacheKey, 60, () => getExpenseStatsService());
   return successResponse(res, "Expense statistics fetched successfully", stats, 200);
 });
