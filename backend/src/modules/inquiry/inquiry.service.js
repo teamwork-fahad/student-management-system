@@ -189,6 +189,9 @@ const createInquiryWithGeneratedNumber = async (inquiryData) => {
       },
       include: inquiryInclude,
     });
+  }, {
+    timeout: 30000,
+    maxWait: 10000,
   });
 };
 
@@ -408,6 +411,9 @@ export const addFollowUp = async (id, followUpData, createdById) => {
     });
 
     return followUp;
+  }, {
+    timeout: 30000,
+    maxWait: 10000,
   });
 };
 

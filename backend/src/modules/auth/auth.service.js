@@ -255,6 +255,9 @@ export const registerStudentService = async ({
     });
 
     return { newUser, student };
+  }, {
+    timeout: 30000,
+    maxWait: 10000,
   });
 
   // Trigger Instant Admin Email Notification for new student registration

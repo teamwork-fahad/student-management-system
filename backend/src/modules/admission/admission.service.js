@@ -570,6 +570,9 @@ export const completeAdmission = async (admissionPayload) => {
       payments: createdPayments,
       documents: createdDocuments,
     };
+  }, {
+    timeout: 30000,
+    maxWait: 10000,
   });
 
   // Trigger In-App Notification for Admin

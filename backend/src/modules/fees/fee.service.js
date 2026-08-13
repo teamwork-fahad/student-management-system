@@ -107,6 +107,9 @@ export const collectFee = async (payload, collectedBy) => {
       },
       admission: updatedAdmission,
     };
+  }, {
+    timeout: 30000,
+    maxWait: 10000,
   });
 };
 
@@ -312,6 +315,9 @@ export const updateFeePayment = async (paymentId, payload, updatedBy) => {
     }
 
     return updatedPayment;
+  }, {
+    timeout: 30000,
+    maxWait: 10000,
   });
 };
 
@@ -350,7 +356,10 @@ export const deleteFeePayment = async (paymentId, deletedBy) => {
       },
     });
 
-    return { message: "Fee payment receipt deleted successfully" };
+    return { message: "Fee payment deleted successfully" };
+  }, {
+    timeout: 30000,
+    maxWait: 10000,
   });
 };
 

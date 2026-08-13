@@ -756,8 +756,13 @@ export const addCourseToStudent = async (idOrStudentId, payload) => {
       });
     }
 
-    return getStudentById(student.id);
+    return { studentDbId: student.id };
+  }, {
+    timeout: 30000,
+    maxWait: 10000,
   });
+
+  return getStudentById(transactionResult.studentDbId);
 };
 
 export const deleteStudent = async (studentId) => {
