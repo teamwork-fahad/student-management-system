@@ -329,33 +329,33 @@ export const StudentDashboard = () => {
 
               <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                 admission?.status === "ACTIVE"
-                  ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
-                  : "bg-slate-800 text-slate-300"
+                  ? "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
+                  : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
               }`}>
                 {admission?.status || "ACTIVE"}
               </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs">
-              <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-2">
-                <span className="text-slate-500 uppercase font-semibold text-[10px] block">Primary Course Admission</span>
-                <span className="text-sm font-bold text-white block">
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-2">
+                <span className="text-slate-500 dark:text-slate-400 uppercase font-semibold text-[10px] block">Primary Course Admission</span>
+                <span className="text-sm font-bold text-slate-900 dark:text-white block">
                   {admission?.courseNameSnapshot || course?.name || "General Course"} ({admission?.admissionNumber || "N/A"})
                 </span>
-                <span className="text-slate-400 block">Date: {admission?.admissionDate ? new Date(admission.admissionDate).toLocaleDateString("en-IN") : "N/A"}</span>
+                <span className="text-slate-600 dark:text-slate-400 block">Date: {admission?.admissionDate ? new Date(admission.admissionDate).toLocaleDateString("en-IN") : "N/A"}</span>
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-2">
-                <span className="text-slate-500 uppercase font-semibold text-[10px] block">Fee Structure Breakdown</span>
-                <div className="flex justify-between text-slate-300">
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-2">
+                <span className="text-slate-500 dark:text-slate-400 uppercase font-semibold text-[10px] block">Fee Structure Breakdown</span>
+                <div className="flex justify-between text-slate-700 dark:text-slate-300">
                   <span>Base Fees:</span>
                   <span className="font-semibold">₹{Number(admission?.courseFees || 0).toLocaleString("en-IN")}</span>
                 </div>
-                <div className="flex justify-between text-emerald-400">
+                <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
                   <span>Discount Allowed:</span>
                   <span className="font-semibold">- ₹{Number(admission?.discount || 0).toLocaleString("en-IN")}</span>
                 </div>
-                <div className="flex justify-between pt-1 border-t border-slate-800 font-bold text-white text-xs">
+                <div className="flex justify-between pt-1 border-t border-slate-200 dark:border-slate-800 font-bold text-slate-900 dark:text-white text-xs">
                   <span>Net Final Fees:</span>
                   <span>₹{finalFees.toLocaleString("en-IN")}</span>
                 </div>
@@ -364,22 +364,22 @@ export const StudentDashboard = () => {
 
             {/* MULTIPLE ENROLLED COURSES LIST */}
             {studentData?.allAdmissions && studentData.allAdmissions.length > 0 && (
-              <div className="pt-4 border-t border-slate-800 space-y-3">
-                <span className="text-[11px] font-bold text-cyan-400 uppercase tracking-wider block">
+              <div className="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-3">
+                <span className="text-[11px] font-bold text-blue-600 dark:text-cyan-400 uppercase tracking-wider block">
                   My Enrolled Courses ({studentData.allAdmissions.length})
                 </span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   {studentData.allAdmissions.map((adm) => (
-                    <div key={adm.id} className="p-3.5 bg-slate-950/80 border border-slate-800 rounded-2xl space-y-1.5">
-                      <div className="flex items-center justify-between font-bold text-white">
+                    <div key={adm.id} className="p-3.5 bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-1.5">
+                      <div className="flex items-center justify-between font-bold text-slate-900 dark:text-white">
                         <span className="truncate pr-2">{adm.courseNameSnapshot || adm.course?.name}</span>
-                        <span className="text-cyan-400 font-mono text-[10px] bg-cyan-950 border border-cyan-800 px-2 py-0.5 rounded-full shrink-0">
+                        <span className="text-blue-600 dark:text-cyan-400 font-mono text-[10px] bg-blue-50 dark:bg-cyan-950 border border-blue-200 dark:border-cyan-800 px-2 py-0.5 rounded-full shrink-0">
                           {adm.admissionNumber}
                         </span>
                       </div>
-                      <div className="flex justify-between text-slate-400 text-[11px] pt-1 border-t border-slate-900">
+                      <div className="flex justify-between text-slate-600 dark:text-slate-400 text-[11px] pt-1 border-t border-slate-200 dark:border-slate-900">
                         <span>Fee: ₹{Number(adm.finalFees || adm.courseFees).toLocaleString("en-IN")}</span>
-                        <span className="text-amber-400 font-semibold">Pending: ₹{Number(adm.pendingAmount).toLocaleString("en-IN")}</span>
+                        <span className="text-amber-600 dark:text-amber-400 font-semibold">Pending: ₹{Number(adm.pendingAmount).toLocaleString("en-IN")}</span>
                       </div>
                     </div>
                   ))}
@@ -435,9 +435,9 @@ export const StudentDashboard = () => {
             </div>
           ) : viewMode === "table" ? (
             /* LIST / TABLE VIEW */
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto border border-slate-200 dark:border-slate-800/80 rounded-2xl">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-950/80 text-slate-400 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-800">
+                <thead className="bg-slate-50 dark:bg-slate-950/80 text-slate-500 dark:text-slate-400 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-200 dark:border-slate-800">
                   <tr>
                     <th className="py-3 px-4">Receipt / Txn Ref</th>
                     <th className="py-3 px-4">Date</th>
@@ -447,28 +447,28 @@ export const StudentDashboard = () => {
                     <th className="py-3 px-4 text-center">Receipt</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
                   {payments.map((p) => (
-                    <tr key={p.id} className="hover:bg-slate-800/30 transition">
-                      <td className="py-3.5 px-4 font-mono font-bold text-white">
+                    <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition">
+                      <td className="py-3.5 px-4 font-mono font-bold text-slate-900 dark:text-white">
                         {p.transactionReference || `REC-${p.id.slice(-6).toUpperCase()}`}
                       </td>
-                      <td className="py-3.5 px-4 font-mono text-slate-400">
+                      <td className="py-3.5 px-4 font-mono text-slate-500 dark:text-slate-400">
                         {formatDate(p.paymentDate || p.createdAt)}
                       </td>
                       <td className="py-3.5 px-4">
-                        <span className="px-2.5 py-1 bg-blue-950 text-blue-300 rounded-md font-bold uppercase text-[10px]">
+                        <span className="px-2.5 py-1 bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 rounded-md font-bold uppercase text-[10px]">
                           {p.paymentMode || "CASH"}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-right font-extrabold text-emerald-400 text-sm">
+                      <td className="py-3.5 px-4 text-right font-extrabold text-emerald-600 dark:text-emerald-400 text-sm">
                         ₹{Number(p.amount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                       </td>
-                      <td className="py-3.5 px-4 text-slate-400">{p.remarks || "Fee payment"}</td>
+                      <td className="py-3.5 px-4 text-slate-500 dark:text-slate-400">{p.remarks || "Fee payment"}</td>
                       <td className="py-3.5 px-4 text-center">
                         <button
                           onClick={() => setSelectedPayment(p)}
-                          className="px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white rounded-lg font-semibold text-[11px] inline-flex items-center space-x-1.5 transition"
+                          className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 dark:bg-blue-600/20 dark:hover:bg-blue-600 text-blue-700 dark:text-blue-300 dark:hover:text-white rounded-lg font-semibold text-[11px] inline-flex items-center space-x-1.5 transition border border-blue-200 dark:border-transparent"
                         >
                           <Printer className="w-3.5 h-3.5" />
                           <span>View Receipt</span>
@@ -483,27 +483,27 @@ export const StudentDashboard = () => {
             /* GRID CARDS VIEW */
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {payments.map((p) => (
-                <div key={p.id} className="p-4 bg-slate-950/80 border border-slate-800 rounded-2xl space-y-3">
+                <div key={p.id} className="p-4 bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3 shadow-xs">
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-xs font-bold text-cyan-400">
+                    <span className="font-mono text-xs font-bold text-blue-600 dark:text-cyan-400">
                       {p.transactionReference || `REC-${p.id.slice(-6).toUpperCase()}`}
                     </span>
-                    <span className="px-2.5 py-0.5 bg-blue-950 text-blue-300 rounded font-bold uppercase text-[10px]">
+                    <span className="px-2.5 py-0.5 bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 rounded font-bold uppercase text-[10px]">
                       {p.paymentMode || "CASH"}
                     </span>
                   </div>
 
-                  <div className="flex justify-between items-end pt-2 border-t border-slate-900">
+                  <div className="flex justify-between items-end pt-2 border-t border-slate-200 dark:border-slate-900">
                     <div>
                       <span className="text-[10px] text-slate-500 block">Date Paid</span>
-                      <span className="text-xs text-slate-300 font-semibold">
+                      <span className="text-xs text-slate-700 dark:text-slate-300 font-semibold">
                         {new Date(p.paymentDate || p.createdAt).toLocaleDateString("en-IN")}
                       </span>
                     </div>
 
                     <div className="text-right">
                       <span className="text-[10px] text-slate-500 block">Amount</span>
-                      <span className="text-base font-extrabold text-emerald-400">
+                      <span className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">
                         ₹{Number(p.amount).toLocaleString("en-IN")}
                       </span>
                     </div>
@@ -511,7 +511,7 @@ export const StudentDashboard = () => {
 
                   <button
                     onClick={() => setSelectedPayment(p)}
-                    className="w-full py-1.5 bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition"
+                    className="w-full py-1.5 bg-blue-50 hover:bg-blue-100 dark:bg-blue-600/20 dark:hover:bg-blue-600 text-blue-700 dark:text-blue-300 dark:hover:text-white rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition border border-blue-200 dark:border-transparent"
                   >
                     <Printer className="w-3.5 h-3.5" />
                     <span>View & Print Receipt</span>
@@ -523,21 +523,21 @@ export const StudentDashboard = () => {
         </div>
 
         {/* ATTENDANCE LOG & PERFORMANCE HISTORY */}
-        <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-6 shadow-sm">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-indigo-600/20 text-indigo-400 rounded-xl">
+              <div className="p-2 bg-indigo-50 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 rounded-xl border border-indigo-200 dark:border-transparent">
                 <Calendar className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-white">Attendance Log & History</h3>
-                <p className="text-xs text-slate-400">Classroom attendance record & presence percentage</p>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">Attendance Log & History</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Classroom attendance record & presence percentage</p>
               </div>
             </div>
 
             <div className="flex items-center space-x-2">
-              <span className="text-xs font-semibold text-slate-400">Attendance Rate:</span>
-              <span className="px-3 py-1 bg-emerald-950 text-emerald-400 border border-emerald-800 rounded-full font-black text-xs">
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Attendance Rate:</span>
+              <span className="px-3 py-1 bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-full font-black text-xs">
                 {studentData?.attendanceStats?.attendancePercentage || 100}%
               </span>
             </div>
@@ -545,30 +545,30 @@ export const StudentDashboard = () => {
 
           {/* Attendance Stats Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-            <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800">
-              <span className="text-slate-500 uppercase font-bold text-[10px] block">Total Conducted Sessions</span>
-              <span className="text-xl font-extrabold text-white">
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800">
+              <span className="text-slate-500 dark:text-slate-400 uppercase font-bold text-[10px] block">Total Conducted Sessions</span>
+              <span className="text-xl font-extrabold text-slate-900 dark:text-white">
                 {studentData?.attendanceStats?.totalClasses || 0} Days
               </span>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800">
-              <span className="text-emerald-500 uppercase font-bold text-[10px] block">Present Sessions</span>
-              <span className="text-xl font-extrabold text-emerald-400">
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800">
+              <span className="text-emerald-600 dark:text-emerald-500 uppercase font-bold text-[10px] block">Present Sessions</span>
+              <span className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400">
                 {studentData?.attendanceStats?.presentCount || 0} Days
               </span>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800">
-              <span className="text-rose-500 uppercase font-bold text-[10px] block">Absent Sessions</span>
-              <span className="text-xl font-extrabold text-rose-400">
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800">
+              <span className="text-rose-600 dark:text-rose-500 uppercase font-bold text-[10px] block">Absent Sessions</span>
+              <span className="text-xl font-extrabold text-rose-600 dark:text-rose-400">
                 {studentData?.attendanceStats?.absentCount || 0} Days
               </span>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800">
-              <span className="text-cyan-500 uppercase font-bold text-[10px] block">Presence Score</span>
-              <span className="text-xl font-extrabold text-cyan-400">
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800">
+              <span className="text-blue-600 dark:text-cyan-500 uppercase font-bold text-[10px] block">Presence Score</span>
+              <span className="text-xl font-extrabold text-blue-600 dark:text-cyan-400">
                 {studentData?.attendanceStats?.attendancePercentage || 100}%
               </span>
             </div>
@@ -580,33 +580,33 @@ export const StudentDashboard = () => {
               No daily attendance records marked yet.
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto border border-slate-200 dark:border-slate-800/80 rounded-2xl">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-950/80 text-slate-400 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-800">
+                <thead className="bg-slate-50 dark:bg-slate-950/80 text-slate-500 dark:text-slate-400 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-200 dark:border-slate-800">
                   <tr>
                     <th className="py-3 px-4">Date</th>
                     <th className="py-3 px-4">Attendance Status</th>
                     <th className="py-3 px-4">Remarks / Notes</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
                   {studentData.attendanceStats.recentLogs.map((log) => (
-                    <tr key={log.id} className="hover:bg-slate-800/30 transition">
-                      <td className="py-3 px-4 font-mono font-semibold text-white">
+                    <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition">
+                      <td className="py-3 px-4 font-mono font-semibold text-slate-900 dark:text-white">
                         {formatDate(log.date)}
                       </td>
                       <td className="py-3 px-4">
                         <span className={`px-2.5 py-1 rounded-lg font-bold text-[10px] ${
                           log.status === "PRESENT"
-                            ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
+                            ? "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
                             : log.status === "LATE"
-                            ? "bg-amber-950 text-amber-400 border border-amber-800"
-                            : "bg-rose-950 text-rose-400 border border-rose-800"
+                            ? "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800"
+                            : "bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800"
                         }`}>
                           {log.status}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-slate-400 italic">
+                      <td className="py-3 px-4 text-slate-500 dark:text-slate-400 italic">
                         {log.remarks || "Regular session marked by instructor"}
                       </td>
                     </tr>
@@ -619,28 +619,28 @@ export const StudentDashboard = () => {
 
 
         {/* QUICK COURSE INQUIRY HELPDESK */}
-        <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 space-y-4">
-          <div className="flex items-center space-x-3 pb-3 border-b border-slate-800">
-            <Sparkles className="w-5 h-5 text-blue-400" />
+        <div className="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-4 shadow-sm">
+          <div className="flex items-center space-x-3 pb-3 border-b border-slate-200 dark:border-slate-800">
+            <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             <div>
-              <h3 className="text-base font-bold text-white">Course Inquiry & Helpdesk</h3>
-              <p className="text-xs text-slate-400">Want to enroll in additional courses or request information?</p>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">Course Inquiry & Helpdesk</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Want to enroll in additional courses or request information?</p>
             </div>
           </div>
 
           {inqMsg && (
-            <div className="p-3 bg-blue-950/80 border border-blue-800 text-blue-300 rounded-xl text-xs">
+            <div className="p-3 bg-blue-50 dark:bg-blue-950/80 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 rounded-xl text-xs">
               {inqMsg}
             </div>
           )}
 
           <form onSubmit={handleStudentInquiry} className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
             <div>
-              <label className="block font-semibold text-slate-300 mb-1">Select Course</label>
+              <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Select Course</label>
               <select
                 value={inqCourseId}
                 onChange={(e) => setInqCourseId(e.target.value)}
-                className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:border-blue-500 outline-none transition"
+                className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:border-blue-500 outline-none transition"
               >
                 <option value="">Select Interested Course</option>
                 {courses.map((c) => (
@@ -652,13 +652,13 @@ export const StudentDashboard = () => {
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-300 mb-1">Message / Note</label>
+              <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Message / Note</label>
               <input
                 type="text"
                 value={inqRemarks}
                 onChange={(e) => setInqRemarks(e.target.value)}
                 placeholder="Ask a question or select batch..."
-                className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:border-blue-500 outline-none transition"
+                className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:border-blue-500 outline-none transition"
               />
             </div>
 

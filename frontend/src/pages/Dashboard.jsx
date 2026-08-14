@@ -332,7 +332,7 @@ export const Dashboard = () => {
                             href={url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center space-x-1 px-3 py-1 rounded-xl text-[11px] font-bold bg-blue-50 hover:bg-blue-600 dark:bg-blue-950 dark:hover:bg-blue-600 text-blue-600 dark:text-blue-400 hover:text-white transition"
+                            className="inline-flex items-center space-x-1 px-3 py-1 rounded-xl text-[11px] font-bold bg-blue-50 hover:bg-blue-600 dark:bg-blue-950 dark:hover:bg-blue-600 text-blue-600 dark:text-blue-400 hover:text-white border border-blue-200 dark:border-blue-800 transition cursor-pointer active:scale-95 shadow-2xs"
                           >
                             <Eye className="w-3.5 h-3.5 shrink-0" />
                             <span>View</span>

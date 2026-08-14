@@ -807,14 +807,14 @@ export const Students = () => {
                             <p className="text-xs font-bold text-slate-900 dark:text-white">{toTitleCase(s.fullName)}</p>
                             <span
                               className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold border ${st === "ACTIVE"
-                                  ? "bg-emerald-950 text-emerald-400 border-emerald-800"
+                                  ? "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800"
                                   : st === "REVISION"
-                                    ? "bg-purple-950 text-purple-300 border-purple-800"
+                                    ? "bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800"
                                     : st === "ON_HOLD"
-                                      ? "bg-amber-950 text-amber-300 border-amber-800"
+                                      ? "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800"
                                       : st === "COMPLETED"
-                                        ? "bg-blue-950 text-blue-300 border-blue-800"
-                                        : "bg-rose-950 text-rose-400 border-rose-800"
+                                        ? "bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800"
+                                        : "bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800"
                                 }`}
                             >
                               {st === "ACTIVE"
@@ -828,12 +828,12 @@ export const Students = () => {
                                       : "🔴 INACTIVE"}
                             </span>
                           </div>
-                          <p className="text-[10px] text-slate-400">
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400">
                             Mobile: {s.mobile} • Course: {s.admission?.courseNameSnapshot || "N/A"}
                           </p>
                         </div>
                       </div>
-                      <span className="font-mono text-[10px] font-bold text-cyan-400 bg-cyan-950 px-2 py-0.5 rounded border border-cyan-800 shrink-0">
+                      <span className="font-mono text-[10px] font-bold text-blue-600 dark:text-cyan-400 bg-blue-50 dark:bg-cyan-950 px-2 py-0.5 rounded border border-blue-200 dark:border-cyan-800 shrink-0">
                         {s.studentId}
                       </span>
                     </div>
@@ -845,13 +845,13 @@ export const Students = () => {
         </div>
 
         {/* Multi-Filters & Sorting Controls Organized Grid */}
-        <div className="pt-3 border-t border-slate-800/80 space-y-3">
+        <div className="pt-3 border-t border-slate-200 dark:border-slate-800/80 space-y-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 text-slate-300 text-xs font-bold uppercase tracking-wider">
-              <Filter className="w-4 h-4 text-cyan-400 shrink-0" />
+            <div className="flex items-center space-x-2 text-slate-700 dark:text-slate-300 text-xs font-bold uppercase tracking-wider">
+              <Filter className="w-4 h-4 text-blue-600 dark:text-cyan-400 shrink-0" />
               <span>Directory Filters</span>
               {(statusFilter || departmentFilter || programFilter || courseFilter || paymentFilter) && (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-cyan-950 text-cyan-400 border border-cyan-800">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-50 dark:bg-cyan-950 text-blue-700 dark:text-cyan-400 border border-blue-200 dark:border-cyan-800">
                   Filtered
                 </span>
               )}
@@ -1153,14 +1153,14 @@ export const Students = () => {
                           type="checkbox"
                           checked={selectedStudentIds.includes(student.id)}
                           onChange={() => handleToggleSelect(student.id)}
-                          className="w-4 h-4 rounded border-slate-700 bg-slate-950 text-cyan-600 focus:ring-cyan-500 cursor-pointer"
+                          className="w-4 h-4 rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-blue-600 dark:text-cyan-600 focus:ring-blue-500 cursor-pointer"
                         />
                       </td>
 
                       {/* 1. STUDENT NAME & CONTACT */}
                       <td className="p-3.5 whitespace-nowrap">
                         <div className="flex items-center space-x-3">
-                          <div className="w-9 h-9 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800 flex items-center justify-center font-bold text-sm shrink-0">
+                          <div className="w-9 h-9 rounded-full bg-blue-50 dark:bg-cyan-950 text-blue-600 dark:text-cyan-400 border border-blue-200 dark:border-cyan-800 flex items-center justify-center font-bold text-sm shrink-0">
                             {student.fullName[0]?.toUpperCase()}
                           </div>
                           <div>
@@ -1224,7 +1224,7 @@ export const Students = () => {
                           </div>
                         ) : (
                           <div>
-                            <span className="font-bold text-emerald-400 text-xs bg-emerald-950/80 border border-emerald-800/80 px-2.5 py-1 rounded-lg inline-flex items-center gap-1">
+                            <span className="font-bold text-emerald-700 dark:text-emerald-400 text-xs bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800/80 px-2.5 py-1 rounded-lg inline-flex items-center gap-1">
                               <CheckCircle2 className="w-3.5 h-3.5" /> Cleared
                             </span>
                             <div className="text-[10px] text-slate-500 mt-1 font-mono">
@@ -1238,12 +1238,12 @@ export const Students = () => {
                       <td className="p-3.5 text-center whitespace-nowrap">
                         <span
                           className={`inline-flex items-center px-3 py-1 rounded-xl text-xs font-bold border ${st === "ACTIVE"
-                              ? "bg-emerald-950 text-emerald-400 border-emerald-800"
+                              ? "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800"
                               : st === "ON_HOLD"
-                                ? "bg-amber-950 text-amber-300 border-amber-800"
+                                ? "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800"
                                 : st === "COMPLETED"
-                                  ? "bg-blue-950 text-blue-300 border-blue-800"
-                                  : "bg-rose-950 text-rose-400 border-rose-800"
+                                  ? "bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800"
+                                  : "bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800"
                             }`}
                         >
                           {st === "ACTIVE"
@@ -1508,7 +1508,7 @@ export const Students = () => {
             <form onSubmit={handleCollectFeeSubmit} className="space-y-3.5 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Payment Amount (₹) *</label>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Payment Amount (₹) *</label>
                   <input
                     type="number"
                     required
@@ -1516,30 +1516,30 @@ export const Students = () => {
                     value={feeForm.amount}
                     onChange={(e) => setFeeForm({ ...feeForm, amount: e.target.value })}
                     placeholder="Enter amount paid"
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-emerald-500 font-bold text-base"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 outline-none focus:border-emerald-500 font-bold text-base"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Payment Date *</label>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Payment Date *</label>
                   <input
                     type="date"
                     required
                     value={feeForm.paymentDate || ""}
                     onChange={(e) => setFeeForm({ ...feeForm, paymentDate: e.target.value })}
                     onClick={(e) => e.target.showPicker?.()}
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-emerald-500 cursor-pointer [color-scheme:dark]"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 outline-none focus:border-emerald-500 cursor-pointer"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Payment Mode</label>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Payment Mode</label>
                   <select
                     value={feeForm.paymentMode}
                     onChange={(e) => setFeeForm({ ...feeForm, paymentMode: e.target.value })}
-                    className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 outline-none focus:border-emerald-500"
                   >
                     <option value="CASH">CASH</option>
                     <option value="UPI">UPI / GPAY</option>
@@ -1550,25 +1550,25 @@ export const Students = () => {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Txn Ref / Receipt No</label>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Txn Ref / Receipt No</label>
                   <input
                     type="text"
                     value={feeForm.transactionReference}
                     onChange={(e) => setFeeForm({ ...feeForm, transactionReference: e.target.value })}
                     placeholder="Optional ref"
-                    className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 outline-none focus:border-emerald-500"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-300 mb-1">Remarks / Note</label>
+                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Remarks / Note</label>
                 <input
                   type="text"
                   value={feeForm.remarks}
                   onChange={(e) => setFeeForm({ ...feeForm, remarks: e.target.value })}
                   placeholder="Installment payment note..."
-                  className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 outline-none focus:border-emerald-500"
                 />
               </div>
 
@@ -1603,20 +1603,20 @@ export const Students = () => {
         >
           <div className="space-y-5 text-sm text-slate-200 font-sans max-h-[80vh] overflow-y-auto pr-1">
             {/* Header info */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-slate-950 border border-slate-800">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
               <div className="flex items-center space-x-3">
-                <div className="p-3.5 rounded-2xl bg-cyan-950 text-cyan-400 border border-cyan-800">
+                <div className="p-3.5 rounded-2xl bg-blue-50 dark:bg-cyan-950 text-blue-600 dark:text-cyan-400 border border-blue-200 dark:border-cyan-800">
                   <GraduationCap className="w-8 h-8" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-white">{toTitleCase(selectedStudent.fullName)}</h3>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">{toTitleCase(selectedStudent.fullName)}</h3>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="font-mono text-xs text-cyan-400 font-bold">
+                    <span className="font-mono text-xs text-blue-600 dark:text-cyan-400 font-bold">
                       {selectedStudent.studentId}
                     </span>
-                    <span className="text-slate-600">•</span>
-                    <span className="text-xs text-slate-400">
-                      Academic Status: <strong className="text-emerald-400">{selectedStudent.status}</strong>
+                    <span className="text-slate-400">•</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
+                      Academic Status: <strong className="text-emerald-600 dark:text-emerald-400">{selectedStudent.status}</strong>
                     </span>
                   </div>
                 </div>
@@ -1628,7 +1628,7 @@ export const Students = () => {
                     const s = selectedStudent;
                     handleOpenAddCourse(s);
                   }}
-                  className="px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white rounded-xl text-xs font-bold flex items-center space-x-1 transition"
+                  className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-600/20 hover:bg-indigo-600 text-indigo-700 dark:text-indigo-300 hover:text-white rounded-xl text-xs font-bold flex items-center space-x-1 transition border border-indigo-200 dark:border-transparent"
                   title="Enroll in another course"
                 >
                   <PlusCircle className="w-3.5 h-3.5" />
@@ -1640,7 +1640,7 @@ export const Students = () => {
                     setSelectedStudent(null);
                     handleOpenCollectFee(s);
                   }}
-                  className="px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white rounded-xl text-xs font-bold flex items-center space-x-1 transition"
+                  className="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-600/20 hover:bg-emerald-600 text-emerald-700 dark:text-emerald-300 hover:text-white rounded-xl text-xs font-bold flex items-center space-x-1 transition border border-emerald-200 dark:border-transparent"
                 >
                   <CreditCard className="w-3.5 h-3.5" />
                   <span>Collect Fee</span>
@@ -1651,7 +1651,7 @@ export const Students = () => {
                     setSelectedStudent(null);
                     handleOpenEdit(s);
                   }}
-                  className="px-3 py-1.5 bg-amber-600/20 hover:bg-amber-600 text-amber-400 hover:text-white rounded-xl text-xs font-semibold flex items-center space-x-1 transition"
+                  className="px-3 py-1.5 bg-amber-50 dark:bg-amber-600/20 hover:bg-amber-600 text-amber-700 dark:text-amber-400 hover:text-white rounded-xl text-xs font-semibold flex items-center space-x-1 transition border border-amber-200 dark:border-transparent"
                 >
                   <Edit className="w-3.5 h-3.5" />
                   <span>Edit Profile</span>
@@ -1659,7 +1659,7 @@ export const Students = () => {
                 {isSuperAdmin && (
                   <button
                     onClick={() => handleDeleteStudent(selectedStudent.id, selectedStudent.fullName)}
-                    className="px-3 py-1.5 bg-rose-950/80 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-800 rounded-xl text-xs font-bold flex items-center space-x-1 transition"
+                    className="px-3 py-1.5 bg-rose-50 dark:bg-rose-950/80 hover:bg-rose-600 text-rose-700 dark:text-rose-300 hover:text-white border border-rose-200 dark:border-rose-800 rounded-xl text-xs font-bold flex items-center space-x-1 transition"
                     title="Delete student record (Super Admin)"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -1670,11 +1670,11 @@ export const Students = () => {
             </div>
 
             {/* TAB CONTROLS */}
-            <div className="flex items-center space-x-2 border-b border-slate-800 pb-2 text-xs font-semibold">
+            <div className="flex items-center space-x-2 border-b border-slate-200 dark:border-slate-800 pb-2 text-xs font-semibold">
               <button
                 type="button"
                 onClick={() => setActiveTab("courses")}
-                className={`px-3.5 py-2 rounded-xl flex items-center space-x-1.5 transition ${activeTab === "courses" ? "bg-cyan-600 text-white shadow-lg" : "bg-slate-900 text-slate-400 hover:text-white"
+                className={`px-3.5 py-2 rounded-xl flex items-center space-x-1.5 transition cursor-pointer active:scale-95 ${activeTab === "courses" ? "bg-cyan-600 text-white shadow-md font-bold" : "bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800"
                   }`}
               >
                 <BookOpen className="w-4 h-4" />
@@ -1684,7 +1684,7 @@ export const Students = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab("payments")}
-                className={`px-3.5 py-2 rounded-xl flex items-center space-x-1.5 transition ${activeTab === "payments" ? "bg-emerald-600 text-white shadow-lg" : "bg-slate-900 text-slate-400 hover:text-white"
+                className={`px-3.5 py-2 rounded-xl flex items-center space-x-1.5 transition cursor-pointer active:scale-95 ${activeTab === "payments" ? "bg-emerald-600 text-white shadow-md font-bold" : "bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800"
                   }`}
               >
                 <Receipt className="w-4 h-4" />
@@ -1694,7 +1694,7 @@ export const Students = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab("attendance")}
-                className={`px-3.5 py-2 rounded-xl flex items-center space-x-1.5 transition ${activeTab === "attendance" ? "bg-indigo-600 text-white shadow-lg" : "bg-slate-900 text-slate-400 hover:text-white"
+                className={`px-3.5 py-2 rounded-xl flex items-center space-x-1.5 transition cursor-pointer active:scale-95 ${activeTab === "attendance" ? "bg-indigo-600 text-white shadow-md font-bold" : "bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800"
                   }`}
               >
                 <Calendar className="w-4 h-4" />
@@ -1709,61 +1709,61 @@ export const Students = () => {
                 {/* TAB 1: ENROLLED COURSES TIMELINE */}
                 {activeTab === "courses" && (
                   <div className="space-y-4">
-                    <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                      <BookOpen className="w-4 h-4 text-cyan-400" /> Complete Enrolled Courses Timeline
+                    <h4 className="text-xs font-bold text-slate-800 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <BookOpen className="w-4 h-4 text-blue-600 dark:text-cyan-400" /> Complete Enrolled Courses Timeline
                     </h4>
 
                     <div className="space-y-3">
                       {(fullStudentData?.allAdmissions || [selectedStudent.admission]).filter(Boolean).map((adm, idx) => {
                         const admStatus = adm.status || "ACTIVE";
                         return (
-                          <div key={adm.id || idx} className="p-4 bg-slate-950 border border-slate-800 rounded-2xl space-y-3">
+                          <div key={adm.id || idx} className="p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3 shadow-xs">
                             <div className="flex flex-wrap items-center justify-between gap-2">
                               <div className="flex items-center space-x-2">
-                                <span className="font-bold text-white text-sm">
+                                <span className="font-bold text-slate-900 dark:text-white text-sm">
                                   {adm.courseNameSnapshot || adm.course?.name || "General Course"}
                                 </span>
                                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${admStatus === "ACTIVE"
-                                    ? "bg-emerald-950 text-emerald-400 border-emerald-800"
+                                    ? "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800"
                                     : admStatus === "COMPLETED"
-                                      ? "bg-blue-950 text-blue-300 border-blue-800"
+                                      ? "bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800"
                                       : admStatus === "DROPPED"
-                                        ? "bg-rose-950 text-rose-400 border-rose-800"
-                                        : "bg-amber-950 text-amber-300 border-amber-800"
+                                        ? "bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800"
+                                        : "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800"
                                   }`}>
                                   {admStatus}
                                 </span>
                               </div>
 
-                              <span className="font-mono text-xs font-bold text-cyan-400 bg-cyan-950/80 border border-cyan-800/80 px-2.5 py-0.5 rounded-full">
+                              <span className="font-mono text-xs font-bold text-blue-600 dark:text-cyan-400 bg-blue-50 dark:bg-cyan-950/80 border border-blue-200 dark:border-cyan-800/80 px-2.5 py-0.5 rounded-full">
                                 {adm.admissionNumber}
                               </span>
                             </div>
 
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-1">
                               <div>
-                                <span className="text-slate-500 block text-[10px] uppercase">Joining Date</span>
-                                <span className="font-mono text-slate-200 font-semibold">{formatDate(adm.admissionDate)}</span>
+                                <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-semibold">Joining Date</span>
+                                <span className="font-mono text-slate-800 dark:text-slate-200 font-semibold">{formatDate(adm.admissionDate)}</span>
                               </div>
 
                               <div>
-                                <span className="text-slate-500 block text-[10px] uppercase">Course Fees</span>
-                                <span className="font-bold text-slate-200">₹{Number(adm.finalFees || adm.courseFees).toLocaleString("en-IN")}</span>
+                                <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-semibold">Course Fees</span>
+                                <span className="font-bold text-slate-800 dark:text-slate-200">₹{Number(adm.finalFees || adm.courseFees).toLocaleString("en-IN")}</span>
                               </div>
 
                               <div>
-                                <span className="text-slate-500 block text-[10px] uppercase">Paid Fee</span>
-                                <span className="font-bold text-emerald-400">₹{Number(adm.paidAmount).toLocaleString("en-IN")}</span>
+                                <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-semibold">Paid Fee</span>
+                                <span className="font-bold text-emerald-600 dark:text-emerald-400">₹{Number(adm.paidAmount).toLocaleString("en-IN")}</span>
                               </div>
 
                               <div>
-                                <span className="text-slate-500 block text-[10px] uppercase">Pending Balance</span>
-                                <span className="font-bold text-amber-400">₹{Number(adm.pendingAmount).toLocaleString("en-IN")}</span>
+                                <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-semibold">Pending Balance</span>
+                                <span className="font-bold text-amber-600 dark:text-amber-400">₹{Number(adm.pendingAmount).toLocaleString("en-IN")}</span>
                               </div>
                             </div>
 
                             {/* COURSE ACTION TOOLBAR: STOP/DROP, COMPLETE, DELETE */}
-                            <div className="pt-2 border-t border-slate-900 flex items-center justify-between text-xs">
+                            <div className="pt-2 border-t border-slate-200 dark:border-slate-900 flex items-center justify-between text-xs">
                               <span className="text-[10px] text-slate-500 font-semibold">Course Actions:</span>
                               <div className="flex items-center space-x-2">
                                 {admStatus === "ACTIVE" ? (
@@ -1771,7 +1771,7 @@ export const Students = () => {
                                     <button
                                       type="button"
                                       onClick={() => handleCourseStatusChange(adm.id, "DROPPED")}
-                                      className="px-2.5 py-1 bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800 rounded-lg font-bold text-[11px] transition"
+                                      className="px-2.5 py-1 bg-rose-50 dark:bg-rose-950/80 hover:bg-rose-600 text-rose-700 dark:text-rose-300 hover:text-white border border-rose-200 dark:border-rose-800 rounded-lg font-bold text-[11px] transition"
                                       title="Stop or Drop this specific course"
                                     >
                                       🛑 Stop / Drop Course
@@ -1779,7 +1779,7 @@ export const Students = () => {
                                     <button
                                       type="button"
                                       onClick={() => handleCourseStatusChange(adm.id, "COMPLETED")}
-                                      className="px-2.5 py-1 bg-blue-950/80 hover:bg-blue-900 text-blue-300 border border-blue-800 rounded-lg font-bold text-[11px] transition"
+                                      className="px-2.5 py-1 bg-blue-50 dark:bg-blue-950/80 hover:bg-blue-600 text-blue-700 dark:text-blue-300 hover:text-white border border-blue-200 dark:border-blue-800 rounded-lg font-bold text-[11px] transition"
                                       title="Mark this course completed"
                                     >
                                       ✓ Complete
@@ -1789,7 +1789,7 @@ export const Students = () => {
                                   <button
                                     type="button"
                                     onClick={() => handleCourseStatusChange(adm.id, "ACTIVE")}
-                                    className="px-2.5 py-1 bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-800 rounded-lg font-bold text-[11px] transition"
+                                    className="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/80 hover:bg-emerald-600 text-emerald-700 dark:text-emerald-300 hover:text-white border border-emerald-200 dark:border-emerald-800 rounded-lg font-bold text-[11px] transition"
                                     title="Re-activate this course"
                                   >
                                     ▶ Re-Activate Course
@@ -1825,9 +1825,9 @@ export const Students = () => {
                     {(!fullStudentData?.allPayments || fullStudentData.allPayments.length === 0) ? (
                       <p className="text-xs text-slate-500 py-6 text-center">No payment receipts recorded for this student.</p>
                     ) : (
-                      <div className="overflow-x-auto">
+                      <div className="overflow-x-auto border border-slate-200 dark:border-slate-800/80 rounded-xl">
                         <table className="w-full text-left text-xs">
-                          <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] border-b border-slate-800">
+                          <thead className="bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400 uppercase text-[10px] border-b border-slate-200 dark:border-slate-800 font-bold">
                             <tr>
                               <th className="py-2.5 px-3">Receipt / Ref</th>
                               <th className="py-2.5 px-3">Course</th>
@@ -1837,33 +1837,33 @@ export const Students = () => {
                               <th className="py-2.5 px-3 text-center">Print</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-800/60">
+                          <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                             {fullStudentData.allPayments.map((p) => (
-                              <tr key={p.id} className="hover:bg-slate-800/30">
-                                <td className="py-2.5 px-3 font-mono font-bold text-cyan-400">
+                              <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                                <td className="py-2.5 px-3 font-mono font-bold text-blue-600 dark:text-cyan-400">
                                   {p.transactionReference || `REC-${p.id ? p.id.slice(-6).toUpperCase() : "PAYMENT"}`}
                                 </td>
-                                <td className="py-2.5 px-3 font-semibold text-white truncate max-w-[150px]">
+                                <td className="py-2.5 px-3 font-semibold text-slate-900 dark:text-white truncate max-w-[150px]">
                                   {p.courseName || "Course"}
                                 </td>
-                                <td className="py-2.5 px-3 font-mono text-slate-400">
+                                <td className="py-2.5 px-3 font-mono text-slate-500 dark:text-slate-400">
                                   {formatDate(p.paymentDate || p.createdAt)}
                                 </td>
                                 <td className="py-2.5 px-3">
-                                  <span className="px-2 py-0.5 bg-blue-950 text-blue-300 rounded font-bold uppercase text-[10px]">
+                                  <span className="px-2 py-0.5 bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 rounded font-bold uppercase text-[10px]">
                                     {p.paymentMode || "CASH"}
                                   </span>
                                 </td>
-                                <td className="py-2.5 px-3 text-right font-extrabold text-emerald-400">
+                                <td className="py-2.5 px-3 text-right font-extrabold text-emerald-600 dark:text-emerald-400">
                                   ₹{Number(p.amount).toLocaleString("en-IN")}
                                 </td>
                                 <td className="py-2.5 px-3 text-center">
                                   <button
                                     onClick={() => setSelectedReceiptPayment(p)}
-                                    className="px-2.5 py-1 bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white rounded font-semibold text-[10px] inline-flex items-center space-x-1"
+                                    className="px-2.5 py-1 bg-blue-50 dark:bg-cyan-600/20 hover:bg-blue-600 dark:hover:bg-cyan-600 text-blue-700 dark:text-cyan-300 hover:text-white border border-blue-200 dark:border-cyan-800/80 rounded-lg font-bold text-[11px] inline-flex items-center space-x-1 cursor-pointer active:scale-95 transition shadow-2xs"
                                   >
                                     <Printer className="w-3 h-3" />
-                                    <span>Receipt</span>
+                                    <span>Print</span>
                                   </button>
                                 </td>
                               </tr>
@@ -1878,58 +1878,58 @@ export const Students = () => {
                 {/* TAB 3: ATTENDANCE HISTORY & STATS */}
                 {activeTab === "attendance" && (
                   <div className="space-y-4">
-                    <div className="grid grid-cols-3 gap-3 p-4 bg-slate-950 border border-slate-800 rounded-2xl text-xs">
+                    <div className="grid grid-cols-3 gap-3 p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs">
                       <div>
-                        <span className="text-slate-500 block text-[10px] uppercase">Attendance Rate</span>
-                        <span className="text-lg font-black text-emerald-400">
+                        <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">Attendance Rate</span>
+                        <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">
                           {fullStudentData?.attendanceStats?.attendancePercentage || 100}%
                         </span>
                       </div>
                       <div>
-                        <span className="text-slate-500 block text-[10px] uppercase">Present Days</span>
-                        <span className="text-lg font-black text-cyan-400">
+                        <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">Present Days</span>
+                        <span className="text-lg font-black text-blue-600 dark:text-cyan-400">
                           {fullStudentData?.attendanceStats?.presentCount || 0} Days
                         </span>
                       </div>
                       <div>
-                        <span className="text-slate-500 block text-[10px] uppercase">Absent Days</span>
-                        <span className="text-lg font-black text-rose-400">
+                        <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">Absent Days</span>
+                        <span className="text-lg font-black text-rose-600 dark:text-rose-400">
                           {fullStudentData?.attendanceStats?.absentCount || 0} Days
                         </span>
                       </div>
                     </div>
 
-                    <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                      <Calendar className="w-4 h-4 text-indigo-400" /> Recent Attendance Log
+                    <h4 className="text-xs font-bold text-slate-800 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <Calendar className="w-4 h-4 text-indigo-600 dark:text-indigo-400" /> Recent Attendance Log
                     </h4>
 
                     {(!fullStudentData?.attendanceStats?.recentLogs || fullStudentData.attendanceStats.recentLogs.length === 0) ? (
                       <p className="text-xs text-slate-500 py-6 text-center">No attendance logs recorded yet.</p>
                     ) : (
-                      <div className="overflow-x-auto">
+                      <div className="overflow-x-auto border border-slate-200 dark:border-slate-800/80 rounded-xl">
                         <table className="w-full text-left text-xs">
-                          <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] border-b border-slate-800">
+                          <thead className="bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400 uppercase text-[10px] border-b border-slate-200 dark:border-slate-800 font-bold">
                             <tr>
                               <th className="py-2.5 px-3">Date</th>
                               <th className="py-2.5 px-3">Status</th>
                               <th className="py-2.5 px-3">Remarks</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-800/60">
+                          <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                             {fullStudentData.attendanceStats.recentLogs.map((log) => (
-                              <tr key={log.id} className="hover:bg-slate-800/30">
-                                <td className="py-2.5 px-3 font-mono text-slate-300">
+                              <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                                <td className="py-2.5 px-3 font-mono text-slate-800 dark:text-slate-300">
                                   {formatDate(log.date)}
                                 </td>
                                 <td className="py-2.5 px-3">
                                   <span className={`px-2 py-0.5 rounded font-bold text-[10px] ${log.status === "PRESENT"
-                                      ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
-                                      : "bg-rose-950 text-rose-400 border border-rose-800"
+                                      ? "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
+                                      : "bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800"
                                     }`}>
                                     {log.status}
                                   </span>
                                 </td>
-                                <td className="py-2.5 px-3 text-slate-400 italic">
+                                <td className="py-2.5 px-3 text-slate-500 dark:text-slate-400 italic">
                                   {log.remarks || "Regular session"}
                                 </td>
                               </tr>
@@ -1944,48 +1944,48 @@ export const Students = () => {
             )}
 
             {/* EXPANDED PERSONAL INFO CARD GRID */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs pt-3 border-t border-slate-800">
-              <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/60 space-y-1">
-                <span className="text-slate-500 uppercase font-semibold text-[10px]">Father / Guardian</span>
-                <p className="font-medium text-slate-200 flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-cyan-400" /> {selectedStudent.fatherName || selectedStudent.guardianName || "N/A"}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs pt-3 border-t border-slate-200 dark:border-slate-800">
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/60 space-y-1">
+                <span className="text-slate-500 dark:text-slate-400 uppercase font-semibold text-[10px]">Father / Guardian</span>
+                <p className="font-medium text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-blue-600 dark:text-cyan-400" /> {selectedStudent.fatherName || selectedStudent.guardianName || "N/A"}
                 </p>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/60 space-y-1">
-                <span className="text-slate-500 uppercase font-semibold text-[10px]">Mobile & WhatsApp</span>
-                <p className="font-medium text-slate-200 flex items-center gap-1.5 font-mono">
-                  <Phone className="w-3.5 h-3.5 text-emerald-400" /> {selectedStudent.mobile} {selectedStudent.whatsapp ? `(${selectedStudent.whatsapp})` : ""}
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/60 space-y-1">
+                <span className="text-slate-500 dark:text-slate-400 uppercase font-semibold text-[10px]">Mobile & WhatsApp</span>
+                <p className="font-medium text-slate-800 dark:text-slate-200 flex items-center gap-1.5 font-mono">
+                  <Phone className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> {selectedStudent.mobile} {selectedStudent.whatsapp ? `(${selectedStudent.whatsapp})` : ""}
                 </p>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/60 space-y-1">
-                <span className="text-slate-500 uppercase font-semibold text-[10px]">Email Address</span>
-                <p className="font-medium text-slate-200 flex items-center gap-1.5 truncate">
-                  <Mail className="w-3.5 h-3.5 text-cyan-400" /> {selectedStudent.email || "N/A"}
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/60 space-y-1">
+                <span className="text-slate-500 dark:text-slate-400 uppercase font-semibold text-[10px]">Email Address</span>
+                <p className="font-medium text-slate-800 dark:text-slate-200 flex items-center gap-1.5 truncate">
+                  <Mail className="w-3.5 h-3.5 text-blue-600 dark:text-cyan-400" /> {selectedStudent.email || "N/A"}
                 </p>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/60 space-y-1">
-                <span className="text-slate-500 uppercase font-semibold text-[10px]">Gender & DOB</span>
-                <p className="font-medium text-slate-200 flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-indigo-400" />
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/60 space-y-1">
+                <span className="text-slate-500 dark:text-slate-400 uppercase font-semibold text-[10px]">Gender & DOB</span>
+                <p className="font-medium text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
                   {selectedStudent.gender || "N/A"} {selectedStudent.dob ? `• ${formatDate(selectedStudent.dob)}` : ""}
                 </p>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/60 space-y-1">
-                <span className="text-slate-500 uppercase font-semibold text-[10px]">Qualification & School/College</span>
-                <p className="font-medium text-slate-200 flex items-center gap-1.5 truncate">
-                  <GraduationCap className="w-3.5 h-3.5 text-purple-400" />
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/60 space-y-1">
+                <span className="text-slate-500 dark:text-slate-400 uppercase font-semibold text-[10px]">Qualification & School/College</span>
+                <p className="font-medium text-slate-800 dark:text-slate-200 flex items-center gap-1.5 truncate">
+                  <GraduationCap className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                   {selectedStudent.qualification || "N/A"} {selectedStudent.schoolCollege ? `(${selectedStudent.schoolCollege})` : ""}
                 </p>
               </div>
 
-              <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/60 space-y-1">
-                <span className="text-slate-500 uppercase font-semibold text-[10px]">Full Address</span>
-                <p className="font-medium text-slate-200 flex items-center gap-1.5 truncate">
-                  <MapPin className="w-3.5 h-3.5 text-rose-400" />
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/60 space-y-1">
+                <span className="text-slate-500 dark:text-slate-400 uppercase font-semibold text-[10px]">Full Address</span>
+                <p className="font-medium text-slate-800 dark:text-slate-200 flex items-center gap-1.5 truncate">
+                  <MapPin className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
                   {[selectedStudent.address, selectedStudent.city, selectedStudent.state].filter(Boolean).join(", ") || "N/A"}
                 </p>
               </div>
@@ -2018,45 +2018,45 @@ export const Students = () => {
             <form onSubmit={handleSaveEdit} className="space-y-3.5 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Full Name *</label>
+                  <label className="block font-semibold text-slate-600 dark:text-slate-300 mb-1">Full Name *</label>
                   <input
                     type="text"
                     required
                     value={editForm.fullName}
                     onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-cyan-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Mobile Number *</label>
+                  <label className="block font-semibold text-slate-600 dark:text-slate-300 mb-1">Mobile Number *</label>
                   <input
                     type="text"
                     required
                     value={editForm.mobile}
                     onChange={(e) => setEditForm({ ...editForm, mobile: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-cyan-500"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Email Address</label>
+                  <label className="block font-semibold text-slate-600 dark:text-slate-300 mb-1">Email Address</label>
                   <input
                     type="email"
                     value={editForm.email}
                     onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-cyan-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-300 mb-1">Academic Status</label>
+                  <label className="block font-semibold text-slate-600 dark:text-slate-300 mb-1">Academic Status</label>
                   <select
                     value={editForm.status}
                     onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500 font-bold text-cyan-400"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-cyan-500 font-bold text-blue-600 dark:text-cyan-400"
                   >
                     <option value="ACTIVE">ACTIVE</option>
                     <option value="ON_HOLD">ON_HOLD</option>
@@ -2068,23 +2068,23 @@ export const Students = () => {
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-300 mb-1">Address</label>
+                <label className="block font-semibold text-slate-600 dark:text-slate-300 mb-1">Address</label>
                 <input
                   type="text"
                   value={editForm.address}
                   onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-cyan-500"
                 />
               </div>
 
-              <div className="p-3 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
-                <span className="text-[11px] font-bold text-amber-400 uppercase tracking-wider block">
+              <div className="p-3 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+                <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider block">
                   Fee Structure Correction
                 </span>
 
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <label className="block text-[10px] text-slate-400 mb-1">Course Fee (₹)</label>
+                    <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1">Course Fee (₹)</label>
                     <input
                       type="number"
                       value={editForm.courseFees}
@@ -2097,12 +2097,12 @@ export const Students = () => {
                           finalFees: Math.max(0, cf - disc),
                         });
                       }}
-                      className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 font-bold"
+                      className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 font-bold"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[10px] text-slate-400 mb-1">Discount (₹)</label>
+                    <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1">Discount (₹)</label>
                     <input
                       type="number"
                       value={editForm.discount}
@@ -2115,30 +2115,30 @@ export const Students = () => {
                           finalFees: Math.max(0, cf - disc),
                         });
                       }}
-                      className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-emerald-400 font-bold"
+                      className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-emerald-600 dark:text-emerald-400 font-bold"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[10px] text-slate-400 mb-1">Net Final Fee (₹)</label>
+                    <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1">Net Final Fee (₹)</label>
                     <input
                       type="number"
                       value={editForm.finalFees}
                       onChange={(e) => setEditForm({ ...editForm, finalFees: e.target.value })}
-                      className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-cyan-400 font-bold"
+                      className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-blue-600 dark:text-cyan-400 font-bold"
                     />
                   </div>
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-300 mb-1">Remarks / Note</label>
+                <label className="block font-semibold text-slate-600 dark:text-slate-300 mb-1">Remarks / Note</label>
                 <input
                   type="text"
                   value={editForm.remarks}
                   onChange={(e) => setEditForm({ ...editForm, remarks: e.target.value })}
                   placeholder="Reason for edit or fee correction..."
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-cyan-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 dark:focus:border-cyan-500"
                 />
               </div>
 
@@ -2146,7 +2146,7 @@ export const Students = () => {
                 <button
                   type="button"
                   onClick={() => setEditingStudent(null)}
-                  className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl font-semibold hover:bg-slate-700"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-semibold border border-slate-200 dark:border-slate-700"
                 >
                   Cancel
                 </button>
@@ -2167,29 +2167,29 @@ export const Students = () => {
       {/* ENROLL NEW COURSE & FEES MODAL */}
       {addCourseStudent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto font-sans">
-          <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 my-8">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div className="w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-4 my-8 shadow-2xl text-slate-900 dark:text-slate-100">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
               <div>
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <BookOpen className="w-5 h-5 text-indigo-400" /> Enroll in New Course
+                <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 text-indigo-600 dark:text-indigo-400" /> Enroll in New Course
                 </h3>
-                <p className="text-xs text-slate-400">{toTitleCase(addCourseStudent.fullName)} ({addCourseStudent.studentId})</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{toTitleCase(addCourseStudent.fullName)} ({addCourseStudent.studentId})</p>
               </div>
-              <button onClick={() => setAddCourseStudent(null)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setAddCourseStudent(null)} className="text-slate-400 hover:text-slate-900 dark:hover:text-white">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {addCourseError && (
-              <div className="p-3 bg-rose-950/80 border border-rose-800 text-rose-300 rounded-xl text-xs flex items-center space-x-2">
-                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+              <div className="p-3 bg-rose-50 dark:bg-rose-950/80 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 rounded-xl text-xs flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
                 <span>{addCourseError}</span>
               </div>
             )}
 
             <form onSubmit={handleAddCourseSubmit} className="space-y-3.5 text-xs">
               <div>
-                <label className="block font-semibold text-slate-300 mb-1">Select New Course *</label>
+                <label className="block font-semibold text-slate-600 dark:text-slate-300 mb-1">Select New Course *</label>
                 <SearchableSelect
                   options={coursesList.map((c) => ({
                     value: c.id,
@@ -2204,14 +2204,14 @@ export const Students = () => {
                 />
               </div>
 
-              <div className="p-3.5 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
-                <span className="text-[11px] font-bold text-indigo-400 uppercase tracking-wider block">
+              <div className="p-3.5 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+                <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider block">
                   Course Fees Breakdown
                 </span>
 
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <label className="block text-[10px] text-slate-400 mb-1">Course Fee (₹)</label>
+                    <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1">Course Fee (₹)</label>
                     <input
                       type="number"
                       required
@@ -2225,12 +2225,12 @@ export const Students = () => {
                           finalFees: Math.max(0, cf - disc),
                         });
                       }}
-                      className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-slate-100 font-bold"
+                      className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 font-bold"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[10px] text-slate-400 mb-1">Discount (₹)</label>
+                    <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1">Discount (₹)</label>
                     <input
                       type="number"
                       value={addCourseForm.discount}
@@ -2243,58 +2243,58 @@ export const Students = () => {
                           finalFees: Math.max(0, cf - disc),
                         });
                       }}
-                      className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-emerald-400 font-bold"
+                      className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-emerald-600 dark:text-emerald-400 font-bold"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[10px] text-slate-400 mb-1">Net Final Fee (₹)</label>
+                    <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1">Net Final Fee (₹)</label>
                     <input
                       type="number"
                       value={addCourseForm.finalFees}
                       onChange={(e) => setAddCourseForm({ ...addCourseForm, finalFees: e.target.value })}
-                      className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-cyan-400 font-bold"
+                      className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-blue-600 dark:text-cyan-400 font-bold"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="p-3.5 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
-                <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider block">
+              <div className="p-3.5 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3">
+                <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">
                   Initial Down Payment (Optional)
                 </span>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] text-slate-400 mb-1">Down Payment (₹)</label>
+                    <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1">Down Payment (₹)</label>
                     <input
                       type="number"
                       min={0}
                       value={addCourseForm.paymentAmount}
                       onChange={(e) => setAddCourseForm({ ...addCourseForm, paymentAmount: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-emerald-400 font-bold"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-emerald-600 dark:text-emerald-400 font-bold"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[10px] text-slate-400 mb-1">Payment Date</label>
+                    <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1">Payment Date</label>
                     <input
                       type="date"
                       value={addCourseForm.paymentDate}
                       onChange={(e) => setAddCourseForm({ ...addCourseForm, paymentDate: e.target.value })}
                       onClick={(e) => e.target.showPicker?.()}
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-100 font-medium cursor-pointer [color-scheme:dark]"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 font-medium cursor-pointer"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] text-slate-400 mb-1">Payment Mode</label>
+                    <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1">Payment Mode</label>
                     <select
                       value={addCourseForm.paymentMode}
                       onChange={(e) => setAddCourseForm({ ...addCourseForm, paymentMode: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-100"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100"
                     >
                       <option value="CASH">CASH</option>
                       <option value="UPI">UPI / GPAY</option>
@@ -2305,26 +2305,26 @@ export const Students = () => {
                   </div>
 
                   <div>
-                    <label className="block text-[10px] text-slate-400 mb-1">Txn Ref / Receipt No</label>
+                    <label className="block text-[10px] text-slate-500 dark:text-slate-400 mb-1">Txn Ref / Receipt No</label>
                     <input
                       type="text"
                       value={addCourseForm.transactionReference}
                       onChange={(e) => setAddCourseForm({ ...addCourseForm, transactionReference: e.target.value })}
                       placeholder="Optional ref"
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-100"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100"
                     />
                   </div>
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-300 mb-1">Remarks / Note</label>
+                <label className="block font-semibold text-slate-600 dark:text-slate-300 mb-1">Remarks / Note</label>
                 <input
                   type="text"
                   value={addCourseForm.remarks}
                   onChange={(e) => setAddCourseForm({ ...addCourseForm, remarks: e.target.value })}
                   placeholder="Note for second course admission..."
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 outline-none focus:border-indigo-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 outline-none focus:border-indigo-500"
                 />
               </div>
 
@@ -2332,7 +2332,7 @@ export const Students = () => {
                 <button
                   type="button"
                   onClick={() => setAddCourseStudent(null)}
-                  className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl font-semibold hover:bg-slate-700"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-semibold border border-slate-200 dark:border-slate-700"
                 >
                   Cancel
                 </button>

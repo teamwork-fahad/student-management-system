@@ -377,7 +377,7 @@ export const Expenses = () => {
                 type="button"
                 disabled={validCurrentPage === 1}
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                className="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 hover:text-white hover:border-rose-500 font-bold transition disabled:opacity-40 disabled:hover:border-slate-800 disabled:hover:text-slate-300 cursor-pointer"
+                className="px-3 py-1.5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-rose-500 font-bold transition disabled:opacity-40 disabled:hover:border-slate-200 dark:disabled:hover:border-slate-800 disabled:hover:text-slate-500 cursor-pointer shadow-sm"
               >
                 ◀ Prev
               </button>
@@ -397,7 +397,7 @@ export const Expenses = () => {
                           className={`px-3 py-1.5 rounded-xl font-extrabold text-xs transition cursor-pointer ${
                             p === validCurrentPage
                               ? "bg-rose-600 text-white shadow"
-                              : "bg-slate-950 border border-slate-800 text-slate-400 hover:text-white"
+                              : "bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white shadow-sm"
                           }`}
                         >
                           {p}
@@ -411,7 +411,7 @@ export const Expenses = () => {
                 type="button"
                 disabled={validCurrentPage >= totalPages}
                 onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                className="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 hover:text-white hover:border-rose-500 font-bold transition disabled:opacity-40 disabled:hover:border-slate-800 disabled:hover:text-slate-300 cursor-pointer"
+                className="px-3 py-1.5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-rose-500 font-bold transition disabled:opacity-40 disabled:hover:border-slate-200 dark:disabled:hover:border-slate-800 disabled:hover:text-slate-500 cursor-pointer shadow-sm"
               >
                 Next ▶
               </button>

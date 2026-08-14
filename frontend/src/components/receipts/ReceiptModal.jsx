@@ -294,22 +294,22 @@ export const ReceiptModal = ({ payment, student, admission, onClose }) => {
           </div>
 
           {/* FINANCIAL LEDGER SUMMARY: TOTAL COURSE FEE, TOTAL PAID, PENDING DUES */}
-          <div className="p-4 bg-slate-900 text-white rounded-2xl grid grid-cols-3 gap-3 text-xs">
+          <div className="p-4 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl grid grid-cols-3 gap-3 text-xs">
             <div>
-              <span className="text-slate-400 text-[10px] uppercase font-bold block">Total Course Fee</span>
-              <span className="text-base font-extrabold text-white">
+              <span className="text-slate-500 dark:text-slate-400 text-[10px] uppercase font-bold block">Total Course Fee</span>
+              <span className="text-base font-extrabold text-slate-900 dark:text-white">
                 ₹{totalCourseFee.toLocaleString("en-IN")}
               </span>
             </div>
             <div>
-              <span className="text-emerald-400 text-[10px] uppercase font-bold block">Total Paid to Date</span>
-              <span className="text-base font-extrabold text-emerald-400">
+              <span className="text-emerald-700 dark:text-emerald-400 text-[10px] uppercase font-bold block">Total Paid to Date</span>
+              <span className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">
                 ₹{totalPaidToDate.toLocaleString("en-IN")}
               </span>
             </div>
             <div>
-              <span className="text-amber-400 text-[10px] uppercase font-bold block">Remaining Pending</span>
-              <span className="text-base font-extrabold text-amber-400">
+              <span className="text-amber-700 dark:text-amber-400 text-[10px] uppercase font-bold block">Remaining Pending</span>
+              <span className="text-base font-extrabold text-amber-600 dark:text-amber-400">
                 ₹{pendingBalance.toLocaleString("en-IN")}
               </span>
             </div>
@@ -371,7 +371,7 @@ export const ReceiptModal = ({ payment, student, admission, onClose }) => {
               <button
                 type="button"
                 onClick={onClose}
-                className="px-3.5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl text-xs transition"
+                className="px-3.5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl text-xs transition cursor-pointer active:scale-95"
               >
                 Close
               </button>
@@ -380,7 +380,7 @@ export const ReceiptModal = ({ payment, student, admission, onClose }) => {
                 type="button"
                 disabled={downloadingPdf}
                 onClick={handleDownloadPdf}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-lg flex items-center space-x-1.5 transition disabled:opacity-50"
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-md flex items-center space-x-1.5 transition cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Download high quality PDF file directly"
               >
                 <Download className="w-4 h-4" />
@@ -390,7 +390,7 @@ export const ReceiptModal = ({ payment, student, admission, onClose }) => {
               <button
                 type="button"
                 onClick={handlePrint}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-lg flex items-center space-x-1.5 transition"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-md flex items-center space-x-1.5 transition cursor-pointer active:scale-95"
                 title="Print clean receipt using browser print"
               >
                 <Printer className="w-4 h-4" />

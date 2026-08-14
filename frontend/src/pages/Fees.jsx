@@ -909,7 +909,7 @@ export const Fees = () => {
                       <div className="flex items-center justify-center space-x-1.5">
                         <button
                           onClick={() => setSelectedReceiptPayment(p)}
-                          className="px-2.5 py-1 bg-[#EFF6FF] hover:bg-[#DBEAFE] text-[#2563EB] hover:text-[#1D4ED8] border border-[#BFDBFE] rounded-[8px] font-semibold text-[11px] inline-flex items-center space-x-1 transition cursor-pointer shadow-xs"
+                          className="px-2.5 py-1 bg-[#EFF6FF] hover:bg-[#DBEAFE] text-[#2563EB] hover:text-[#1D4ED8] border border-[#BFDBFE] rounded-[8px] font-semibold text-[11px] inline-flex items-center space-x-1 transition cursor-pointer active:scale-95 shadow-xs"
                         >
                           <Printer className="w-3.5 h-3.5" />
                           <span>Print</span>
@@ -919,7 +919,7 @@ export const Fees = () => {
                           <button
                             type="button"
                             onClick={() => handleSendWhatsAppFeeReminder(p.admission?.studentId || p.admission?.student?.id || p.admission?.student?.studentId)}
-                            className="px-2 py-1 bg-[#ECFDF5] hover:bg-[#D1FAE5] text-[#047857] border border-[#A7F3D0] rounded-[8px] font-bold text-[11px] inline-flex items-center space-x-1 transition cursor-pointer shadow-xs"
+                            className="px-2 py-1 bg-[#ECFDF5] hover:bg-[#D1FAE5] text-[#047857] border border-[#A7F3D0] rounded-[8px] font-bold text-[11px] inline-flex items-center space-x-1 transition cursor-pointer active:scale-95 shadow-xs"
                             title="Send WhatsApp Fee Reminder"
                           >
                             <span>💬 Reminder</span>
@@ -931,7 +931,7 @@ export const Fees = () => {
                             <button
                               type="button"
                               onClick={() => handleOpenEditFeeModal(p)}
-                              className="px-2.5 py-1 bg-[#FFFBEB] hover:bg-[#FEF3C7] text-[#D97706] border border-[#FDE68A] rounded-[8px] font-bold text-[11px] inline-flex items-center space-x-1 transition cursor-pointer shadow-xs"
+                              className="px-2.5 py-1 bg-[#FFFBEB] hover:bg-[#FEF3C7] text-[#D97706] border border-[#FDE68A] rounded-[8px] font-bold text-[11px] inline-flex items-center space-x-1 transition cursor-pointer active:scale-95 shadow-xs"
                               title="Edit fee payment receipt details"
                             >
                               <Edit className="w-3.5 h-3.5" />
@@ -941,7 +941,7 @@ export const Fees = () => {
                             <button
                               type="button"
                               onClick={() => handleDeletePayment(p.id, p.transactionReference, p.amount)}
-                              className="px-2 py-1 bg-[#FFF1F2] hover:bg-[#FFE4E6] text-[#BE123C] border border-[#FECDD3] rounded-[8px] font-bold text-[11px] transition cursor-pointer shadow-xs"
+                              className="px-2 py-1 bg-[#FFF1F2] hover:bg-[#FFE4E6] text-[#BE123C] border border-[#FECDD3] rounded-[8px] font-bold text-[11px] transition cursor-pointer active:scale-95 shadow-xs"
                               title="Delete this payment receipt"
                             >
                               🗑️

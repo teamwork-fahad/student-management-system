@@ -51,8 +51,9 @@ export const AppLayout = () => {
   ];
 
   const handleLogout = () => {
+    lockPin();
     logout();
-    navigate("/");
+    navigate("/adminlogin");
   };
 
   const currentDate = new Date().toLocaleDateString("en-US", {
@@ -99,7 +100,7 @@ export const AppLayout = () => {
           {/* Desktop Collapse Toggle */}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="hidden md:flex items-center justify-center p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+            className="hidden md:flex items-center justify-center p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer active:scale-95"
             title={collapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
             {collapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
@@ -108,7 +109,7 @@ export const AppLayout = () => {
           {/* Mobile Close Button */}
           <button
             onClick={() => setMobileOpen(false)}
-            className="md:hidden text-slate-400 hover:text-slate-900 dark:hover:text-white p-1 rounded-lg"
+            className="md:hidden text-slate-400 hover:text-slate-900 dark:hover:text-white p-1 rounded-lg cursor-pointer active:scale-95"
           >
             <X className="w-5 h-5" />
           </button>
@@ -125,9 +126,9 @@ export const AppLayout = () => {
                 to={item.href}
                 onClick={() => setMobileOpen(false)}
                 title={collapsed ? item.name : undefined}
-                className={`flex items-center ${collapsed ? "md:justify-center md:px-0" : "px-4"} py-3 text-xs font-semibold rounded-2xl transition-all duration-200 ${
+                className={`flex items-center ${collapsed ? "md:justify-center md:px-0" : "px-4"} py-3 text-xs font-semibold rounded-2xl transition-all duration-200 cursor-pointer active:scale-[0.98] ${
                   isActive
-                    ? "bg-blue-600 text-white shadow-lg shadow-blue-500/25"
+                    ? "bg-blue-600 text-white shadow-lg shadow-blue-500/25 font-bold"
                     : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-200"
                 }`}
               >
@@ -157,8 +158,8 @@ export const AppLayout = () => {
 
               <div className="grid grid-cols-2 gap-2 pt-1">
                 <button
-                  onClick={() => { lockPin(); navigate("/"); }}
-                  className="flex items-center justify-center py-2 px-2 text-[11px] font-bold text-amber-600 dark:text-amber-400 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors"
+                  onClick={() => { lockPin(); navigate("/adminlogin"); }}
+                  className="flex items-center justify-center py-2 px-2 text-[11px] font-bold text-amber-600 dark:text-amber-400 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors cursor-pointer active:scale-95"
                   title="Lock ERP and require PIN to re-enter"
                 >
                   <Lock className="w-3.5 h-3.5 mr-1" />
@@ -167,7 +168,7 @@ export const AppLayout = () => {
 
                 <button
                   onClick={handleLogout}
-                  className="flex items-center justify-center py-2 px-2 text-[11px] font-bold text-rose-600 dark:text-rose-400 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 transition-colors"
+                  className="flex items-center justify-center py-2 px-2 text-[11px] font-bold text-rose-600 dark:text-rose-400 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 transition-colors cursor-pointer active:scale-95"
                   title="Logout Session"
                 >
                   <LogOut className="w-3.5 h-3.5 mr-1" />
@@ -178,15 +179,15 @@ export const AppLayout = () => {
           ) : (
             <div className="flex flex-col items-center space-y-3 py-1">
               <button
-                onClick={() => { lockPin(); navigate("/"); }}
-                className="p-2 rounded-xl text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/60 transition"
+                onClick={() => { lockPin(); navigate("/adminlogin"); }}
+                className="p-2 rounded-xl text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/60 transition cursor-pointer active:scale-95"
                 title="Lock ERP"
               >
                 <Lock className="w-4 h-4" />
               </button>
               <button
                 onClick={handleLogout}
-                className="p-2 rounded-xl text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 transition"
+                className="p-2 rounded-xl text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 transition cursor-pointer active:scale-95"
                 title="Logout"
               >
                 <LogOut className="w-4 h-4" />
@@ -204,7 +205,7 @@ export const AppLayout = () => {
             <div className="flex items-center space-x-3">
               <button
                 onClick={() => setMobileOpen(true)}
-                className="md:hidden text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white p-2 rounded-xl bg-slate-100 dark:bg-slate-800 shrink-0"
+                className="md:hidden text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white p-2 rounded-xl bg-slate-100 dark:bg-slate-800 shrink-0 cursor-pointer active:scale-95 transition"
                 title="Open Menu"
               >
                 <Menu className="w-5 h-5" />
@@ -231,7 +232,7 @@ export const AppLayout = () => {
               {/* Theme Toggle Button */}
               <button
                 onClick={toggleTheme}
-                className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700/80 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+                className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700/80 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer active:scale-95"
                 title={`Switch to ${isDark ? "Light" : "Dark"} Mode`}
               >
                 {isDark ? <Sun className="w-4 h-4 text-amber-400 animate-scale-in" /> : <Moon className="w-4 h-4 text-slate-700 animate-scale-in" />}
@@ -240,7 +241,7 @@ export const AppLayout = () => {
               {/* Public Website Button */}
               <button
                 onClick={() => navigate("/")}
-                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-xl transition whitespace-nowrap border border-slate-200 dark:border-slate-700/60"
+                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-xl transition whitespace-nowrap border border-slate-200 dark:border-slate-700/60 cursor-pointer active:scale-95"
               >
                 Public Site
               </button>

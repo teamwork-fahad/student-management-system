@@ -567,7 +567,7 @@ export const StudentProfilePage = () => {
         </div>
         <button
           onClick={handleBack}
-          className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold inline-flex items-center space-x-2 border border-slate-700 transition"
+          className="px-5 py-2.5 bg-white hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-800 dark:text-white rounded-xl text-xs font-bold inline-flex items-center space-x-2 border border-slate-200 dark:border-slate-700 transition shadow-sm"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Go Back</span>
@@ -682,7 +682,7 @@ export const StudentProfilePage = () => {
           <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 text-xs font-bold w-full">
             <button
               onClick={handleOpenAddCourseModal}
-              className="px-3.5 py-2.5 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white rounded-xl border border-indigo-700/60 flex items-center justify-center space-x-1.5 transition shadow whitespace-nowrap"
+              className="px-3.5 py-2.5 bg-indigo-50 dark:bg-indigo-600/20 hover:bg-indigo-600 text-indigo-700 dark:text-indigo-300 hover:text-white rounded-xl border border-indigo-200 dark:border-indigo-700/60 flex items-center justify-center space-x-1.5 transition shadow-xs whitespace-nowrap cursor-pointer active:scale-95 font-bold"
               title="Enroll student in another course"
             >
               <PlusCircle className="w-4 h-4 shrink-0" />
@@ -691,7 +691,7 @@ export const StudentProfilePage = () => {
 
             <button
               onClick={() => handleOpenFeeModal()}
-              className="px-3.5 py-2.5 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white rounded-xl border border-emerald-700/60 flex items-center justify-center space-x-1.5 transition shadow whitespace-nowrap"
+              className="px-3.5 py-2.5 bg-emerald-50 dark:bg-emerald-600/20 hover:bg-emerald-600 text-emerald-700 dark:text-emerald-300 hover:text-white rounded-xl border border-emerald-200 dark:border-emerald-700/60 flex items-center justify-center space-x-1.5 transition shadow-xs whitespace-nowrap cursor-pointer active:scale-95 font-bold"
               title="Collect tuition fee"
             >
               <CreditCard className="w-4 h-4 shrink-0" />
@@ -700,7 +700,7 @@ export const StudentProfilePage = () => {
 
             <button
               onClick={handleSendWhatsAppFeeReminder}
-              className="px-3.5 py-2.5 bg-emerald-950 hover:bg-emerald-900 text-emerald-400 border border-emerald-800 rounded-xl flex items-center justify-center space-x-1.5 transition shadow whitespace-nowrap"
+              className="px-3.5 py-2.5 bg-emerald-50 dark:bg-emerald-950 hover:bg-emerald-600 text-emerald-700 dark:text-emerald-400 hover:text-white border border-emerald-200 dark:border-emerald-800 rounded-xl flex items-center justify-center space-x-1.5 transition shadow-xs whitespace-nowrap cursor-pointer active:scale-95 font-bold"
               title="Send WhatsApp Fee Reminder to Student"
             >
               <span>💬 Fee Reminder</span>
@@ -708,7 +708,7 @@ export const StudentProfilePage = () => {
 
             <button
               onClick={handleOpenEdit}
-              className="px-3.5 py-2.5 bg-amber-600/20 hover:bg-amber-600 text-amber-300 hover:text-white rounded-xl border border-amber-700/60 flex items-center justify-center space-x-1.5 transition shadow whitespace-nowrap"
+              className="px-3.5 py-2.5 bg-amber-50 dark:bg-amber-600/20 hover:bg-amber-600 text-amber-700 dark:text-amber-300 hover:text-white rounded-xl border border-amber-200 dark:border-amber-700/60 flex items-center justify-center space-x-1.5 transition shadow-xs whitespace-nowrap cursor-pointer active:scale-95 font-bold"
               title="Edit student profile & status"
             >
               <Edit className="w-4 h-4 shrink-0" />
@@ -717,8 +717,8 @@ export const StudentProfilePage = () => {
 
             {isSuperAdmin && (
               <button
-                onClick={handleDeleteStudent}
-                className="col-span-2 sm:col-span-1 px-3.5 py-2.5 bg-rose-950/80 hover:bg-rose-600 text-rose-300 hover:text-white rounded-xl border border-rose-800 flex items-center justify-center space-x-1.5 transition shadow whitespace-nowrap"
+                onClick={() => handleDeleteStudent(studentData.id, studentData.fullName)}
+                className="col-span-2 sm:col-span-1 px-3.5 py-2.5 bg-rose-50 dark:bg-rose-950/80 hover:bg-rose-600 text-rose-700 dark:text-rose-300 hover:text-white border border-rose-200 dark:border-rose-800 rounded-xl flex items-center justify-center space-x-1.5 transition shadow-xs whitespace-nowrap cursor-pointer active:scale-95 font-bold"
                 title="Delete student record (Super Admin)"
               >
                 <Trash2 className="w-4 h-4 shrink-0" />
@@ -847,18 +847,18 @@ export const StudentProfilePage = () => {
                 const admPending = Number(adm.pendingAmount || 0);
 
                 return (
-                  <div key={adm.id || idx} className="p-4 sm:p-5 bg-slate-950 border border-slate-800 rounded-2xl space-y-4 shadow-md">
+                  <div key={adm.id || idx} className="p-4 sm:p-5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-4 shadow-sm">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="flex items-center space-x-3 min-w-0">
-                        <div className="p-2.5 sm:p-3 bg-cyan-950 text-cyan-400 border border-cyan-800 rounded-xl font-black text-xs sm:text-sm shrink-0">
+                        <div className="p-2.5 sm:p-3 bg-blue-50 dark:bg-cyan-950 text-blue-600 dark:text-cyan-400 border border-blue-200 dark:border-cyan-800 rounded-xl font-black text-xs sm:text-sm shrink-0">
                           {idx + 1}
                         </div>
                         <div className="min-w-0">
-                          <h4 className="font-bold text-white text-sm sm:text-base truncate">
+                          <h4 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base truncate">
                             {adm.courseNameSnapshot || adm.course?.name || "General Course"}
                           </h4>
-                          <p className="text-xs text-slate-400 mt-0.5 truncate">
-                            Course Code: <span className="font-mono text-cyan-400 font-bold">{adm.course?.code || "CRS-GENERAL"}</span>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                            Course Code: <span className="font-mono text-blue-600 dark:text-cyan-400 font-bold">{adm.course?.code || "CRS-GENERAL"}</span>
                           </p>
                         </div>
                       </div>
@@ -866,54 +866,54 @@ export const StudentProfilePage = () => {
                       <div className="flex items-center space-x-2 flex-wrap gap-1.5 shrink-0">
                         <span className={`px-2.5 py-1 rounded-xl text-xs font-bold border whitespace-nowrap shrink-0 ${
                           admStatus === "ACTIVE"
-                            ? "bg-emerald-950 text-emerald-400 border-emerald-800"
+                            ? "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800"
                             : admStatus === "COMPLETED"
-                            ? "bg-blue-950 text-blue-300 border-blue-800"
+                            ? "bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800"
                             : admStatus === "DROPPED"
-                            ? "bg-rose-950 text-rose-400 border-rose-800"
-                            : "bg-amber-950 text-amber-300 border-amber-800"
+                            ? "bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800"
+                            : "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800"
                         }`}>
                           {admStatus}
                         </span>
 
-                        <span className="font-mono text-xs font-bold text-cyan-400 bg-cyan-950 border border-cyan-800 px-2.5 py-1 rounded-xl whitespace-nowrap shrink-0">
+                        <span className="font-mono text-xs font-bold text-blue-600 dark:text-cyan-400 bg-blue-50 dark:bg-cyan-950 border border-blue-200 dark:border-cyan-800 px-2.5 py-1 rounded-xl whitespace-nowrap shrink-0">
                           {adm.admissionNumber}
                         </span>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-3 border-t border-slate-900">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-3 border-t border-slate-200 dark:border-slate-900">
                       <div>
-                        <span className="text-slate-500 block text-[10px] uppercase font-semibold whitespace-nowrap">Admission Date</span>
-                        <span className="font-mono text-slate-200 font-semibold whitespace-nowrap">{formatDate(adm.admissionDate)}</span>
+                        <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-semibold whitespace-nowrap">Admission Date</span>
+                        <span className="font-mono text-slate-800 dark:text-slate-200 font-semibold whitespace-nowrap">{formatDate(adm.admissionDate)}</span>
                       </div>
 
                       <div>
-                        <span className="text-slate-500 block text-[10px] uppercase font-semibold whitespace-nowrap">Total Course Fees</span>
-                        <span className="font-bold text-slate-200 text-sm whitespace-nowrap">₹{admFees.toLocaleString("en-IN")}</span>
+                        <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-semibold whitespace-nowrap">Total Course Fees</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-200 text-sm whitespace-nowrap">₹{admFees.toLocaleString("en-IN")}</span>
                       </div>
 
                       <div>
-                        <span className="text-slate-500 block text-[10px] uppercase font-semibold whitespace-nowrap">Paid Fee Amount</span>
-                        <span className="font-extrabold text-emerald-400 text-sm whitespace-nowrap">₹{admPaid.toLocaleString("en-IN")}</span>
+                        <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-semibold whitespace-nowrap">Paid Fee Amount</span>
+                        <span className="font-extrabold text-emerald-600 dark:text-emerald-400 text-sm whitespace-nowrap">₹{admPaid.toLocaleString("en-IN")}</span>
                       </div>
 
                       <div>
-                        <span className="text-slate-500 block text-[10px] uppercase font-semibold whitespace-nowrap">Pending Balance</span>
-                        <span className="font-extrabold text-amber-400 text-sm whitespace-nowrap">₹{admPending.toLocaleString("en-IN")}</span>
+                        <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-semibold whitespace-nowrap">Pending Balance</span>
+                        <span className="font-extrabold text-amber-600 dark:text-amber-400 text-sm whitespace-nowrap">₹{admPending.toLocaleString("en-IN")}</span>
                       </div>
                     </div>
 
                     {/* COURSE ACTION TOOLBAR: STOP/DROP, COMPLETE, DELETE */}
-                    <div className="pt-3 border-t border-slate-900 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
-                      <span className="text-slate-400 font-semibold text-[11px]">Course Controls:</span>
+                    <div className="pt-3 border-t border-slate-200 dark:border-slate-900 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+                      <span className="text-slate-600 dark:text-slate-400 font-semibold text-[11px]">Course Controls:</span>
                       <div className="flex items-center flex-wrap gap-2 w-full sm:w-auto">
                         {admStatus === "ACTIVE" ? (
                           <>
                             <button
                               type="button"
                               onClick={() => handleCourseStatusChange(adm.id, "DROPPED")}
-                              className="px-3 py-1.5 bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800 rounded-xl font-bold transition whitespace-nowrap shrink-0"
+                              className="px-3 py-1.5 bg-rose-50 dark:bg-rose-950/80 hover:bg-rose-600 text-rose-700 dark:text-rose-300 hover:text-white border border-rose-200 dark:border-rose-800 rounded-xl font-bold transition whitespace-nowrap shrink-0"
                               title="Stop or Drop this specific course"
                             >
                               🛑 Stop / Drop
@@ -921,7 +921,7 @@ export const StudentProfilePage = () => {
                             <button
                               type="button"
                               onClick={() => handleCourseStatusChange(adm.id, "COMPLETED")}
-                              className="px-3 py-1.5 bg-blue-950/80 hover:bg-blue-900 text-blue-300 border border-blue-800 rounded-xl font-bold transition whitespace-nowrap shrink-0"
+                              className="px-3 py-1.5 bg-blue-50 dark:bg-blue-950/80 hover:bg-blue-600 text-blue-700 dark:text-blue-300 hover:text-white border border-blue-200 dark:border-blue-800 rounded-xl font-bold transition whitespace-nowrap shrink-0"
                               title="Mark this course completed"
                             >
                               ✓ Mark Completed
@@ -931,7 +931,7 @@ export const StudentProfilePage = () => {
                           <button
                             type="button"
                             onClick={() => handleCourseStatusChange(adm.id, "ACTIVE")}
-                            className="px-3 py-1.5 bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-800 rounded-xl font-bold transition whitespace-nowrap shrink-0"
+                            className="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/80 hover:bg-emerald-600 text-emerald-700 dark:text-emerald-300 hover:text-white border border-emerald-200 dark:border-emerald-800 rounded-xl font-bold transition whitespace-nowrap shrink-0"
                             title="Re-activate this course"
                           >
                             ▶ Re-Activate
@@ -953,7 +953,7 @@ export const StudentProfilePage = () => {
                             <button
                               type="button"
                               onClick={() => handleDeleteCourseAdmission(adm.id, adm.courseNameSnapshot || adm.course?.name || "Course", adm)}
-                              className="px-3 py-1.5 bg-slate-900 hover:bg-red-950 text-slate-400 hover:text-red-400 border border-slate-800 hover:border-red-800 rounded-xl transition font-bold whitespace-nowrap shrink-0"
+                              className="px-3 py-1.5 bg-slate-100 hover:bg-rose-50 dark:bg-slate-900 dark:hover:bg-red-950 text-rose-600 dark:text-slate-400 dark:hover:text-red-400 border border-slate-200 dark:border-slate-800 hover:border-rose-300 dark:hover:border-red-800 rounded-xl transition font-bold whitespace-nowrap shrink-0 shadow-2xs"
                               title="Delete this course enrollment record"
                             >
                               🗑️ Delete Course
@@ -972,16 +972,16 @@ export const StudentProfilePage = () => {
         {/* TAB 2: FEE PAYMENT RECEIPTS */}
         {activeTab === "payments" && (
           <div className="space-y-4">
-            <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
-              <Receipt className="w-4 h-4 text-emerald-400" /> Fee Payment Receipts History
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-2">
+              <Receipt className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> Fee Payment Receipts History
             </h3>
 
             {(!studentData.allPayments || studentData.allPayments.length === 0) ? (
               <p className="text-xs text-slate-500 py-12 text-center">No payment receipts recorded for this student.</p>
             ) : (
-              <div className="overflow-x-auto border border-slate-800/80 rounded-xl">
+              <div className="overflow-x-auto border border-slate-200 dark:border-slate-800/80 rounded-xl">
                 <table className="w-full text-left text-xs min-w-[750px]">
-                  <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] border-b border-slate-800">
+                  <thead className="bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400 uppercase text-[10px] border-b border-slate-200 dark:border-slate-800">
                     <tr>
                       <th className="py-3 px-4 whitespace-nowrap">Receipt / Ref</th>
                       <th className="py-3 px-4 whitespace-nowrap">Course</th>
@@ -991,24 +991,24 @@ export const StudentProfilePage = () => {
                       <th className="py-3 px-4 text-center whitespace-nowrap">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60 font-sans">
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-sans">
                     {studentData.allPayments.map((p) => (
-                      <tr key={p.id} className="hover:bg-slate-800/30">
-                        <td className="py-3 px-4 font-mono font-bold text-cyan-400 whitespace-nowrap">
+                      <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                        <td className="py-3 px-4 font-mono font-bold text-blue-600 dark:text-cyan-400 whitespace-nowrap">
                           {p.transactionReference || `REC-${p.id ? p.id.slice(-6).toUpperCase() : "PAYMENT"}`}
                         </td>
-                        <td className="py-3 px-4 font-semibold text-white truncate max-w-[180px] whitespace-nowrap">
+                        <td className="py-3 px-4 font-semibold text-slate-900 dark:text-white truncate max-w-[180px] whitespace-nowrap">
                           {p.courseName || "Course"}
                         </td>
-                        <td className="py-3 px-4 font-mono text-slate-400 whitespace-nowrap">
+                        <td className="py-3 px-4 font-mono text-slate-500 dark:text-slate-400 whitespace-nowrap">
                           {formatDate(p.paymentDate || p.createdAt)}
                         </td>
                         <td className="py-3 px-4 whitespace-nowrap">
-                          <span className="px-2.5 py-1 bg-blue-950 text-blue-300 rounded-lg font-bold uppercase text-[10px]">
+                          <span className="px-2.5 py-1 bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 rounded-lg font-bold uppercase text-[10px]">
                             {p.paymentMode || "CASH"}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-right font-extrabold text-emerald-400 text-sm whitespace-nowrap">
+                        <td className="py-3 px-4 text-right font-extrabold text-emerald-600 dark:text-emerald-400 text-sm whitespace-nowrap">
                           ₹{Number(p.amount).toLocaleString("en-IN")}
                         </td>
                         <td className="py-3 px-4 text-center whitespace-nowrap">
@@ -1016,7 +1016,7 @@ export const StudentProfilePage = () => {
                             <button
                               type="button"
                               onClick={() => setSelectedReceiptPayment(p)}
-                              className="px-2.5 py-1.5 bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white rounded-lg font-semibold text-xs inline-flex items-center space-x-1 transition whitespace-nowrap"
+                              className="px-2.5 py-1.5 bg-blue-50 dark:bg-cyan-600/20 hover:bg-blue-600 dark:hover:bg-cyan-600 text-blue-700 dark:text-cyan-300 hover:text-white border border-blue-200 dark:border-cyan-800/80 rounded-lg font-semibold text-xs inline-flex items-center space-x-1 transition cursor-pointer active:scale-95 whitespace-nowrap shadow-2xs"
                               title="Print Fee Receipt"
                             >
                               <Printer className="w-3.5 h-3.5 shrink-0" />
@@ -1028,7 +1028,7 @@ export const StudentProfilePage = () => {
                                 <button
                                   type="button"
                                   onClick={() => handleOpenEditPaymentModal(p)}
-                                  className="px-2.5 py-1.5 bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-800 rounded-lg font-bold text-xs inline-flex items-center space-x-1 transition whitespace-nowrap"
+                                  className="px-2.5 py-1.5 bg-amber-50 dark:bg-amber-950/80 hover:bg-amber-600 text-amber-700 dark:text-amber-300 hover:text-white border border-amber-200 dark:border-amber-800 rounded-lg font-bold text-xs inline-flex items-center space-x-1 transition cursor-pointer active:scale-95 whitespace-nowrap shadow-2xs"
                                   title="Edit fee payment receipt details"
                                 >
                                   <Edit className="w-3.5 h-3.5 shrink-0" />
@@ -1038,10 +1038,11 @@ export const StudentProfilePage = () => {
                                 <button
                                   type="button"
                                   onClick={() => handleDeletePayment(p.id, p.transactionReference, p.amount)}
-                                  className="px-2 py-1.5 bg-slate-900 hover:bg-red-950 text-slate-400 hover:text-red-400 border border-slate-800 hover:border-red-800 rounded-lg font-bold text-xs transition whitespace-nowrap"
-                                  title="Delete this payment receipt"
+                                  className="px-2.5 py-1.5 bg-rose-50 dark:bg-rose-950/80 hover:bg-rose-600 text-rose-700 dark:text-rose-300 hover:text-white border border-rose-200 dark:border-rose-800 rounded-lg font-bold text-xs inline-flex items-center space-x-1 transition cursor-pointer active:scale-95 whitespace-nowrap shadow-2xs"
+                                  title="Delete fee payment record (Super Admin)"
                                 >
-                                  🗑️
+                                  <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                                  <span>Delete</span>
                                 </button>
                               </>
                             )}
@@ -1059,59 +1060,59 @@ export const StudentProfilePage = () => {
         {/* TAB 3: ATTENDANCE LOG & STATS */}
         {activeTab === "attendance" && (
           <div className="space-y-5">
-            <div className="grid grid-cols-3 gap-4 p-5 bg-slate-950 border border-slate-800 rounded-2xl text-xs">
+            <div className="grid grid-cols-3 gap-4 p-5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs">
               <div>
-                <span className="text-slate-500 block text-[10px] uppercase font-bold">Attendance Rate</span>
-                <span className="text-2xl font-black text-emerald-400">
+                <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">Attendance Rate</span>
+                <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
                   {studentData.attendanceStats?.attendancePercentage || 100}%
                 </span>
               </div>
               <div>
-                <span className="text-slate-500 block text-[10px] uppercase font-bold">Present Days</span>
-                <span className="text-2xl font-black text-cyan-400">
+                <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">Present Days</span>
+                <span className="text-2xl font-black text-blue-600 dark:text-cyan-400">
                   {studentData.attendanceStats?.presentCount || 0} Days
                 </span>
               </div>
               <div>
-                <span className="text-slate-500 block text-[10px] uppercase font-bold">Absent Days</span>
-                <span className="text-2xl font-black text-rose-400">
+                <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-bold">Absent Days</span>
+                <span className="text-2xl font-black text-rose-600 dark:text-rose-400">
                   {studentData.attendanceStats?.absentCount || 0} Days
                 </span>
               </div>
             </div>
 
-            <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-indigo-400" /> Recent Attendance Log
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-indigo-600 dark:text-indigo-400" /> Recent Attendance Log
             </h3>
 
             {(!studentData.attendanceStats?.recentLogs || studentData.attendanceStats.recentLogs.length === 0) ? (
               <p className="text-xs text-slate-500 py-12 text-center">No attendance logs recorded yet.</p>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto border border-slate-200 dark:border-slate-800/80 rounded-xl">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] border-b border-slate-800">
+                  <thead className="bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400 uppercase text-[10px] border-b border-slate-200 dark:border-slate-800">
                     <tr>
                       <th className="py-3 px-4">Session Date</th>
                       <th className="py-3 px-4">Status</th>
                       <th className="py-3 px-4">Remarks</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60 font-sans">
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-sans">
                     {studentData.attendanceStats.recentLogs.map((log) => (
-                      <tr key={log.id} className="hover:bg-slate-800/30">
-                        <td className="py-3 px-4 font-mono text-slate-300 font-semibold">
+                      <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                        <td className="py-3 px-4 font-mono text-slate-800 dark:text-slate-300 font-semibold">
                           {formatDate(log.date)}
                         </td>
                         <td className="py-3 px-4">
                           <span className={`px-2.5 py-1 rounded-lg font-bold text-[10px] ${
                             log.status === "PRESENT"
-                              ? "bg-emerald-950 text-emerald-400 border border-emerald-800"
-                              : "bg-rose-950 text-rose-400 border border-rose-800"
+                              ? "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
+                              : "bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800"
                           }`}>
                             {log.status}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-slate-400 italic">
+                        <td className="py-3 px-4 text-slate-500 dark:text-slate-400 italic">
                           {log.remarks || "Regular session"}
                         </td>
                       </tr>
@@ -1126,20 +1127,20 @@ export const StudentProfilePage = () => {
         {/* TAB 4: CERTIFICATE & COMPLETION */}
         {activeTab === "certificate" && (
           <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200 dark:border-slate-800">
               <div>
-                <h3 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
+                <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
                   <span>🎓 Course Completion & Certificate Management</span>
                 </h3>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   Mark completion date, approve certificate eligibility, and upload PDF for student login panel download.
                 </p>
               </div>
 
               <span className={`px-3 py-1 rounded-full text-xs font-bold shrink-0 ${
                 studentData.status === "COMPLETED"
-                  ? "bg-emerald-950 text-emerald-300 border border-emerald-800"
-                  : "bg-amber-950 text-amber-300 border border-amber-800"
+                  ? "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
+                  : "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800"
               }`}>
                 {studentData.status === "COMPLETED" ? "✓ Course Completed" : "In Progress"}
               </span>
@@ -1147,36 +1148,36 @@ export const StudentProfilePage = () => {
 
             {certMsg && (
               <div className={`p-4 rounded-xl text-xs font-bold border ${
-                certMsg.includes("successfully") ? "bg-emerald-950/80 border-emerald-800 text-emerald-300" : "bg-rose-950/80 border-rose-800 text-rose-300"
+                certMsg.includes("successfully") ? "bg-emerald-50 dark:bg-emerald-950/80 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300" : "bg-rose-50 dark:bg-rose-950/80 border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300"
               }`}>
                 {certMsg}
               </div>
             )}
 
-            <form onSubmit={handleSaveCertificateDetails} className="space-y-6 bg-slate-950 p-5 sm:p-6 border border-slate-800 rounded-2xl shadow-lg">
+            <form onSubmit={handleSaveCertificateDetails} className="space-y-6 bg-white dark:bg-slate-950 p-5 sm:p-6 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 text-xs">
                 {/* Completion Date */}
                 <div className="space-y-1.5">
-                  <label className="text-slate-300 font-bold block">Course Completion Date</label>
+                  <label className="text-slate-700 dark:text-slate-300 font-bold block">Course Completion Date</label>
                   <input
                     type="date"
                     value={certForm.completionDate}
                     onChange={(e) => setCertForm((prev) => ({ ...prev, completionDate: e.target.value }))}
-                    className="w-full p-3 bg-slate-900 border border-slate-800 rounded-xl text-white font-semibold outline-none focus:border-cyan-500 [color-scheme:dark]"
+                    className="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white font-semibold outline-none focus:border-blue-500 dark:focus:border-cyan-500"
                   />
                 </div>
 
                 {/* Certificate Eligible Toggle */}
                 <div className="space-y-1.5">
-                  <label className="text-slate-300 font-bold block">Is Student Eligible for Certificate?</label>
+                  <label className="text-slate-700 dark:text-slate-300 font-bold block">Is Student Eligible for Certificate?</label>
                   <div className="flex items-center space-x-3 pt-1">
                     <button
                       type="button"
                       onClick={() => setCertForm((prev) => ({ ...prev, isCertificateEligible: true }))}
                       className={`flex-1 py-2.5 px-4 rounded-xl font-bold transition text-xs flex items-center justify-center space-x-2 border ${
                         certForm.isCertificateEligible
-                          ? "bg-emerald-600 text-white border-emerald-500 shadow-lg"
-                          : "bg-slate-900 text-slate-400 border-slate-800 hover:text-white"
+                          ? "bg-emerald-600 text-white border-emerald-500 shadow-md"
+                          : "bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:text-slate-900 dark:hover:text-white"
                       }`}
                     >
                       <span>YES — Approved ✅</span>
@@ -1187,8 +1188,8 @@ export const StudentProfilePage = () => {
                       onClick={() => setCertForm((prev) => ({ ...prev, isCertificateEligible: false }))}
                       className={`flex-1 py-2.5 px-4 rounded-xl font-bold transition text-xs flex items-center justify-center space-x-2 border ${
                         !certForm.isCertificateEligible
-                          ? "bg-rose-950 text-rose-300 border-rose-800 shadow-lg"
-                          : "bg-slate-900 text-slate-400 border-slate-800 hover:text-white"
+                          ? "bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800 shadow-md"
+                          : "bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:text-slate-900 dark:hover:text-white"
                       }`}
                     >
                       <span>NO — Not Eligible ❌</span>
@@ -1198,8 +1199,8 @@ export const StudentProfilePage = () => {
               </div>
 
               {/* Certificate PDF File Upload */}
-              <div className="space-y-3 pt-3 border-t border-slate-800">
-                <label className="text-slate-300 font-bold text-xs block">
+              <div className="space-y-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+                <label className="text-slate-700 dark:text-slate-300 font-bold text-xs block">
                   Upload Certificate PDF File (Direct Upload)
                 </label>
                 
@@ -1208,30 +1209,30 @@ export const StudentProfilePage = () => {
                     type="file"
                     accept="application/pdf,image/*"
                     onChange={handleFileUpload}
-                    className="block w-full text-xs text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-cyan-950 file:text-cyan-300 hover:file:bg-cyan-900 cursor-pointer"
+                    className="block w-full text-xs text-slate-500 dark:text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 dark:file:bg-cyan-950 file:text-blue-700 dark:file:text-cyan-300 hover:file:bg-blue-100 dark:hover:file:bg-cyan-900 cursor-pointer"
                   />
 
                   {certForm.certificateFileName && (
-                    <span className="text-xs font-mono text-cyan-400 font-bold truncate max-w-[200px]">
+                    <span className="text-xs font-mono text-blue-600 dark:text-cyan-400 font-bold truncate max-w-[200px]">
                       📄 {certForm.certificateFileName}
                     </span>
                   )}
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-slate-400 text-[11px]">Or Paste Direct Certificate PDF / Drive Link:</label>
+                  <label className="text-slate-500 dark:text-slate-400 text-[11px]">Or Paste Direct Certificate PDF / Drive Link:</label>
                   <input
                     type="url"
                     value={certForm.certificateUrl?.startsWith("data:") ? "" : certForm.certificateUrl}
                     onChange={(e) => setCertForm((prev) => ({ ...prev, certificateUrl: e.target.value, certificateFileName: e.target.value ? "Online_Certificate.pdf" : prev.certificateFileName }))}
                     placeholder="https://drive.google.com/... or https://..."
-                    className="w-full p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 outline-none focus:border-cyan-500"
+                    className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:border-blue-500 dark:focus:border-cyan-500"
                   />
                 </div>
 
                 {certForm.certificateUrl && (
-                  <div className="p-3 bg-emerald-950/50 border border-emerald-800/60 rounded-xl flex items-center justify-between">
-                    <span className="text-xs text-emerald-300 font-bold flex items-center gap-1.5">
+                  <div className="p-3 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/60 rounded-xl flex items-center justify-between">
+                    <span className="text-xs text-emerald-700 dark:text-emerald-300 font-bold flex items-center gap-1.5">
                       <span>✓ Certificate Ready for Student Download</span>
                     </span>
                     <a
@@ -1263,75 +1264,75 @@ export const StudentProfilePage = () => {
         {/* TAB 5: FULL PERSONAL INFO */}
         {activeTab === "personal" && (
           <div className="space-y-4">
-            <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
-              <User className="w-4 h-4 text-purple-400" /> Full Personal & Academic Information
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-2">
+              <User className="w-4 h-4 text-purple-600 dark:text-purple-400" /> Full Personal & Academic Information
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
-              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
-                <span className="text-slate-500 uppercase font-semibold text-[10px]">Father / Guardian Name</span>
-                <p className="font-bold text-white text-sm flex items-center gap-2">
-                  <User className="w-4 h-4 text-cyan-400" /> {studentData.fatherName || studentData.guardianName || "N/A"}
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1">
+                <span className="text-slate-500 dark:text-slate-400 uppercase font-semibold text-[10px]">Father / Guardian Name</span>
+                <p className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
+                  <User className="w-4 h-4 text-blue-600 dark:text-cyan-400" /> {studentData.fatherName || studentData.guardianName || "N/A"}
                 </p>
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
-                <span className="text-slate-500 uppercase font-semibold text-[10px]">Mobile & Contact</span>
-                <p className="font-bold text-white text-sm flex items-center gap-2 font-mono">
-                  <Phone className="w-4 h-4 text-emerald-400" /> {studentData.mobile}
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1">
+                <span className="text-slate-500 dark:text-slate-400 uppercase font-semibold text-[10px]">Mobile & Contact</span>
+                <p className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2 font-mono">
+                  <Phone className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> {studentData.mobile}
                 </p>
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
-                <span className="text-slate-500 uppercase font-semibold text-[10px]">WhatsApp Number</span>
-                <p className="font-bold text-white text-sm flex items-center gap-2 font-mono">
-                  <Phone className="w-4 h-4 text-cyan-400" /> {studentData.whatsapp || studentData.mobile}
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1">
+                <span className="text-slate-500 dark:text-slate-400 uppercase font-semibold text-[10px]">WhatsApp Number</span>
+                <p className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2 font-mono">
+                  <Phone className="w-4 h-4 text-blue-600 dark:text-cyan-400" /> {studentData.whatsapp || studentData.mobile}
                 </p>
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
-                <span className="text-slate-500 uppercase font-semibold text-[10px]">Email Address</span>
-                <p className="font-bold text-white text-sm flex items-center gap-2 truncate">
-                  <Mail className="w-4 h-4 text-cyan-400" /> {studentData.email || "N/A"}
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1">
+                <span className="text-slate-500 dark:text-slate-400 uppercase font-semibold text-[10px]">Email Address</span>
+                <p className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2 truncate">
+                  <Mail className="w-4 h-4 text-blue-600 dark:text-cyan-400" /> {studentData.email || "N/A"}
                 </p>
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
-                <span className="text-slate-500 uppercase font-semibold text-[10px]">Gender & DOB</span>
-                <p className="font-bold text-white text-sm flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-indigo-400" />
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1">
+                <span className="text-slate-500 dark:text-slate-400 uppercase font-semibold text-[10px]">Gender & DOB</span>
+                <p className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                   {studentData.gender || "N/A"} {studentData.dob ? `• ${formatDate(studentData.dob)}` : ""}
                 </p>
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
-                <span className="text-slate-500 uppercase font-semibold text-[10px]">Qualification & College</span>
-                <p className="font-bold text-white text-sm flex items-center gap-2 truncate">
-                  <GraduationCap className="w-4 h-4 text-purple-400" />
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1">
+                <span className="text-slate-500 dark:text-slate-400 uppercase font-semibold text-[10px]">Qualification & College</span>
+                <p className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2 truncate">
+                  <GraduationCap className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                   {studentData.qualification || "N/A"} {studentData.schoolCollege ? `(${studentData.schoolCollege})` : ""}
                 </p>
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
-                <span className="text-slate-500 uppercase font-semibold text-[10px]">Full Address</span>
-                <p className="font-bold text-white text-sm flex items-center gap-2 truncate">
-                  <MapPin className="w-4 h-4 text-rose-400" />
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1">
+                <span className="text-slate-500 dark:text-slate-400 uppercase font-semibold text-[10px]">Full Address</span>
+                <p className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2 truncate">
+                  <MapPin className="w-4 h-4 text-rose-600 dark:text-rose-400" />
                   {[studentData.address, studentData.city, studentData.state].filter(Boolean).join(", ") || "N/A"}
                 </p>
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
-                <span className="text-slate-500 uppercase font-semibold text-[10px]">Aadhaar / ID</span>
-                <p className="font-bold text-white text-sm flex items-center gap-2 font-mono">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1">
+                <span className="text-slate-500 dark:text-slate-400 uppercase font-semibold text-[10px]">Aadhaar / ID</span>
+                <p className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2 font-mono">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   {studentData.aadhaarNumber || "N/A"}
                 </p>
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
-                <span className="text-slate-500 uppercase font-semibold text-[10px]">Registration / Joined Date</span>
-                <p className="font-bold text-white text-sm flex items-center gap-2 font-mono">
-                  <Clock className="w-4 h-4 text-cyan-400" />
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1">
+                <span className="text-slate-500 dark:text-slate-400 uppercase font-semibold text-[10px]">Registration / Joined Date</span>
+                <p className="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-2 font-mono">
+                  <Clock className="w-4 h-4 text-blue-600 dark:text-cyan-400" />
                   {formatDate(studentData.joinedDate || studentData.createdAt)}
                 </p>
               </div>
@@ -1352,63 +1353,63 @@ export const StudentProfilePage = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-slate-400 block mb-1 font-semibold">Full Name</label>
+                <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">Full Name</label>
                 <input
                   type="text"
                   value={editForm.fullName}
                   onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
                   required
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-500"
                 />
               </div>
 
               <div>
-                <label className="text-slate-400 block mb-1 font-semibold">Father / Guardian Name</label>
+                <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">Father / Guardian Name</label>
                 <input
                   type="text"
                   value={editForm.fatherName}
                   onChange={(e) => setEditForm({ ...editForm, fatherName: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-500"
                 />
               </div>
 
               <div>
-                <label className="text-slate-400 block mb-1 font-semibold">Mobile Number</label>
+                <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">Mobile Number</label>
                 <input
                   type="text"
                   value={editForm.mobile}
                   onChange={(e) => setEditForm({ ...editForm, mobile: e.target.value })}
                   required
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-500"
                 />
               </div>
 
               <div>
-                <label className="text-slate-400 block mb-1 font-semibold">WhatsApp Number</label>
+                <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">WhatsApp Number</label>
                 <input
                   type="text"
                   value={editForm.whatsapp}
                   onChange={(e) => setEditForm({ ...editForm, whatsapp: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-500"
                 />
               </div>
 
               <div>
-                <label className="text-slate-400 block mb-1 font-semibold">Email Address</label>
+                <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">Email Address</label>
                 <input
                   type="email"
                   value={editForm.email}
                   onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-500"
                 />
               </div>
 
               <div>
-                <label className="text-slate-400 block mb-1 font-semibold">Academic Status</label>
+                <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">Academic Status</label>
                 <select
                   value={editForm.status}
                   onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-bold"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-500 font-bold"
                 >
                   <option value="ACTIVE">🟢 ACTIVE</option>
                   <option value="REVISION">🔄 REVISION (Revision / Practice)</option>
@@ -1420,12 +1421,12 @@ export const StudentProfilePage = () => {
             </div>
 
             <div>
-              <label className="text-slate-400 block mb-1 font-semibold">Full Address</label>
+              <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">Full Address</label>
               <input
                 type="text"
                 value={editForm.address}
                 onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-500"
               />
             </div>
 
@@ -1433,7 +1434,7 @@ export const StudentProfilePage = () => {
               <button
                 type="button"
                 onClick={() => setShowEditModal(false)}
-                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-slate-400 rounded-xl font-bold"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-400 rounded-xl font-bold border border-slate-200 dark:border-slate-800"
               >
                 Cancel
               </button>
@@ -1461,7 +1462,7 @@ export const StudentProfilePage = () => {
             )}
 
             <div>
-              <label className="text-slate-400 block mb-1 font-semibold">Select Course</label>
+              <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">Select Course</label>
               <select
                 value={feeForm.admissionId}
                 onChange={(e) => {
@@ -1474,7 +1475,7 @@ export const StudentProfilePage = () => {
                   });
                 }}
                 required
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-bold"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-500 font-bold"
               >
                 {!feeForm.admissionId && <option value="">-- Select an Enrolled Course --</option>}
                 {admissions.map((adm) => (
@@ -1487,37 +1488,37 @@ export const StudentProfilePage = () => {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-slate-400 block mb-1 font-semibold">Payment Amount (₹)</label>
+                <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">Payment Amount (₹)</label>
                 <input
                   type="number"
                   value={feeForm.amount}
                   onChange={(e) => setFeeForm({ ...feeForm, amount: e.target.value })}
                   required
                   placeholder="Enter amount"
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-bold text-sm"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-500 font-bold text-sm"
                 />
               </div>
 
               <div>
-                <label className="text-slate-400 block mb-1 font-semibold">Payment Date *</label>
+                <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">Payment Date *</label>
                 <input
                   type="date"
                   value={feeForm.paymentDate || new Date().toISOString().split("T")[0]}
                   onChange={(e) => setFeeForm({ ...feeForm, paymentDate: e.target.value })}
                   onClick={(e) => e.target.showPicker?.()}
                   required
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-bold cursor-pointer [color-scheme:dark]"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-500 font-bold cursor-pointer"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-slate-400 block mb-1 font-semibold">Payment Mode</label>
+                <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">Payment Mode</label>
                 <select
                   value={feeForm.paymentMode}
                   onChange={(e) => setFeeForm({ ...feeForm, paymentMode: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-bold"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-500 font-bold"
                 >
                   <option value="CASH">CASH</option>
                   <option value="UPI">UPI / GPay / PhonePe</option>
@@ -1527,13 +1528,13 @@ export const StudentProfilePage = () => {
               </div>
 
               <div>
-                <label className="text-slate-400 block mb-1 font-semibold">Transaction Reference / UTR</label>
+                <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">Transaction Reference / UTR</label>
                 <input
                   type="text"
                   value={feeForm.transactionReference}
                   onChange={(e) => setFeeForm({ ...feeForm, transactionReference: e.target.value })}
                   placeholder="UPI Ref / Receipt Number"
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-mono"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-500 font-mono"
                 />
               </div>
             </div>
@@ -1542,7 +1543,7 @@ export const StudentProfilePage = () => {
               <button
                 type="button"
                 onClick={() => setShowFeeModal(false)}
-                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-slate-400 rounded-xl font-bold"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-400 rounded-xl font-bold border border-slate-200 dark:border-slate-800"
               >
                 Cancel
               </button>
@@ -1571,11 +1572,11 @@ export const StudentProfilePage = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <label className="text-slate-400 block mb-1 font-semibold">1. Select Department</label>
+                <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">1. Select Department</label>
                 <select
                   value={addCourseDeptId}
                   onChange={(e) => setAddCourseDeptId(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-medium text-xs"
+                  className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-500 font-medium text-xs"
                 >
                   <option value="">-- All Departments --</option>
                   {departments.map((d) => (
@@ -1587,7 +1588,7 @@ export const StudentProfilePage = () => {
               </div>
 
               <div>
-                <label className="text-slate-400 block mb-1 font-semibold">2. Select Course (Searchable) *</label>
+                <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">2. Select Course (Searchable) *</label>
                 <SearchableSelect
                   options={coursesList
                     .filter((c) => !addCourseDeptId || c.departmentId === addCourseDeptId || c.department?.id === addCourseDeptId)
@@ -1609,24 +1610,24 @@ export const StudentProfilePage = () => {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-slate-400 block mb-1 font-semibold">Course Fees (₹)</label>
+                <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">Course Fees (₹)</label>
                 <input
                   type="number"
                   value={addCourseForm.courseFees}
                   onChange={(e) => setAddCourseForm({ ...addCourseForm, courseFees: e.target.value })}
                   required
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-bold"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-500 font-bold"
                 />
               </div>
 
               <div>
-                <label className="text-slate-400 block mb-1 font-semibold">Initial Payment (₹)</label>
+                <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">Initial Payment (₹)</label>
                 <input
                   type="number"
                   value={addCourseForm.paymentAmount}
                   onChange={(e) => setAddCourseForm({ ...addCourseForm, paymentAmount: e.target.value })}
                   placeholder="Down Payment"
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-bold"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-500 font-bold"
                 />
               </div>
             </div>
@@ -1635,7 +1636,7 @@ export const StudentProfilePage = () => {
               <button
                 type="button"
                 onClick={() => setShowAddCourseModal(false)}
-                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-slate-400 rounded-xl font-bold"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-400 rounded-xl font-bold border border-slate-200 dark:border-slate-800"
               >
                 Cancel
               </button>
@@ -1668,13 +1669,13 @@ export const StudentProfilePage = () => {
 
             <div className="space-y-3">
               <div>
-                <label className="text-slate-400 block mb-1 font-semibold">
+                <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">
                   1. Filter by Department
                 </label>
                 <select
                   value={editCourseDeptId}
                   onChange={(e) => setEditCourseDeptId(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-medium text-xs"
+                  className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-500 font-medium text-xs"
                 >
                   <option value="">-- All Departments --</option>
                   {departments.map((d) => (
@@ -1686,7 +1687,7 @@ export const StudentProfilePage = () => {
               </div>
 
               <div>
-                <label className="text-slate-400 block mb-1 font-semibold">
+                <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">
                   2. Transfer / Reassign Course (Search Box)
                 </label>
                 <SearchableSelect
@@ -1722,7 +1723,7 @@ export const StudentProfilePage = () => {
 
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="text-slate-400 block mb-1 font-semibold">Course Fees (₹)</label>
+                <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">Course Fees (₹)</label>
                 <input
                   type="number"
                   value={editCourseForm.courseFees}
@@ -1738,12 +1739,12 @@ export const StudentProfilePage = () => {
                   }}
                   required
                   min={0}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-bold"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-500 font-bold"
                 />
               </div>
 
               <div>
-                <label className="text-slate-400 block mb-1 font-semibold">Discount (₹)</label>
+                <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">Discount (₹)</label>
                 <input
                   type="number"
                   value={editCourseForm.discount}
@@ -1758,12 +1759,12 @@ export const StudentProfilePage = () => {
                     });
                   }}
                   min={0}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-bold text-amber-400"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-500 font-bold text-amber-600 dark:text-amber-400"
                 />
               </div>
 
               <div>
-                <label className="text-slate-400 block mb-1 font-semibold">Final Agreed Fees (₹)</label>
+                <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">Final Agreed Fees (₹)</label>
                 <input
                   type="number"
                   value={editCourseForm.finalFees}
@@ -1772,13 +1773,13 @@ export const StudentProfilePage = () => {
                   }
                   required
                   min={0}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-extrabold text-emerald-400"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-500 font-extrabold text-emerald-600 dark:text-emerald-400"
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-slate-400 block mb-1 font-semibold">Remarks / Batch Notes</label>
+              <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">Remarks / Batch Notes</label>
               <textarea
                 rows={2}
                 value={editCourseForm.remarks}
@@ -1786,20 +1787,20 @@ export const StudentProfilePage = () => {
                   setEditCourseForm({ ...editCourseForm, remarks: e.target.value })
                 }
                 placeholder="Fee installment plan, transfer reason..."
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 resize-none"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-500 resize-none"
               />
             </div>
 
-            <div className="p-3 bg-slate-950/80 border border-slate-800 rounded-xl space-y-1 text-[11px]">
-              <div className="flex justify-between text-slate-400">
+            <div className="p-3 bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl space-y-1 text-[11px]">
+              <div className="flex justify-between text-slate-600 dark:text-slate-400">
                 <span>Already Paid Amount:</span>
-                <span className="font-mono font-bold text-emerald-400">
+                <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
                   ₹{Number(editingAdmission.paidAmount || 0).toLocaleString("en-IN")}
                 </span>
               </div>
-              <div className="flex justify-between text-slate-300 font-bold pt-1 border-t border-slate-900">
+              <div className="flex justify-between text-slate-800 dark:text-slate-300 font-bold pt-1 border-t border-slate-200 dark:border-slate-900">
                 <span>Updated Dues Balance:</span>
-                <span className="font-mono text-amber-400">
+                <span className="font-mono text-amber-600 dark:text-amber-400">
                   ₹{Math.max(0, Number(editCourseForm.finalFees || 0) - Number(editingAdmission.paidAmount || 0)).toLocaleString("en-IN")}
                 </span>
               </div>
@@ -1809,7 +1810,7 @@ export const StudentProfilePage = () => {
               <button
                 type="button"
                 onClick={() => setEditingAdmission(null)}
-                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-slate-400 rounded-xl font-bold"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-400 rounded-xl font-bold border border-slate-200 dark:border-slate-800"
               >
                 Cancel
               </button>
@@ -1840,9 +1841,9 @@ export const StudentProfilePage = () => {
               </div>
             )}
 
-            <div className="p-3.5 bg-slate-950/80 border border-slate-800 rounded-xl space-y-1">
-              <span className="text-slate-400 block font-semibold text-[10px] uppercase">Student Name</span>
-              <span className="font-bold text-white text-sm">
+            <div className="p-3.5 bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-xl space-y-1">
+              <span className="text-slate-500 dark:text-slate-400 block font-semibold text-[10px] uppercase">Student Name</span>
+              <span className="font-bold text-slate-900 dark:text-white text-sm">
                 {toTitleCase(studentData.fullName)}
               </span>
             </div>
@@ -1850,13 +1851,13 @@ export const StudentProfilePage = () => {
             {/* Course Enrollment Selection (Reassign course for receipt) */}
             {admissions.length > 0 && (
               <div>
-                <label className="text-slate-400 block mb-1 font-semibold">
+                <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">
                   Course Enrollment / Receipt Assignment *
                 </label>
                 <select
                   value={editPaymentForm.admissionId}
                   onChange={(e) => setEditPaymentForm({ ...editPaymentForm, admissionId: e.target.value })}
-                  className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-medium text-xs"
+                  className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-500 font-medium text-xs"
                   required
                 >
                   {admissions.map((adm) => (
@@ -1870,37 +1871,37 @@ export const StudentProfilePage = () => {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-slate-400 block mb-1 font-semibold">Paid Amount (₹) *</label>
+                <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">Paid Amount (₹) *</label>
                 <input
                   type="number"
                   value={editPaymentForm.amount}
                   onChange={(e) => setEditPaymentForm({ ...editPaymentForm, amount: e.target.value })}
                   required
                   min={1}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-bold text-sm text-emerald-400"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-500 font-bold text-sm text-emerald-600 dark:text-emerald-400"
                 />
               </div>
 
               <div>
-                <label className="text-slate-400 block mb-1 font-semibold">Payment Date *</label>
+                <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">Payment Date *</label>
                 <input
                   type="date"
                   value={editPaymentForm.paymentDate}
                   onChange={(e) => setEditPaymentForm({ ...editPaymentForm, paymentDate: e.target.value })}
                   onClick={(e) => e.target.showPicker?.()}
                   required
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-bold cursor-pointer [color-scheme:dark]"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-500 font-bold cursor-pointer"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-slate-400 block mb-1 font-semibold">Payment Mode</label>
+                <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">Payment Mode</label>
                 <select
                   value={editPaymentForm.paymentMode}
                   onChange={(e) => setEditPaymentForm({ ...editPaymentForm, paymentMode: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-bold"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-500 font-bold"
                 >
                   <option value="CASH">CASH</option>
                   <option value="UPI">UPI / GPay / PhonePe</option>
@@ -1911,25 +1912,25 @@ export const StudentProfilePage = () => {
               </div>
 
               <div>
-                <label className="text-slate-400 block mb-1 font-semibold">Txn Ref / Receipt No</label>
+                <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">Txn Ref / Receipt No</label>
                 <input
                   type="text"
                   value={editPaymentForm.transactionReference}
                   onChange={(e) => setEditPaymentForm({ ...editPaymentForm, transactionReference: e.target.value })}
                   placeholder="UPI Ref / Receipt Number"
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 font-mono"
+                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-500 font-mono"
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-slate-400 block mb-1 font-semibold">Remarks / Installment Note</label>
+              <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">Remarks / Installment Note</label>
               <textarea
                 rows={2}
                 value={editPaymentForm.remarks}
                 onChange={(e) => setEditPaymentForm({ ...editPaymentForm, remarks: e.target.value })}
                 placeholder="Installment payment note..."
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500 resize-none"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-500 resize-none"
               />
             </div>
 
@@ -1937,7 +1938,7 @@ export const StudentProfilePage = () => {
               <button
                 type="button"
                 onClick={() => setEditingPayment(null)}
-                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-slate-400 rounded-xl font-bold"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-400 rounded-xl font-bold border border-slate-200 dark:border-slate-800"
               >
                 Cancel
               </button>
