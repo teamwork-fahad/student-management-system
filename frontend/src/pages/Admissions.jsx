@@ -207,15 +207,15 @@ export const Admissions = () => {
   }
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <div className="space-y-6 max-w-6xl mx-auto font-sans">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-            <UserPlus className="w-7 h-7 text-cyan-400" />
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+            <UserPlus className="w-7 h-7 text-blue-600 dark:text-blue-400" />
             Student Admission Onboarding
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Convert lead inquiries to admitted students with auto-generated IDs and fee snapshots.
           </p>
         </div>
@@ -232,15 +232,15 @@ export const Admissions = () => {
       {/* Form Container */}
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Section 1: Inquiry & Course Selection */}
-        <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
-          <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-2">
+        <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+          <h3 className="text-sm font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-wider flex items-center gap-2">
             <UserCheck className="w-4 h-4" /> 1. Inquiry & Course Mapping
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Select Inquiry <span className="text-rose-400">*</span>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                Select Inquiry <span className="text-rose-500">*</span>
               </label>
               <SearchableSelect
                 options={inquiries.map((inq) => ({
@@ -257,7 +257,7 @@ export const Admissions = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                 Enrolled Course
               </label>
               <SearchableSelect
@@ -274,7 +274,7 @@ export const Admissions = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                 Batch Code (Optional)
               </label>
               <input
@@ -283,22 +283,22 @@ export const Admissions = () => {
                 value={formData.batchId}
                 onChange={handleInputChange}
                 placeholder="e.g. BATCH-2026-A"
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:border-cyan-500 focus:outline-none"
+                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
               />
             </div>
           </div>
         </div>
 
         {/* Section 2: Student Demographic Profile */}
-        <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
-          <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">
+        <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+          <h3 className="text-sm font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
             2. Student Personal Information
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Full Name <span className="text-rose-400">*</span>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                Full Name <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"
@@ -306,39 +306,39 @@ export const Admissions = () => {
                 value={formData.fullName}
                 onChange={handleInputChange}
                 required
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:border-cyan-500 focus:outline-none"
+                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Father's Name</label>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Father's Name</label>
               <input
                 type="text"
                 name="fatherName"
                 value={formData.fatherName}
                 onChange={handleInputChange}
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:border-cyan-500 focus:outline-none"
+                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Mother's Name</label>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Mother's Name</label>
               <input
                 type="text"
                 name="motherName"
                 value={formData.motherName}
                 onChange={handleInputChange}
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:border-cyan-500 focus:outline-none"
+                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Gender</label>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Gender</label>
               <select
                 name="gender"
                 value={formData.gender}
                 onChange={handleInputChange}
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:border-cyan-500 focus:outline-none"
+                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
               >
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
@@ -347,19 +347,19 @@ export const Admissions = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Date of Birth</label>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Date of Birth</label>
               <input
                 type="date"
                 name="dob"
                 value={formData.dob}
                 onChange={handleInputChange}
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:border-cyan-500 focus:outline-none"
+                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm cursor-pointer"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Student Mobile <span className="text-rose-400">*</span>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                Student Mobile <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"
@@ -367,39 +367,39 @@ export const Admissions = () => {
                 value={formData.mobile}
                 onChange={handleInputChange}
                 required
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:border-cyan-500 focus:outline-none"
+                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">WhatsApp Number</label>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">WhatsApp Number</label>
               <input
                 type="text"
                 name="whatsapp"
                 value={formData.whatsapp}
                 onChange={handleInputChange}
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:border-cyan-500 focus:outline-none"
+                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Student Email</label>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Student Email</label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:border-cyan-500 focus:outline-none"
+                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Student Category</label>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Student Category</label>
               <select
                 name="studentCategory"
                 value={formData.studentCategory}
                 onChange={handleInputChange}
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:border-cyan-500 focus:outline-none"
+                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
               >
                 <option value="SCHOOL">SCHOOL</option>
                 <option value="COLLEGE">COLLEGE</option>
@@ -412,15 +412,15 @@ export const Admissions = () => {
         </div>
 
         {/* Section 3: Guardian Details */}
-        <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
-          <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">
+        <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+          <h3 className="text-sm font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
             3. Guardian Contact Info
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Guardian Name <span className="text-rose-400">*</span>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                Guardian Name <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"
@@ -428,13 +428,13 @@ export const Admissions = () => {
                 value={formData.guardianName}
                 onChange={handleInputChange}
                 required
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:border-cyan-500 focus:outline-none"
+                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Guardian Mobile <span className="text-rose-400">*</span>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                Guardian Mobile <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"
@@ -442,17 +442,17 @@ export const Admissions = () => {
                 value={formData.guardianMobile}
                 onChange={handleInputChange}
                 required
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:border-cyan-500 focus:outline-none"
+                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Guardian Relation</label>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Guardian Relation</label>
               <select
                 name="guardianRelation"
                 value={formData.guardianRelation}
                 onChange={handleInputChange}
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:border-cyan-500 focus:outline-none"
+                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
               >
                 <option value="FATHER">FATHER</option>
                 <option value="MOTHER">MOTHER</option>
@@ -466,55 +466,55 @@ export const Admissions = () => {
         </div>
 
         {/* Section 4: Discount & Initial Fee Payment */}
-        <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
-          <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-2">
-            <CreditCard className="w-4 h-4 text-emerald-400" /> 4. Fees Discount & Down Payment
+        <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+          <h3 className="text-sm font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-wider flex items-center gap-2">
+            <CreditCard className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> 4. Fees Discount & Down Payment
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Fee Discount (₹)</label>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Fee Discount (₹)</label>
               <input
                 type="number"
                 name="discount"
                 value={formData.discount}
                 onChange={handleInputChange}
                 min="0"
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:border-cyan-500 focus:outline-none"
+                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Down Payment (₹)</label>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Down Payment (₹)</label>
               <input
                 type="number"
                 name="paymentAmount"
                 value={formData.paymentAmount}
                 onChange={handleInputChange}
                 min="0"
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:border-cyan-500 focus:outline-none"
+                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Payment Date</label>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Payment Date</label>
               <input
                 type="date"
                 name="paymentDate"
                 value={formData.paymentDate}
                 onChange={handleInputChange}
                 onClick={(e) => e.target.showPicker?.()}
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:border-cyan-500 focus:outline-none cursor-pointer [color-scheme:dark]"
+                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm cursor-pointer"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Payment Mode</label>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Payment Mode</label>
               <select
                 name="paymentMode"
                 value={formData.paymentMode}
                 onChange={handleInputChange}
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:border-cyan-500 focus:outline-none"
+                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
               >
                 <option value="CASH">CASH</option>
                 <option value="UPI">UPI</option>
@@ -525,27 +525,27 @@ export const Admissions = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Reference / UTR</label>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Reference / UTR</label>
               <input
                 type="text"
                 name="transactionReference"
                 value={formData.transactionReference}
                 onChange={handleInputChange}
                 placeholder="e.g. UPI/123456789"
-                className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:border-cyan-500 focus:outline-none"
+                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">Admission Remarks</label>
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Admission Remarks</label>
             <input
               type="text"
               name="remarks"
               value={formData.remarks}
               onChange={handleInputChange}
               placeholder="e.g. Scholarship discount approved by Director"
-              className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-sm focus:border-cyan-500 focus:outline-none"
+              className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
             />
           </div>
         </div>

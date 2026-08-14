@@ -6,42 +6,18 @@ import { formatDate } from "../utils/formatters";
 import {
   Users, CircleDollarSign, Clock, UserPlus,
   CreditCard, ArrowRight, Eye,
-  LayoutDashboard, GraduationCap, BarChart3, Zap, TrendingUp,
+  LayoutDashboard, GraduationCap, BarChart3, Zap, TrendingUp, AlertTriangle,
 } from "lucide-react";
-
-const HOME_STYLES = `
-  @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap");
-  .home-root { font-family: "Inter", sans-serif; }
-  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-  @keyframes glowPulse { 0%,100%{box-shadow:0 0 0 0 rgba(37,99,235,0)} 50%{box-shadow:0 0 36px 8px rgba(37,99,235,0.28)} }
-  @keyframes dotBlink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-  @keyframes orbFloat { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-12px)} }
-  .an1{animation:fadeUp 0.48s ease both;animation-delay:0.04s}
-  .an2{animation:fadeUp 0.48s ease both;animation-delay:0.10s}
-  .an3{animation:fadeUp 0.48s ease both;animation-delay:0.16s}
-  .an4{animation:fadeUp 0.48s ease both;animation-delay:0.22s}
-  .an5{animation:fadeUp 0.48s ease both;animation-delay:0.28s}
-  .an6{animation:fadeUp 0.48s ease both;animation-delay:0.34s}
-  .an7{animation:fadeUp 0.48s ease both;animation-delay:0.40s}
-  .glass-c{backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:transform 0.22s cubic-bezier(.25,.46,.45,.94),box-shadow 0.22s ease,border-color 0.22s ease}
-  .glass-c:hover{transform:translateY(-3px);box-shadow:0 14px 40px rgba(37,99,235,0.18);border-color:rgba(59,130,246,0.35) !important}
-  .big-btn{animation:glowPulse 3s ease-in-out infinite;transition:transform 0.2s ease,filter 0.2s ease}
-  .big-btn:hover{transform:translateY(-2px) scale(1.02);filter:brightness(1.1)}
-  .live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#22c55e;animation:dotBlink 1.8s ease-in-out infinite}
-  .orb-bg{animation:orbFloat 7s ease-in-out infinite}
-  .tr-r{transition:background 0.14s ease}
-  .tr-r:hover{background:rgba(59,130,246,0.07)}
-`;
 
 const fmtINR = (n) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n || 0);
 
 const fmtK = (n) => {
   const v = Number(n || 0);
-  if (v >= 10000000) return String.fromCharCode(0x20B9) + (v / 10000000).toFixed(1) + "Cr";
-  if (v >= 100000) return String.fromCharCode(0x20B9) + (v / 100000).toFixed(1) + "L";
-  if (v >= 1000) return String.fromCharCode(0x20B9) + (v / 1000).toFixed(0) + "K";
-  return String.fromCharCode(0x20B9) + Math.round(v);
+  if (v >= 10000000) return "₹" + (v / 10000000).toFixed(1) + "Cr";
+  if (v >= 100000) return "₹" + (v / 100000).toFixed(1) + "L";
+  if (v >= 1000) return "₹" + (v / 1000).toFixed(0) + "K";
+  return "₹" + Math.round(v);
 };
 
 export const Dashboard = () => {
@@ -57,7 +33,8 @@ export const Dashboard = () => {
   }, []);
 
   const fetchData = async () => {
-    setLoading(true); setErrorMsg("");
+    setLoading(true);
+    setErrorMsg("");
     try {
       const [statsRes, admRes] = await Promise.all([
         api.get("/admissions/statistics"),
@@ -72,7 +49,9 @@ export const Dashboard = () => {
     }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   if (loading) return <LoadingSpinner label="Loading ERP Dashboard..." />;
 
@@ -90,225 +69,273 @@ export const Dashboard = () => {
     : (totalRev + pendingAmt > 0 ? Math.round(totalRev / (totalRev + pendingAmt) * 100) : 0);
 
   const SS = {
-    ACTIVE: { bg: "rgba(59,130,246,0.15)", color: "#93c5fd", border: "rgba(59,130,246,0.4)" },
-    COMPLETED: { bg: "rgba(16,185,129,0.15)", color: "#6ee7b7", border: "rgba(16,185,129,0.4)" },
-    DROPPED: { bg: "rgba(239,68,68,0.15)", color: "#fca5a5", border: "rgba(239,68,68,0.4)" },
-    CANCELLED: { bg: "rgba(239,68,68,0.12)", color: "#fca5a5", border: "rgba(239,68,68,0.3)" },
-    ON_HOLD: { bg: "rgba(245,158,11,0.15)", color: "#fcd34d", border: "rgba(245,158,11,0.4)" },
+    ACTIVE: "bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800",
+    COMPLETED: "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800",
+    DROPPED: "bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800",
+    CANCELLED: "bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900",
+    ON_HOLD: "bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800",
   };
 
   const kpis = [
-    { label: "Total Students", value: totalUniqueS.toLocaleString("en-IN"), sub: `${totalS} course enrollments (${activeC} active)`, icon: <Users className="w-5 h-5" />, accent: "#60a5fa", iconBg: "rgba(59,130,246,0.18)", bg: "linear-gradient(145deg,#0d1b3e,#0f2255)", cls: "an2" },
-    { label: "Fees Collected", value: fmtK(totalRev), sub: collRate + "% collection rate", icon: <CircleDollarSign className="w-5 h-5" />, accent: "#4ade80", iconBg: "rgba(74,222,128,0.15)", bg: "linear-gradient(145deg,#0a2218,#032215)", cls: "an3" },
-    { label: "Pending Dues", value: fmtK(pendingAmt), sub: "Outstanding balance", icon: <Clock className="w-5 h-5" />, accent: "#fb923c", iconBg: "rgba(251,146,60,0.18)", bg: "linear-gradient(145deg,#1c0e00,#1a0900)", cls: "an4" },
-    { label: "Graduated", value: completedC.toLocaleString("en-IN"), sub: "Successfully completed", icon: <GraduationCap className="w-5 h-5" />, accent: "#38bdf8", iconBg: "rgba(56,189,248,0.15)", bg: "linear-gradient(145deg,#0d1b3e,#0c2a45)", cls: "an5" },
+    {
+      label: "Total Unique Students",
+      value: totalUniqueS.toLocaleString("en-IN"),
+      sub: `${totalS} course enrollments (${activeC} active)`,
+      icon: <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />,
+      iconBg: "bg-blue-50 dark:bg-blue-950/80 border-blue-200 dark:border-blue-800",
+      accent: "text-blue-600 dark:text-blue-400",
+    },
+    {
+      label: "Fees Collected",
+      value: fmtK(totalRev),
+      sub: `${collRate}% collection rate`,
+      icon: <CircleDollarSign className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />,
+      iconBg: "bg-emerald-50 dark:bg-emerald-950/80 border-emerald-200 dark:border-emerald-800",
+      accent: "text-emerald-600 dark:text-emerald-400",
+    },
+    {
+      label: "Pending Dues",
+      value: fmtK(pendingAmt),
+      sub: "Outstanding balance",
+      icon: <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />,
+      iconBg: "bg-amber-50 dark:bg-amber-950/80 border-amber-200 dark:border-amber-800",
+      accent: "text-amber-600 dark:text-amber-400",
+    },
+    {
+      label: "Graduated Students",
+      value: completedC.toLocaleString("en-IN"),
+      sub: "Successfully completed",
+      icon: <GraduationCap className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />,
+      iconBg: "bg-indigo-50 dark:bg-indigo-950/80 border-indigo-200 dark:border-indigo-800",
+      accent: "text-indigo-600 dark:text-indigo-400",
+    },
   ];
 
   return (
-    <>
-      <style>{HOME_STYLES}</style>
-      <div className="home-root space-y-6 pb-12">
+    <div className="space-y-6 pb-12 font-sans animate-fade-in">
+      {/* ── HERO BANNER ─────────────────────────────────────────────── */}
+      <div className="relative overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 bg-gradient-to-br from-white via-slate-50 to-blue-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 shadow-sm">
+        <div className="absolute -top-12 -right-12 w-52 h-52 rounded-full blur-3xl opacity-20 pointer-events-none bg-blue-500" />
+        <div className="absolute -bottom-10 -left-10 w-36 h-36 rounded-full blur-3xl opacity-15 pointer-events-none bg-purple-500" />
 
-        {/* ── HERO BANNER ─────────────────────────────────────────────── */}
-        <div className="an1 relative overflow-hidden rounded-3xl border border-slate-800 p-6 sm:p-8"
-          style={{ background: "linear-gradient(135deg, #060d1f 0%, #0d1b3e 50%, #0f2255 100%)" }}>
-          <div className="absolute -top-12 -right-12 w-52 h-52 rounded-full blur-3xl opacity-20 pointer-events-none orb-bg"
-            style={{ background: "radial-gradient(circle, #3b82f6, #1d4ed8)" }} />
-          <div className="absolute -bottom-10 -left-10 w-36 h-36 rounded-full blur-3xl opacity-10 pointer-events-none"
-            style={{ background: "#8b5cf6" }} />
-
-          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div className="flex-1">
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="w-1.5 h-10 rounded-full" style={{ background: "linear-gradient(to bottom, #3b82f6, #1d4ed8)" }} />
-                <div>
-                  <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                    Institute Admin Overview
-                  </h1>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    {now.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-                    &nbsp;&middot;&nbsp;AppXwinD Technology ERP
-                  </p>
-                </div>
-              </div>
-              <p className="text-sm text-slate-300 max-w-lg leading-relaxed ml-5 mb-4">
-                Real-time student onboarding, fee collections &amp; enrollment metrics.
-                Click <strong className="text-blue-400">See Analytics Dashboard</strong> for live charts &amp; deep insights.
-              </p>
-              <div className="ml-5 flex flex-wrap gap-2">
-                {["Monthly Charts", "Donut Status", "Pending Alerts", "Collection Gauge", "Net Revenue", "Top Courses"].map((tag, i) => (
-                  <span key={tag} className="px-2.5 py-1 rounded-lg text-[10px] font-semibold"
-                    style={{ background: "rgba(59,130,246,0.15)", color: "#93c5fd", border: "1px solid rgba(59,130,246,0.25)", animationDelay: (i * 0.06) + "s" }}>
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* ── CTA BUTTONS ── */}
-            <div className="flex flex-col gap-3 lg:shrink-0 lg:min-w-[220px]">
-              {/* THE BIG DASHBOARD BUTTON */}
-              <Link to="/dashboard/analytics"
-                className="big-btn px-6 py-4 text-white font-extrabold rounded-2xl flex items-center justify-center space-x-3 whitespace-nowrap"
-                style={{ background: "linear-gradient(135deg, #0f4c8a 0%, #1d4ed8 55%, #2563eb 100%)", fontSize: "0.95rem" }}>
-                <LayoutDashboard className="w-5 h-5 shrink-0" />
-                <span>See Analytics Dashboard</span>
-                <ArrowRight className="w-4 h-4 shrink-0" />
-              </Link>
-              <div className="flex gap-3">
-                <Link to="/dashboard/admissions"
-                  className="flex-1 px-4 py-2.5 text-white text-xs font-bold rounded-xl flex items-center justify-center space-x-2"
-                  style={{ background: "linear-gradient(135deg,#1d4ed8,#3b82f6)" }}>
-                  <UserPlus className="w-4 h-4 shrink-0" /><span>Admit Student</span>
-                </Link>
-                <Link to="/dashboard/fees"
-                  className="flex-1 px-4 py-2.5 text-white text-xs font-bold rounded-xl flex items-center justify-center space-x-2"
-                  style={{ background: "linear-gradient(135deg,#064e3b,#059669)" }}>
-                  <CreditCard className="w-4 h-4 shrink-0" /><span>Collect Fee</span>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {errorMsg && (
-          <div className="p-4 rounded-2xl border border-rose-800 text-rose-300 text-xs flex items-center justify-between"
-            style={{ background: "rgba(136,19,55,0.25)" }}>
-            <span>&#9888; {errorMsg}</span>
-            <button onClick={fetchData}
-              className="px-3 py-1.5 bg-rose-900 hover:bg-rose-800 text-white rounded-xl font-bold text-[11px] ml-3 shrink-0">Retry</button>
-          </div>
-        )}
-
-        {/* ── QUICK KPI CARDS ─────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {kpis.map((card) => (
-            <div key={card.label} className={`${card.cls} glass-c relative overflow-hidden rounded-2xl p-4 sm:p-5 border`}
-              style={{ background: card.bg, borderColor: "rgba(59,130,246,0.12)" }}>
-              <div className="absolute -top-4 -right-4 w-16 h-16 rounded-full blur-2xl opacity-20 pointer-events-none"
-                style={{ background: card.accent }} />
-              <div className="relative z-10">
-                <div className="flex items-start justify-between mb-3">
-                  <p className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-widest">{card.label}</p>
-                  <div className="p-2 rounded-xl shrink-0" style={{ backgroundColor: card.iconBg, color: card.accent }}>{card.icon}</div>
-                </div>
-                <div className="text-2xl sm:text-3xl font-black tracking-tight mb-1" style={{ color: card.accent }}>{card.value}</div>
-                <p className="text-[10px] text-slate-500 font-medium">{card.sub}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* ── ANALYTICS PROMO CARD ─────────────────────────────────────── */}
-        <div className="an6 glass-c rounded-2xl border p-5 sm:p-6"
-          style={{ background: "linear-gradient(135deg,#060d1f 0%,#0d1b3e 60%,#0f2255 100%)", borderColor: "rgba(59,130,246,0.22)" }}>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
-            <div className="flex items-start space-x-4">
-              <div className="p-3 rounded-2xl shrink-0" style={{ background: "linear-gradient(135deg,#1d4ed8,#3b82f6)" }}>
-                <BarChart3 className="w-6 h-6 text-white" />
-              </div>
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="flex-1">
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="w-1.5 h-10 rounded-full bg-gradient-to-b from-blue-600 to-indigo-600" />
               <div>
-                <h3 className="text-base font-extrabold text-white mb-1 flex items-center flex-wrap gap-2">
-                  <span>Analytics Intelligence Center</span>
-                  <span className="flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold"
-                    style={{ background: "rgba(34,197,94,0.15)", color: "#4ade80", border: "1px solid rgba(34,197,94,0.3)" }}>
-                    <span className="live-dot" /><span>LIVE</span>
-                  </span>
-                </h3>
-                <p className="text-xs text-slate-400 max-w-xl leading-relaxed">
-                  View animated monthly revenue trends, enrollment status donut, top courses, high-pending dues alerts,
-                  collection efficiency gauge, and net revenue — all driven by live institute data.
+                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                  Institute Admin Overview
+                </h1>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
+                  {now.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+                  &nbsp;&middot;&nbsp;EduMaster Academy ERP
                 </p>
               </div>
             </div>
-            <Link to="/dashboard/analytics"
-              className="big-btn px-6 py-3 text-white text-sm font-extrabold rounded-2xl flex items-center space-x-2.5 whitespace-nowrap shrink-0"
-              style={{ background: "linear-gradient(135deg,#0f4c8a 0%,#2563eb 100%)" }}>
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-xl leading-relaxed ml-4 mb-4">
+              Real-time student onboarding, fee collections &amp; enrollment metrics.
+              Click <strong className="text-blue-600 dark:text-blue-400 font-bold">See Analytics Dashboard</strong> for live charts &amp; deep insights.
+            </p>
+            <div className="ml-4 flex flex-wrap gap-2">
+              {["Monthly Trends", "Status Breakdown", "Dues Alerts", "Collection Efficiency", "Net Revenue"].map((tag) => (
+                <span key={tag} className="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row lg:flex-col gap-3 shrink-0">
+            <Link
+              to="/dashboard/analytics"
+              className="px-6 py-3.5 text-white font-extrabold rounded-2xl flex items-center justify-center space-x-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-lg shadow-blue-500/25 transition-transform hover:-translate-y-0.5 text-sm"
+            >
               <LayoutDashboard className="w-5 h-5 shrink-0" />
-              <span>Open Dashboard</span>
+              <span>See Analytics Dashboard</span>
+              <ArrowRight className="w-4 h-4 shrink-0" />
             </Link>
+            <div className="flex gap-2">
+              <Link
+                to="/dashboard/admissions"
+                className="flex-1 px-4 py-2.5 text-white text-xs font-bold rounded-xl flex items-center justify-center space-x-1.5 bg-blue-600 hover:bg-blue-500 transition shadow"
+              >
+                <UserPlus className="w-4 h-4 shrink-0" />
+                <span>Admit Student</span>
+              </Link>
+              <Link
+                to="/dashboard/fees"
+                className="flex-1 px-4 py-2.5 text-white text-xs font-bold rounded-xl flex items-center justify-center space-x-1.5 bg-emerald-600 hover:bg-emerald-500 transition shadow"
+              >
+                <CreditCard className="w-4 h-4 shrink-0" />
+                <span>Collect Fee</span>
+              </Link>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* ── RECENT ADMISSIONS TABLE ──────────────────────────────────── */}
-        <div className="an7 glass-c rounded-2xl border border-slate-800 p-5"
-          style={{ background: "linear-gradient(160deg,#0d1b3e 0%,#0a0f1e 100%)" }}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-            <div>
-              <h3 className="text-sm font-bold text-white flex items-center space-x-2">
-                <Users className="w-4 h-4 text-blue-400" /><span>Recent Student Admissions</span>
-              </h3>
-              <p className="text-[11px] text-slate-500 mt-0.5">Latest 10 enrollments &middot; Click any row to open student profile</p>
-            </div>
-            <Link to="/dashboard/students"
-              className="text-xs font-semibold text-blue-400 hover:text-blue-300 flex items-center space-x-1 whitespace-nowrap shrink-0 self-start sm:self-auto transition">
-              <span>View All Students</span><ArrowRight className="w-4 h-4" />
-            </Link>
+      {errorMsg && (
+        <div className="p-4 rounded-2xl border border-rose-200 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-xs flex items-center justify-between shadow-sm">
+          <div className="flex items-center space-x-2">
+            <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0" />
+            <span className="font-semibold">{errorMsg}</span>
           </div>
-          {recentAdmissions.length === 0 ? (
-            <p className="text-sm text-slate-500 py-10 text-center">No admissions found.</p>
-          ) : (
-            <div className="overflow-x-auto rounded-xl border border-slate-800/60">
-              <table className="w-full text-left text-xs text-slate-300 min-w-[700px]">
-                <thead className="text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800"
-                  style={{ background: "rgba(13,27,62,0.7)" }}>
+          <button
+            onClick={fetchData}
+            className="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl font-bold text-[11px] ml-3 shrink-0"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {/* ── QUICK KPI CARDS ─────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {kpis.map((card) => (
+          <div
+            key={card.label}
+            className="glass-card relative overflow-hidden rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
+          >
+            <div className="flex items-start justify-between mb-3">
+              <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{card.label}</p>
+              <div className={`p-2.5 rounded-2xl border ${card.iconBg}`}>{card.icon}</div>
+            </div>
+            <div className={`text-3xl font-black tracking-tight mb-1 ${card.accent}`}>{card.value}</div>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{card.sub}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* ── ANALYTICS PROMO CARD ─────────────────────────────────────── */}
+      <div className="glass-card rounded-3xl border border-slate-200 dark:border-slate-800 p-6 bg-gradient-to-r from-blue-50/70 via-indigo-50/50 to-white dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+          <div className="flex items-start space-x-4">
+            <div className="p-3.5 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20 shrink-0">
+              <BarChart3 className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white mb-1 flex items-center flex-wrap gap-2">
+                <span>Analytics Intelligence Center</span>
+                <span className="flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>LIVE</span>
+                </span>
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 max-w-xl leading-relaxed">
+                View animated monthly revenue trends, enrollment status donut, top courses, high-pending dues alerts,
+                and collection efficiency gauge — all driven by live institute data.
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/dashboard/analytics"
+            className="px-6 py-3 text-white text-xs font-extrabold rounded-2xl flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-md shadow-blue-500/20 transition whitespace-nowrap shrink-0"
+          >
+            <LayoutDashboard className="w-4 h-4 shrink-0" />
+            <span>Open Dashboard</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* ── RECENT ADMISSIONS SECTION (With Table & Mobile Cards) ─────── */}
+      <div className="glass-card rounded-3xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 bg-white dark:bg-slate-900 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+          <div>
+            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center space-x-2">
+              <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <span>Recent Student Admissions</span>
+            </h3>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
+              Latest 10 enrollments &middot; Click any entry to open student profile
+            </p>
+          </div>
+          <Link
+            to="/dashboard/students"
+            className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center space-x-1 whitespace-nowrap shrink-0 self-start sm:self-auto"
+          >
+            <span>View All Students</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+
+        {recentAdmissions.length === 0 ? (
+          <p className="text-sm text-slate-500 dark:text-slate-400 py-10 text-center">No admissions found.</p>
+        ) : (
+          <>
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
+              <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300 min-w-[700px]">
+                <thead className="text-slate-500 dark:text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/80 font-bold">
                   <tr>
-                    <th className="py-3.5 px-4 whitespace-nowrap">#</th>
-                    <th className="py-3.5 px-4 whitespace-nowrap">Student</th>
-                    <th className="py-3.5 px-4 whitespace-nowrap">Course</th>
-                    <th className="py-3.5 px-4 text-right whitespace-nowrap">Paid</th>
-                    <th className="py-3.5 px-4 text-right whitespace-nowrap">Pending</th>
-                    <th className="py-3.5 px-4 text-center whitespace-nowrap">Status</th>
-                    <th className="py-3.5 px-4 text-center whitespace-nowrap">Date</th>
-                    <th className="py-3.5 px-4 text-center whitespace-nowrap">Action</th>
+                    <th className="py-3.5 px-4">#</th>
+                    <th className="py-3.5 px-4">Student</th>
+                    <th className="py-3.5 px-4">Course</th>
+                    <th className="py-3.5 px-4 text-right">Paid</th>
+                    <th className="py-3.5 px-4 text-right">Pending</th>
+                    <th className="py-3.5 px-4 text-center">Status</th>
+                    <th className="py-3.5 px-4 text-center">Date</th>
+                    <th className="py-3.5 px-4 text-center">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/40">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
                   {recentAdmissions.map((adm, i) => {
                     const tid = adm.student?.id || adm.studentId || adm.id;
                     const url = `/dashboard/students/${tid}`;
                     const hasPend = Number(adm.pendingAmount) > 0;
-                    const sty = SS[adm.status] || { bg: "rgba(100,116,139,0.15)", color: "#94a3b8", border: "rgba(100,116,139,0.3)" };
+                    const statusClass = SS[adm.status] || "bg-slate-100 text-slate-700 border-slate-200";
                     return (
-                      <tr key={adm.id} className="tr-r cursor-pointer" onClick={() => window.open(url, "_blank")}>
-                        <td className="py-3 px-4 font-mono font-bold whitespace-nowrap" style={{ color: "#60a5fa" }}>
+                      <tr
+                        key={adm.id}
+                        className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer"
+                        onClick={() => window.open(url, "_blank")}
+                      >
+                        <td className="py-3.5 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">
                           {adm.admissionNumber || `#${i + 1}`}
                         </td>
-                        <td className="py-3 px-4 whitespace-nowrap">
-                          <div className="flex items-center space-x-2.5">
-                            <div className="w-8 h-8 rounded-xl flex items-center justify-center font-black text-[11px] shrink-0"
-                              style={{ background: "linear-gradient(135deg,#1e3a5f,#1d4ed8)", color: "#93c5fd" }}>
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 flex items-center justify-center font-black text-xs text-blue-600 dark:text-blue-400 shrink-0">
                               {(adm.student?.fullName || adm.inquiry?.fullName || adm.guardianName || adm.studentName || "?")[0]?.toUpperCase()}
                             </div>
                             <div>
-                              <div className="font-bold text-white text-xs">{adm.student?.fullName || adm.inquiry?.fullName || adm.guardianName || adm.studentName || "N/A"}</div>
-                              <div className="text-[10px] text-slate-500">{adm.student?.studentId || adm.studentId || "—"}</div>
+                              <div className="font-bold text-slate-900 dark:text-white text-xs">
+                                {adm.student?.fullName || adm.inquiry?.fullName || adm.guardianName || adm.studentName || "N/A"}
+                              </div>
+                              <div className="text-[10px] text-slate-400 font-mono">{adm.student?.studentId || adm.studentId || "—"}</div>
                             </div>
                           </div>
                         </td>
-                        <td className="py-3 px-4 text-slate-300 max-w-[160px] truncate whitespace-nowrap" title={adm.courseNameSnapshot}>
+                        <td className="py-3.5 px-4 max-w-[160px] truncate" title={adm.courseNameSnapshot}>
                           {adm.courseNameSnapshot || "—"}
                         </td>
-                        <td className="py-3 px-4 text-right font-bold text-emerald-400 whitespace-nowrap">{fmtINR(adm.paidAmount)}</td>
-                        <td className="py-3 px-4 text-right font-bold whitespace-nowrap">
-                          {hasPend ? <span className="text-amber-400">{fmtINR(adm.pendingAmount)}</span> : <span className="text-slate-600">—</span>}
+                        <td className="py-3.5 px-4 text-right font-bold text-emerald-600 dark:text-emerald-400">
+                          {fmtINR(adm.paidAmount)}
                         </td>
-                        <td className="py-3 px-4 text-center whitespace-nowrap">
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap"
-                            style={{ background: sty.bg, color: sty.color, borderColor: sty.border }}>
+                        <td className="py-3.5 px-4 text-right font-bold">
+                          {hasPend ? (
+                            <span className="text-amber-600 dark:text-amber-400">{fmtINR(adm.pendingAmount)}</span>
+                          ) : (
+                            <span className="text-slate-400">—</span>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-4 text-center">
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${statusClass}`}>
                             {adm.status || "—"}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-center text-slate-400 font-mono whitespace-nowrap text-[11px]">
+                        <td className="py-3.5 px-4 text-center text-slate-500 font-mono text-[11px]">
                           {formatDate(adm.admissionDate)}
                         </td>
-                        <td className="py-3 px-4 text-center whitespace-nowrap" onClick={e => e.stopPropagation()}>
-                          <a href={url} target="_blank" rel="noopener noreferrer"
-                            className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition"
-                            style={{ background: "rgba(59,130,246,0.18)", color: "#93c5fd" }}
-                            onMouseEnter={e => { e.currentTarget.style.background = "rgba(59,130,246,0.4)"; e.currentTarget.style.color = "#fff"; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = "rgba(59,130,246,0.18)"; e.currentTarget.style.color = "#93c5fd"; }}>
-                            <Eye className="w-3.5 h-3.5 shrink-0" /><span>View</span>
+                        <td className="py-3.5 px-4 text-center" onClick={(e) => e.stopPropagation()}>
+                          <a
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center space-x-1 px-3 py-1 rounded-xl text-[11px] font-bold bg-blue-50 hover:bg-blue-600 dark:bg-blue-950 dark:hover:bg-blue-600 text-blue-600 dark:text-blue-400 hover:text-white transition"
+                          >
+                            <Eye className="w-3.5 h-3.5 shrink-0" />
+                            <span>View</span>
                           </a>
                         </td>
                       </tr>
@@ -317,17 +344,78 @@ export const Dashboard = () => {
                 </tbody>
               </table>
             </div>
-          )}
-        </div>
 
-        {/* FOOTER */}
-        <div className="flex items-center justify-center space-x-2 text-[10px] text-slate-600 pt-2">
-          <Zap className="w-3 h-3" />
-          <span>AppXwinD Technology ERP &middot; Institute Management System</span>
-          <span className="live-dot" />
-        </div>
+            {/* Mobile Card Transformation View */}
+            <div className="md:hidden space-y-3">
+              {recentAdmissions.map((adm, i) => {
+                const tid = adm.student?.id || adm.studentId || adm.id;
+                const url = `/dashboard/students/${tid}`;
+                const hasPend = Number(adm.pendingAmount) > 0;
+                const statusClass = SS[adm.status] || "bg-slate-100 text-slate-700 border-slate-200";
+                return (
+                  <div
+                    key={adm.id}
+                    onClick={() => window.open(url, "_blank")}
+                    className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/60 space-y-3 cursor-pointer hover:border-blue-500 transition"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 flex items-center justify-center font-black text-xs text-blue-600 dark:text-blue-400 shrink-0">
+                          {(adm.student?.fullName || adm.inquiry?.fullName || adm.guardianName || adm.studentName || "?")[0]?.toUpperCase()}
+                        </div>
+                        <div>
+                          <h4 className="font-extrabold text-slate-900 dark:text-white text-xs">
+                            {adm.student?.fullName || adm.inquiry?.fullName || adm.guardianName || adm.studentName || "N/A"}
+                          </h4>
+                          <span className="text-[10px] text-blue-600 dark:text-blue-400 font-mono font-bold">
+                            {adm.admissionNumber || `#${i + 1}`}
+                          </span>
+                        </div>
+                      </div>
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${statusClass}`}>
+                        {adm.status || "—"}
+                      </span>
+                    </div>
 
+                    <div className="text-xs text-slate-600 dark:text-slate-400">
+                      <span className="font-semibold text-slate-500 dark:text-slate-400">Course:</span> {adm.courseNameSnapshot || "—"}
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-200 dark:border-slate-800/80">
+                      <div>
+                        <span className="text-[10px] text-slate-400 block font-semibold">Paid Amount</span>
+                        <span className="font-bold text-emerald-600 dark:text-emerald-400">{fmtINR(adm.paidAmount)}</span>
+                      </div>
+                      {hasPend && (
+                        <div className="text-right">
+                          <span className="text-[10px] text-slate-400 block font-semibold">Pending</span>
+                          <span className="font-bold text-amber-600 dark:text-amber-400">{fmtINR(adm.pendingAmount)}</span>
+                        </div>
+                      )}
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="px-3 py-1 rounded-xl text-[11px] font-bold bg-blue-600 text-white shadow transition flex items-center space-x-1"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>View</span>
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
       </div>
-    </>
+
+      {/* FOOTER */}
+      <div className="flex items-center justify-center space-x-2 text-[10px] text-slate-400 dark:text-slate-500 pt-2 font-medium">
+        <Zap className="w-3 h-3 text-blue-500" />
+        <span>EduMaster Academy ERP &middot; Institute Management System</span>
+      </div>
+    </div>
   );
 };

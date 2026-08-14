@@ -113,7 +113,7 @@ export const StudentDashboard = () => {
   const finalFees = Number(admission?.finalFees || admission?.courseFees || 0);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans pb-16">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans pb-16 transition-colors duration-200">
       {/* Printable Receipt Modal */}
       {selectedPayment && (
         <ReceiptModal
@@ -125,7 +125,7 @@ export const StudentDashboard = () => {
       )}
 
       {/* Top Portal Header */}
-      <header className="bg-slate-900/90 border-b border-slate-800 sticky top-0 z-30 backdrop-blur-md">
+      <header className="bg-white/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 backdrop-blur-xl shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-500/20">
@@ -133,19 +133,19 @@ export const StudentDashboard = () => {
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <h1 className="text-lg font-bold text-white">Student Portal</h1>
-                <span className="px-2.5 py-0.5 rounded-full bg-blue-950 text-blue-300 border border-blue-800 text-[10px] font-extrabold uppercase">
+                <h1 className="text-lg font-black text-slate-900 dark:text-white">Student Portal</h1>
+                <span className="px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 text-[10px] font-extrabold uppercase">
                   {studentData?.studentId || "Student"}
                 </span>
               </div>
-              <p className="text-xs text-slate-400">Welcome, {studentData?.fullName || user?.name}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Welcome, {studentData?.fullName || user?.name}</p>
             </div>
           </div>
 
           <div className="flex items-center space-x-3">
             <button
               onClick={() => navigate("/")}
-              className="px-3.5 py-2 text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition"
+              className="px-3.5 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-2xl transition"
             >
               Main Website
             </button>
@@ -154,7 +154,7 @@ export const StudentDashboard = () => {
                 logout();
                 navigate("/");
               }}
-              className="px-3.5 py-2 text-xs font-semibold text-red-400 hover:text-white bg-red-950/40 hover:bg-red-900/60 border border-red-800/60 rounded-xl transition flex items-center space-x-1.5"
+              className="px-3.5 py-2 text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800/60 rounded-2xl transition flex items-center space-x-1.5"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span>Logout</span>
@@ -175,14 +175,14 @@ export const StudentDashboard = () => {
 
         {/* TOP STATS CARDS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl flex items-center space-x-4">
-            <div className="w-12 h-12 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center shrink-0">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl flex items-center space-x-4 shadow-sm">
+            <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/80 border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
               <BookOpen className="w-6 h-6" />
             </div>
 
         {/* CERTIFICATE ELIGIBILITY & DOWNLOAD BANNER */}
         {(studentData?.isCertificateEligible || studentData?.status === "COMPLETED") && (
-          <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-cyan-950/90 via-blue-950/90 to-indigo-950/90 border border-cyan-500/40 shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 border border-blue-500/40 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 text-white">
             <div className="flex items-start space-x-4">
               <div className="w-12 h-12 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 flex items-center justify-center text-2xl shrink-0 shadow-inner">
                 🎓
@@ -225,46 +225,46 @@ export const StudentDashboard = () => {
           </div>
         )}
             <div>
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Enrolled Course</span>
-              <span className="text-sm font-bold text-white block truncate max-w-[160px]">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">Enrolled Course</span>
+              <span className="text-sm font-bold text-slate-900 dark:text-white block truncate max-w-[160px]">
                 {admission?.courseNameSnapshot || course?.name || "General Course"}
               </span>
             </div>
           </div>
 
-          <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl flex items-center space-x-4">
-            <div className="w-12 h-12 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center shrink-0">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl flex items-center space-x-4 shadow-sm">
+            <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/80 border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
               <CreditCard className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Final Course Fees</span>
-              <span className="text-lg font-extrabold text-white">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">Final Course Fees</span>
+              <span className="text-lg font-black text-slate-900 dark:text-white">
                 ₹{finalFees.toLocaleString("en-IN")}
               </span>
             </div>
           </div>
 
-          <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl flex items-center space-x-4">
-            <div className="w-12 h-12 rounded-xl bg-emerald-600/20 text-emerald-400 flex items-center justify-center shrink-0">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl flex items-center space-x-4 shadow-sm">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
               <CheckCircle2 className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Total Paid</span>
-              <span className="text-lg font-extrabold text-emerald-400">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">Total Paid</span>
+              <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">
                 ₹{totalPaid.toLocaleString("en-IN")}
               </span>
             </div>
           </div>
 
-          <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl flex items-center space-x-4">
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
-              pendingFees > 0 ? "bg-amber-600/20 text-amber-400" : "bg-emerald-600/20 text-emerald-400"
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl flex items-center space-x-4 shadow-sm">
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
+              pendingFees > 0 ? "bg-amber-50 dark:bg-amber-950/80 border border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400" : "bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400"
             }`}>
               <AlertCircle className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">Pending Balance</span>
-              <span className={`text-lg font-extrabold ${pendingFees > 0 ? "text-amber-400" : "text-emerald-400"}`}>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">Pending Balance</span>
+              <span className={`text-lg font-black ${pendingFees > 0 ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400"}`}>
                 ₹{pendingFees.toLocaleString("en-IN")}
               </span>
             </div>
@@ -275,55 +275,55 @@ export const StudentDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* PROFILE CARD */}
-          <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 space-y-6">
-            <div className="flex items-center space-x-3 pb-4 border-b border-slate-800">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-bold flex items-center justify-center text-lg">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-6 space-y-6 shadow-sm">
+            <div className="flex items-center space-x-3 pb-4 border-b border-slate-200 dark:border-slate-800">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-bold flex items-center justify-center text-lg shadow-md">
                 {studentData?.fullName?.[0] || "S"}
               </div>
               <div>
-                <h3 className="text-base font-bold text-white">{studentData?.fullName}</h3>
-                <span className="text-xs text-slate-400">Student ID: {studentData?.studentId}</span>
+                <h3 className="text-base font-extrabold text-slate-900 dark:text-white">{studentData?.fullName}</h3>
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Student ID: {studentData?.studentId}</span>
               </div>
             </div>
 
             <div className="space-y-4 text-xs">
-              <div className="flex items-center space-x-3 text-slate-300">
-                <Phone className="w-4 h-4 text-blue-400 shrink-0" />
+              <div className="flex items-center space-x-3 text-slate-700 dark:text-slate-300 font-medium">
+                <Phone className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
                 <span>{studentData?.mobile}</span>
               </div>
 
-              <div className="flex items-center space-x-3 text-slate-300">
-                <Mail className="w-4 h-4 text-indigo-400 shrink-0" />
+              <div className="flex items-center space-x-3 text-slate-700 dark:text-slate-300 font-medium">
+                <Mail className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
                 <span className="truncate">{studentData?.email || "No email provided"}</span>
               </div>
 
-              <div className="flex items-center space-x-3 text-slate-300">
-                <User className="w-4 h-4 text-purple-400 shrink-0" />
+              <div className="flex items-center space-x-3 text-slate-700 dark:text-slate-300 font-medium">
+                <User className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
                 <span>Gender: {studentData?.gender || "Male"}</span>
               </div>
 
-              <div className="flex items-center space-x-3 text-slate-300">
-                <MapPin className="w-4 h-4 text-emerald-400 shrink-0" />
+              <div className="flex items-center space-x-3 text-slate-700 dark:text-slate-300 font-medium">
+                <MapPin className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 <span>{studentData?.address || "Address not specified"}</span>
               </div>
 
-              <div className="flex items-center space-x-3 text-slate-300">
-                <Calendar className="w-4 h-4 text-amber-400 shrink-0" />
+              <div className="flex items-center space-x-3 text-slate-700 dark:text-slate-300 font-medium">
+                <Calendar className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
                 <span>Joined Date: {studentData?.joinedDate ? new Date(studentData.joinedDate).toLocaleDateString("en-IN") : "N/A"}</span>
               </div>
             </div>
           </div>
 
           {/* ADMISSION DETAILS CARD */}
-          <div className="lg:col-span-2 bg-slate-900/60 border border-slate-800 rounded-3xl p-6 space-y-6">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+          <div className="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-6 space-y-6 shadow-sm">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
               <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-600/20 text-blue-400 rounded-xl">
+                <div className="p-2.5 bg-blue-50 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 rounded-2xl border border-blue-200 dark:border-blue-800">
                   <GraduationCap className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-white">Course Admission Details</h3>
-                  <p className="text-xs text-slate-400">Official Enrolled Academic Record</p>
+                  <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Course Admission Details</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Official Enrolled Academic Record</p>
                 </div>
               </div>
 
@@ -390,25 +390,25 @@ export const StudentDashboard = () => {
         </div>
 
         {/* FEE RECEIPTS & PAYMENTS LEDGER TABLE WITH VIEW MODE TOGGLE */}
-        <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-6 space-y-6 shadow-sm">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-emerald-600/20 text-emerald-400 rounded-xl">
+              <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 rounded-2xl border border-emerald-200 dark:border-emerald-800">
                 <CreditCard className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-white">Fee Payment Receipts Ledger</h3>
-                <p className="text-xs text-slate-400">History of payments & digital receipts</p>
+                <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Fee Payment Receipts Ledger</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">History of payments & digital receipts</p>
               </div>
             </div>
 
             {/* Grid vs List View Toggle */}
-            <div className="flex items-center space-x-1 p-1 bg-slate-950 border border-slate-800 rounded-xl">
+            <div className="flex items-center space-x-1 p-1 bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl">
               <button
                 type="button"
                 onClick={() => setViewMode("table")}
-                className={`p-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition ${
-                  viewMode === "table" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
+                className={`p-1.5 rounded-xl text-xs font-bold flex items-center space-x-1 transition ${
+                  viewMode === "table" ? "bg-blue-600 text-white shadow-md" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                 }`}
                 title="Table List View"
               >

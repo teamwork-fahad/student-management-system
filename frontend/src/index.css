@@ -1,45 +1,325 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
+/* ═══════════════════════════════════════════════════════════════
+   PREMIUM SAAS DESIGN SYSTEM TOKENS
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* LIGHT MODE (DEFAULT) */
+  --bg-page: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-surface-elevated: #f1f5f9;
+  --bg-surface-hover: #e2e8f0;
+  
+  --bg-glass: rgba(255, 255, 255, 0.85);
+  --border-glass: rgba(226, 232, 240, 0.9);
+  --border-subtle: rgba(226, 232, 240, 0.8);
+  --border-strong: #cbd5e1;
+
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --text-tertiary: #94a3b8;
+
+  --accent-primary: #2563eb;
+  --accent-primary-hover: #1d4ed8;
+  --accent-light: #eff6ff;
+  --accent-border: #bfdbfe;
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+
+  --badge-success-bg: #dcfce7;
+  --badge-success-text: #15803d;
+  --badge-warning-bg: #fef3c7;
+  --badge-warning-text: #b45309;
+  --badge-danger-bg: #fee2e2;
+  --badge-danger-text: #b91c1c;
+  --badge-info-bg: #e0f2fe;
+  --badge-info-text: #0369a1;
+}
+
+.dark, [data-theme="dark"] {
+  /* DARK MODE */
+  --bg-page: #090d16;
+  --bg-surface: #111827;
+  --bg-surface-elevated: #1e293b;
+  --bg-surface-hover: #334155;
+
+  --bg-glass: rgba(17, 24, 39, 0.85);
+  --border-glass: rgba(255, 255, 255, 0.1);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-strong: #334155;
+
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-tertiary: #64748b;
+
+  --accent-primary: #3b82f6;
+  --accent-primary-hover: #60a5fa;
+  --accent-light: rgba(59, 130, 246, 0.15);
+  --accent-border: rgba(59, 130, 246, 0.3);
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+
+  --badge-success-bg: rgba(22, 101, 52, 0.25);
+  --badge-success-text: #4ade80;
+  --badge-warning-bg: rgba(180, 83, 9, 0.25);
+  --badge-warning-text: #fbbf24;
+  --badge-danger-bg: rgba(185, 28, 28, 0.25);
+  --badge-danger-text: #f87171;
+  --badge-info-bg: rgba(3, 105, 161, 0.25);
+  --badge-info-text: #38bdf8;
+}
+
 @layer base {
+  * {
+    border-color: var(--border-subtle);
+  }
+
+  /* Global Non-Editable UI Selection Protection */
+  html,
+  body,
+  #root {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+  }
+
+  /* 1. Default Page & Container Cursors */
+  html,
+  body,
+  #root,
+  main,
+  section,
+  header,
+  footer,
+  aside,
+  nav,
+  div,
+  p,
+  span,
+  h1, h2, h3, h4, h5, h6,
+  table, tr, th, td,
+  ul, ol, li,
+  form,
+  dl, dt, dd,
+  article,
+  figure,
+  figcaption,
+  .card,
+  .glass-card,
+  .glass-panel,
+  .stat-card {
+    cursor: default;
+  }
+
   body {
-    background-color: #020617;
-    color: #f8fafc;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     min-height: 100vh;
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+
+  /* 2. Headings & Non-editable UI Controls - Prevent Unwanted Text Selection & Caret */
+  h1, h2, h3, h4, h5, h6,
+  button,
+  nav,
+  label,
+  a,
+  table, tr, th, td,
+  .sidebar,
+  .card,
+  .card-header,
+  .card-title,
+  .badge,
+  .stat-card,
+  .page-header,
+  .section-header,
+  .table-header,
+  .student-card,
+  .course-card,
+  .expense-card,
+  .fee-card,
+  .attendance-card,
+  .inquiry-card,
+  .analytics-card,
+  .pin-modal-card {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+  }
+
+  /* 3. Clickable Interactive Elements - Pointer Cursor */
+  button,
+  a,
+  select,
+  summary,
+  [role="button"],
+  [tabindex="0"],
+  .cursor-pointer,
+  button *,
+  a * {
+    cursor: pointer;
+  }
+
+  /* 4. Form Inputs & Editable Controls - Retain Text Cursor & Text Selection MUST WORK */
+  input,
+  textarea,
+  [contenteditable="true"],
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="search"],
+  input[type="date"],
+  input[type="datetime-local"],
+  input[type="time"],
+  input[type="month"],
+  input[type="week"] {
+    cursor: text !important;
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+  }
+
+  /* Select fields dropdown */
+  select,
+  option {
+    cursor: pointer !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+  }
+
+  /* Checkboxes & Radios */
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"] {
+    cursor: pointer !important;
+  }
+
+  /* Disabled state cursor */
+  button:disabled,
+  input:disabled,
+  select:disabled,
+  textarea:disabled {
+    cursor: not-allowed !important;
   }
 }
 
-/* Custom scrollbar styling */
+/* Custom Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #090d16;
+  background: var(--bg-page);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: var(--border-strong);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: var(--text-muted);
+}
+
+/* Hide scrollbar for clean horizontal card sliders */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Micro-animations & Glass utilities */
+.glass-panel {
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+  box-shadow: var(--shadow-glass);
+}
+
+.glass-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--accent-border);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   PIN LOCK MODAL STYLES
+   PIN LOCK MODAL STYLES (Light & Dark Compatible)
    ═══════════════════════════════════════════════════════════════ */
 
 .pin-modal-backdrop {
   position: fixed;
   inset: 0;
   z-index: 9998;
-  background: rgba(2, 6, 23, 0.85);
+  background: rgba(15, 23, 42, 0.7);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   animation: pinFadeIn 0.25s ease;
+}
+
+.dark .pin-modal-backdrop {
+  background: rgba(2, 6, 23, 0.85);
 }
 
 .pin-modal-card {
@@ -52,11 +332,11 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: linear-gradient(135deg, #0f172a 0%, #111827 50%, #0c1320 100%);
-  border: 1px solid rgba(59, 130, 246, 0.25);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-glass);
   border-radius: 28px;
   padding: 36px 32px 32px;
-  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.08), 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 80px rgba(59, 130, 246, 0.08) inset;
+  box-shadow: var(--shadow-xl);
   animation: pinSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   display: flex;
   flex-direction: column;
@@ -64,20 +344,20 @@
 }
 
 .pin-success-card {
-  border-color: rgba(52, 211, 153, 0.3);
-  box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.1), 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 80px rgba(52, 211, 153, 0.06) inset;
+  border-color: rgba(52, 211, 153, 0.5);
+  box-shadow: 0 0 40px rgba(52, 211, 153, 0.15);
 }
 
 .pin-close-btn {
   position: absolute;
   top: 16px;
   right: 16px;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #94a3b8;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -86,8 +366,8 @@
 }
 
 .pin-close-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
 }
 
 .pin-header {
@@ -100,8 +380,8 @@
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(99, 102, 241, 0.15));
-  border: 1.5px solid rgba(59, 130, 246, 0.3);
+  background: var(--accent-light);
+  border: 1.5px solid var(--accent-border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -111,8 +391,8 @@
 }
 
 .pin-icon-ring--success {
-  background: linear-gradient(135deg, rgba(52, 211, 153, 0.15), rgba(16, 185, 129, 0.15));
-  border-color: rgba(52, 211, 153, 0.3);
+  background: rgba(52, 211, 153, 0.15);
+  border-color: rgba(52, 211, 153, 0.4);
   box-shadow: 0 0 30px rgba(52, 211, 153, 0.2);
   animation: none;
 }
@@ -120,14 +400,14 @@
 .pin-title {
   font-size: 1.35rem;
   font-weight: 800;
-  color: #f1f5f9;
+  color: var(--text-primary);
   letter-spacing: -0.02em;
   margin: 0 0 8px;
 }
 
 .pin-subtitle {
-  font-size: 0.72rem;
-  color: #64748b;
+  font-size: 0.75rem;
+  color: var(--text-muted);
   line-height: 1.6;
   max-width: 280px;
   margin: 0 auto;
@@ -152,8 +432,8 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-surface-elevated);
+  border: 1.5px solid var(--border-subtle);
   border-radius: 14px;
   text-align: center;
   font-size: 1.5rem;
@@ -166,23 +446,23 @@
 }
 
 .pin-digit-input[type="text"] {
-  color: #f1f5f9;
+  color: var(--text-primary);
 }
 
 .pin-digit-input:focus {
-  border-color: rgba(59, 130, 246, 0.7);
-  background: rgba(59, 130, 246, 0.08);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15), 0 4px 12px rgba(59, 130, 246, 0.12);
+  border-color: var(--accent-primary);
+  background: var(--accent-light);
+  box-shadow: 0 0 0 3px var(--accent-border);
 }
 
 .pin-digit-filled {
-  border-color: rgba(99, 102, 241, 0.6) !important;
-  background: rgba(99, 102, 241, 0.1) !important;
+  border-color: var(--accent-primary) !important;
+  background: var(--accent-light) !important;
 }
 
 .pin-digit-error {
   border-color: rgba(239, 68, 68, 0.7) !important;
-  background: rgba(239, 68, 68, 0.07) !important;
+  background: rgba(239, 68, 68, 0.08) !important;
 }
 
 .pin-digit-dot {
@@ -199,7 +479,7 @@
 }
 
 .pin-digit-dot.active {
-  background: #6366f1;
+  background: var(--accent-primary);
   transform: translate(-50%, -50%) scale(1.15);
 }
 
@@ -211,8 +491,8 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  color: #475569;
-  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-size: 0.72rem;
   font-weight: 500;
   background: none;
   border: none;
@@ -222,7 +502,7 @@
 }
 
 .pin-show-toggle:hover {
-  color: #94a3b8;
+  color: var(--text-primary);
 }
 
 .pin-error-box {
@@ -234,8 +514,8 @@
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: 12px;
-  color: #fca5a5;
-  font-size: 0.72rem;
+  color: #ef4444;
+  font-size: 0.75rem;
   font-weight: 500;
   margin-bottom: 16px;
   animation: pinFadeIn 0.2s ease;
@@ -252,9 +532,9 @@
 .pin-numpad-btn {
   height: 52px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #e2e8f0;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
   font-size: 1.1rem;
   font-weight: 700;
   cursor: pointer;
@@ -265,47 +545,41 @@
 }
 
 .pin-numpad-btn:hover {
-  background: rgba(59, 130, 246, 0.15);
-  border-color: rgba(59, 130, 246, 0.4);
-  color: #93c5fd;
-  transform: scale(1.05);
+  background: var(--accent-light);
+  border-color: var(--accent-border);
+  color: var(--accent-primary);
+  transform: scale(1.04);
 }
 
 .pin-numpad-btn:active {
   transform: scale(0.96);
-  background: rgba(59, 130, 246, 0.25);
 }
 
 .pin-numpad-del {
   background: rgba(239, 68, 68, 0.08);
   border-color: rgba(239, 68, 68, 0.15);
-  color: #f87171;
+  color: #ef4444;
 }
 
 .pin-numpad-del:hover {
   background: rgba(239, 68, 68, 0.2);
   border-color: rgba(239, 68, 68, 0.4);
-  color: #fca5a5;
+  color: #dc2626;
 }
 
 .pin-hint {
   display: flex;
   align-items: center;
   gap: 5px;
-  color: #334155;
-  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-size: 0.7rem;
   font-weight: 500;
 }
 
 /* Animations */
 @keyframes pinFadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes pinSlideUp {
@@ -313,7 +587,6 @@
     opacity: 0;
     transform: translate(-50%, -46%);
   }
-
   to {
     opacity: 1;
     transform: translate(-50%, -50%);
@@ -321,15 +594,8 @@
 }
 
 @keyframes pinPulse {
-
-  0%,
-  100% {
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
-  }
-
-  50% {
-    box-shadow: 0 0 40px rgba(59, 130, 246, 0.3);
-  }
+  0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.15); }
+  50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.3); }
 }
 
 .pin-shake {
@@ -337,31 +603,11 @@
 }
 
 @keyframes pinShake {
-
-  10%,
-  90% {
-    transform: translate(calc(-50% - 3px), -50%);
-  }
-
-  20%,
-  80% {
-    transform: translate(calc(-50% + 5px), -50%);
-  }
-
-  30%,
-  50%,
-  70% {
-    transform: translate(calc(-50% - 6px), -50%);
-  }
-
-  40%,
-  60% {
-    transform: translate(calc(-50% + 6px), -50%);
-  }
-
-  100% {
-    transform: translate(-50%, -50%);
-  }
+  10%, 90% { transform: translate(calc(-50% - 3px), -50%); }
+  20%, 80% { transform: translate(calc(-50% + 5px), -50%); }
+  30%, 50%, 70% { transform: translate(calc(-50% - 6px), -50%); }
+  40%, 60% { transform: translate(calc(-50% + 6px), -50%); }
+  100% { transform: translate(-50%, -50%); }
 }
 
 @media (max-width: 440px) {
@@ -369,7 +615,6 @@
     max-width: calc(100vw - 32px);
     padding: 28px 20px 24px;
   }
-
   .pin-digit-wrapper {
     width: 52px;
     height: 62px;

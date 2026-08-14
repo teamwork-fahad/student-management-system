@@ -19,6 +19,8 @@ import { PublicAttendanceReport } from "./pages/PublicAttendanceReport";
 import { Fees } from "./pages/Fees";
 import { Expenses } from "./pages/Expenses";
 
+import { ThemeProvider } from "./context/ThemeContext";
+
 const AdminProtectedRoute = ({ children }) => {
   const { isAuthenticated, user } = useAuth();
   const { isPinUnlocked, requestPinUnlock } = usePin();
@@ -50,11 +52,12 @@ const StudentProtectedRoute = ({ children }) => {
 
 export const App = () => {
   return (
-    <AuthProvider>
-      <PinProvider>
-        <BrowserRouter>
-          <PinLockModal />
-          <Routes>
+    <ThemeProvider>
+      <AuthProvider>
+        <PinProvider>
+          <BrowserRouter>
+            <PinLockModal />
+            <Routes>
             {/* Public Landing Page & Reports */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LandingPage />} />
@@ -98,6 +101,7 @@ export const App = () => {
         </BrowserRouter>
       </PinProvider>
     </AuthProvider>
+    </ThemeProvider>
   );
 };
 

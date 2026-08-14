@@ -67,32 +67,32 @@ export const PublicAttendanceReport = () => {
   });
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans p-3 sm:p-6 lg:p-8 selection:bg-cyan-500 selection:text-white">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans p-3 sm:p-6 lg:p-8 selection:bg-blue-600 selection:text-white transition-colors duration-200">
       {/* Container */}
       <div className="max-w-6xl mx-auto space-y-6">
 
         {/* 1. BRANDING HEADER */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-slate-900 via-cyan-950/40 to-slate-900 border border-cyan-900/40 rounded-3xl p-6 sm:p-8 shadow-2xl">
-          <div className="absolute top-0 right-0 w-80 h-80 bg-cyan-500/10 blur-[100px] rounded-full pointer-events-none" />
+        <div className="relative overflow-hidden bg-gradient-to-r from-white via-blue-50/50 to-white dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/10 blur-[100px] rounded-full pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-80 h-80 bg-emerald-500/10 blur-[100px] rounded-full pointer-events-none" />
 
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
-                <span className="px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-black uppercase tracking-wider rounded-full flex items-center gap-1.5">
+                <span className="px-3 py-1 bg-blue-50 dark:bg-blue-950/80 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-xs font-bold uppercase tracking-wider rounded-full flex items-center gap-1.5">
                   <ShieldCheck className="w-3.5 h-3.5" />
                   Official Student Report Portal
                 </span>
-                <span className="px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold rounded-full flex items-center gap-1">
+                <span className="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-bold rounded-full flex items-center gap-1">
                   <Sparkles className="w-3 h-3 animate-pulse" />
                   Live Sync
                 </span>
               </div>
 
-              <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
+              <h1 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
                 Student Attendance Overview
               </h1>
-              <p className="text-xs sm:text-sm text-slate-400 max-w-xl leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-xl leading-relaxed">
                 Public Attendance Summary & Trends. Track attendance logs, present rates, and daily schedules for your institute batches.
               </p>
             </div>
