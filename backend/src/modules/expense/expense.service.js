@@ -51,15 +51,16 @@ export const getExpensesService = async ({ page = 1, limit = 50, search, categor
 };
 
 export const createExpenseService = async (data) => {
-  const { title, amount, expenseDate, paymentMode, categoryId, categoryName, remarks, paidTo, createdBy } = data;
+  const { title, amount, expenseDate, paymentMode, categoryId, categoryName, category, remarks, paidTo, vendorName, createdBy } = data;
 
+  const targetCategoryName = categoryName || category;
   let finalCategoryId = categoryId;
-  if (!finalCategoryId && categoryName) {
+  if (!finalCategoryId && targetCategoryName) {
     // Upsert Category
     const cat = await prisma.expenseCategory.upsert({
-      where: { name: categoryName.trim() },
+      where: { name: targetCategoryName.trim() },
       update: {},
-      create: { name: categoryName.trim() },
+      create: { name: targetCategoryName.trim() },
     });
     finalCategoryId = cat.id;
   }
@@ -71,7 +72,7 @@ export const createExpenseService = async (data) => {
       expenseDate: expenseDate ? new Date(expenseDate) : new Date(),
       paymentMode: paymentMode || "CASH",
       categoryId: finalCategoryId || null,
-      paidTo: paidTo || null,
+      paidTo: paidTo || vendorName || null,
       remarks: remarks || null,
       createdBy: createdBy || null,
     },

@@ -15,13 +15,16 @@ import {
 
 const createExpenseSchema = z.object({
   title: z.string().trim().min(2, "Expense title must be at least 2 characters"),
-  category: z.string().trim().min(1, "Category is required"),
+  category: z.string().trim().optional(),
+  categoryId: z.string().trim().optional(),
+  categoryName: z.string().trim().optional(),
   amount: z
     .union([z.string(), z.number()])
     .transform((val) => Number(val))
     .refine((val) => val > 0, { message: "Amount must be greater than 0" }),
   paymentMode: z.string().trim().optional(),
   expenseDate: z.coerce.date().optional(),
+  paidTo: z.string().trim().optional(),
   vendorName: z.string().trim().optional(),
   receiptNumber: z.string().trim().optional(),
   remarks: z.string().trim().optional(),
