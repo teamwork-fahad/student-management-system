@@ -653,7 +653,7 @@ export const AnalyticsDashboard = () => {
             </div>
 
             {/* Summary row */}
-            <div className="mt-5 pt-4 border-t border-slate-800/60 grid grid-cols-3 gap-4 text-center">
+            <div className="mt-5 pt-4 border-t border-slate-200 dark:border-slate-800/60 grid grid-cols-3 gap-4 text-center">
               {[
                 { label: "Total Collected", val: fmtINR(totalRev), color: "#4ade80" },
                 { label: "Outstanding", val: fmtINR(pendingAmt), color: "#fb923c" },

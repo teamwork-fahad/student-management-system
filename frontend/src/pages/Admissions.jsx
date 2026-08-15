@@ -207,7 +207,7 @@ export const Admissions = () => {
   }
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto font-sans">
+    <div className="space-y-6 w-full font-sans">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -230,14 +230,14 @@ export const Admissions = () => {
       )}
 
       {/* Form Container */}
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6 w-full">
         {/* Section 1: Inquiry & Course Selection */}
-        <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+        <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5 w-full">
           <h3 className="text-sm font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-wider flex items-center gap-2">
             <UserCheck className="w-4 h-4" /> 1. Inquiry & Course Mapping
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                 Select Inquiry <span className="text-rose-500">*</span>
@@ -283,19 +283,19 @@ export const Admissions = () => {
                 value={formData.batchId}
                 onChange={handleInputChange}
                 placeholder="e.g. BATCH-2026-A"
-                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
+                className="w-full h-11 px-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none shadow-2xs transition-all"
               />
             </div>
           </div>
         </div>
 
         {/* Section 2: Student Demographic Profile */}
-        <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+        <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5 w-full">
           <h3 className="text-sm font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
             2. Student Personal Information
           </h3>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                 Full Name <span className="text-rose-500">*</span>
@@ -306,7 +306,7 @@ export const Admissions = () => {
                 value={formData.fullName}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
+                className="w-full h-11 px-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none shadow-2xs transition-all"
               />
             </div>
 
@@ -317,7 +317,7 @@ export const Admissions = () => {
                 name="fatherName"
                 value={formData.fatherName}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
+                className="w-full h-11 px-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none shadow-2xs transition-all"
               />
             </div>
 
@@ -328,7 +328,7 @@ export const Admissions = () => {
                 name="motherName"
                 value={formData.motherName}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
+                className="w-full h-11 px-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none shadow-2xs transition-all"
               />
             </div>
 
@@ -338,7 +338,7 @@ export const Admissions = () => {
                 name="gender"
                 value={formData.gender}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
+                className="w-full h-11 px-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none shadow-2xs transition-all"
               >
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
@@ -353,7 +353,7 @@ export const Admissions = () => {
                 name="dob"
                 value={formData.dob}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm cursor-pointer"
+                className="w-full h-11 px-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none shadow-2xs transition-all cursor-pointer"
               />
             </div>
 
@@ -367,7 +367,7 @@ export const Admissions = () => {
                 value={formData.mobile}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
+                className="w-full h-11 px-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none shadow-2xs transition-all"
               />
             </div>
 
@@ -378,7 +378,7 @@ export const Admissions = () => {
                 name="whatsapp"
                 value={formData.whatsapp}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
+                className="w-full h-11 px-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none shadow-2xs transition-all"
               />
             </div>
 
@@ -389,7 +389,7 @@ export const Admissions = () => {
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
+                className="w-full h-11 px-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none shadow-2xs transition-all"
               />
             </div>
 
@@ -399,7 +399,7 @@ export const Admissions = () => {
                 name="studentCategory"
                 value={formData.studentCategory}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
+                className="w-full h-11 px-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none shadow-2xs transition-all"
               >
                 <option value="SCHOOL">SCHOOL</option>
                 <option value="COLLEGE">COLLEGE</option>
@@ -412,12 +412,12 @@ export const Admissions = () => {
         </div>
 
         {/* Section 3: Guardian Details */}
-        <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+        <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5 w-full">
           <h3 className="text-sm font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
             3. Guardian Contact Info
           </h3>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                 Guardian Name <span className="text-rose-500">*</span>
@@ -428,7 +428,7 @@ export const Admissions = () => {
                 value={formData.guardianName}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
+                className="w-full h-11 px-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none shadow-2xs transition-all"
               />
             </div>
 
@@ -442,7 +442,7 @@ export const Admissions = () => {
                 value={formData.guardianMobile}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
+                className="w-full h-11 px-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none shadow-2xs transition-all"
               />
             </div>
 
@@ -452,7 +452,7 @@ export const Admissions = () => {
                 name="guardianRelation"
                 value={formData.guardianRelation}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
+                className="w-full h-11 px-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none shadow-2xs transition-all"
               >
                 <option value="FATHER">FATHER</option>
                 <option value="MOTHER">MOTHER</option>
@@ -466,12 +466,12 @@ export const Admissions = () => {
         </div>
 
         {/* Section 4: Discount & Initial Fee Payment */}
-        <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+        <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5 w-full">
           <h3 className="text-sm font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-wider flex items-center gap-2">
             <CreditCard className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> 4. Fees Discount & Down Payment
           </h3>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Fee Discount (₹)</label>
               <input
@@ -480,7 +480,7 @@ export const Admissions = () => {
                 value={formData.discount}
                 onChange={handleInputChange}
                 min="0"
-                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
+                className="w-full h-11 px-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none shadow-2xs transition-all"
               />
             </div>
 
@@ -492,7 +492,7 @@ export const Admissions = () => {
                 value={formData.paymentAmount}
                 onChange={handleInputChange}
                 min="0"
-                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
+                className="w-full h-11 px-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none shadow-2xs transition-all"
               />
             </div>
 
@@ -504,7 +504,7 @@ export const Admissions = () => {
                 value={formData.paymentDate}
                 onChange={handleInputChange}
                 onClick={(e) => e.target.showPicker?.()}
-                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm cursor-pointer"
+                className="w-full h-11 px-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none shadow-2xs transition-all cursor-pointer"
               />
             </div>
 
@@ -514,7 +514,7 @@ export const Admissions = () => {
                 name="paymentMode"
                 value={formData.paymentMode}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
+                className="w-full h-11 px-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none shadow-2xs transition-all"
               >
                 <option value="CASH">CASH</option>
                 <option value="UPI">UPI</option>
@@ -532,21 +532,21 @@ export const Admissions = () => {
                 value={formData.transactionReference}
                 onChange={handleInputChange}
                 placeholder="e.g. UPI/123456789"
-                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
+                className="w-full h-11 px-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none shadow-2xs transition-all"
               />
             </div>
-          </div>
 
-          <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Admission Remarks</label>
-            <input
-              type="text"
-              name="remarks"
-              value={formData.remarks}
-              onChange={handleInputChange}
-              placeholder="e.g. Scholarship discount approved by Director"
-              className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 text-sm focus:border-blue-500 focus:outline-none shadow-sm"
-            />
+            <div>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Admission Remarks</label>
+              <input
+                type="text"
+                name="remarks"
+                value={formData.remarks}
+                onChange={handleInputChange}
+                placeholder="e.g. Scholarship discount approved by Director"
+                className="w-full h-11 px-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-sm font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none shadow-2xs transition-all"
+              />
+            </div>
           </div>
         </div>
 
@@ -555,7 +555,7 @@ export const Admissions = () => {
           <button
             type="submit"
             disabled={submitting}
-            className="px-8 py-3.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-sm rounded-xl shadow-xl shadow-cyan-950 transition-all flex items-center space-x-2 disabled:opacity-50"
+            className="px-8 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-sm rounded-xl shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-200 flex items-center space-x-2 cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting ? (
               <>
@@ -564,7 +564,7 @@ export const Admissions = () => {
               </>
             ) : (
               <>
-                <Sparkles className="w-5 h-5 text-cyan-200" />
+                <Sparkles className="w-5 h-5 text-blue-200" />
                 <span>Complete Admission Onboarding</span>
               </>
             )}
@@ -579,48 +579,48 @@ export const Admissions = () => {
         title="🎉 Admission Successfully Processed!"
       >
         {successModal && (
-          <div className="space-y-5 text-slate-200">
-            <div className="p-4 rounded-2xl bg-emerald-950/60 border border-emerald-800/80 flex items-center space-x-3 text-emerald-300">
-              <CheckCircle2 className="w-6 h-6 flex-shrink-0 text-emerald-400" />
+          <div className="space-y-5 text-slate-800 dark:text-slate-200">
+            <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 flex items-center space-x-3 text-emerald-800 dark:text-emerald-300">
+              <CheckCircle2 className="w-6 h-6 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
               <div>
                 <p className="font-bold text-sm">Admission & Student Onboarded!</p>
-                <p className="text-xs text-emerald-400/80">
+                <p className="text-xs text-emerald-700 dark:text-emerald-400/80">
                   Transaction committed across Admission, Student, User, and Payment tables.
                 </p>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-950 border border-slate-800">
+            <div className="grid grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
               <div>
-                <span className="text-xs text-slate-400 block uppercase font-semibold">Admission No</span>
-                <span className="text-lg font-black text-cyan-400 font-mono">
+                <span className="text-xs text-slate-500 dark:text-slate-400 block uppercase font-semibold">Admission No</span>
+                <span className="text-lg font-black text-blue-600 dark:text-cyan-400 font-mono">
                   {successModal.admission?.admissionNumber}
                 </span>
               </div>
               <div>
-                <span className="text-xs text-slate-400 block uppercase font-semibold">Generated Student ID</span>
-                <span className="text-lg font-black text-emerald-400 font-mono">
+                <span className="text-xs text-slate-500 dark:text-slate-400 block uppercase font-semibold">Generated Student ID</span>
+                <span className="text-lg font-black text-emerald-600 dark:text-emerald-400 font-mono">
                   {successModal.student?.studentId}
                 </span>
               </div>
               <div>
-                <span className="text-xs text-slate-400 block uppercase font-semibold">Student Name</span>
-                <span className="text-sm font-bold text-slate-100">{successModal.student?.fullName}</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 block uppercase font-semibold">Student Name</span>
+                <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{successModal.student?.fullName}</span>
               </div>
               <div>
-                <span className="text-xs text-slate-400 block uppercase font-semibold">Course</span>
-                <span className="text-sm font-bold text-slate-100">{successModal.admission?.courseNameSnapshot}</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 block uppercase font-semibold">Course</span>
+                <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{successModal.admission?.courseNameSnapshot}</span>
               </div>
             </div>
 
             {successModal.user && (
-              <div className="p-4 rounded-2xl bg-cyan-950/40 border border-cyan-800/40 space-y-1">
-                <p className="text-xs font-bold text-cyan-400 uppercase">Auto-Generated User Account</p>
-                <p className="text-xs text-slate-300">
-                  Email: <span className="font-mono text-white">{successModal.user.email}</span>
+              <div className="p-4 rounded-2xl bg-blue-50 dark:bg-cyan-950/40 border border-blue-200 dark:border-cyan-800/40 space-y-1">
+                <p className="text-xs font-bold text-blue-600 dark:text-cyan-400 uppercase">Auto-Generated User Account</p>
+                <p className="text-xs text-slate-700 dark:text-slate-300">
+                  Email: <span className="font-mono text-slate-900 dark:text-white font-bold">{successModal.user.email}</span>
                 </p>
-                <p className="text-xs text-slate-300">
-                  Initial Password: <span className="font-mono text-cyan-300">{successModal.user.initialPassword}</span>
+                <p className="text-xs text-slate-700 dark:text-slate-300">
+                  Initial Password: <span className="font-mono text-blue-600 dark:text-cyan-300 font-bold">{successModal.user.initialPassword}</span>
                 </p>
               </div>
             )}

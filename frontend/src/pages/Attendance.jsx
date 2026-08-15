@@ -334,7 +334,7 @@ export const Attendance = () => {
         <div className="flex flex-wrap items-center gap-2.5">
           <button
             onClick={handleOpenPublicReport}
-            className="px-4 py-2.5 bg-slate-100 dark:bg-slate-950 hover:bg-slate-200 dark:hover:bg-slate-800 text-blue-600 dark:text-blue-400 border border-slate-200 dark:border-blue-800/60 font-bold text-xs rounded-2xl shadow-sm flex items-center space-x-1.5 transition whitespace-nowrap"
+            className="px-4 py-2.5 bg-slate-100 dark:bg-slate-950 hover:bg-slate-200 dark:hover:bg-slate-800 text-blue-600 dark:text-blue-400 border border-slate-200 dark:border-blue-800/60 font-bold text-xs rounded-2xl shadow-xs flex items-center space-x-1.5 transition cursor-pointer active:scale-95 whitespace-nowrap"
             title="Open 15-Day Public Attendance Report Link"
           >
             <ExternalLink className="w-4 h-4 shrink-0" />
@@ -343,7 +343,7 @@ export const Attendance = () => {
 
           <button
             onClick={handleShareWhatsAppReport}
-            className="px-4 py-2.5 bg-emerald-50 dark:bg-emerald-950 hover:bg-emerald-100 dark:hover:bg-emerald-900 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-bold text-xs rounded-2xl shadow-sm flex items-center space-x-1.5 transition whitespace-nowrap"
+            className="px-4 py-2.5 bg-emerald-50 dark:bg-emerald-950 hover:bg-emerald-100 dark:hover:bg-emerald-900 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-bold text-xs rounded-2xl shadow-xs flex items-center space-x-1.5 transition cursor-pointer active:scale-95 whitespace-nowrap"
             title="Generate & Share WhatsApp Attendance Report"
           >
             <span>💬 WhatsApp Report</span>
@@ -352,7 +352,7 @@ export const Attendance = () => {
           <button
             onClick={handleSaveAttendance}
             disabled={saving || loading || students.length === 0}
-            className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-2xl shadow-lg shadow-emerald-500/20 flex items-center space-x-2 transition disabled:opacity-50 whitespace-nowrap"
+            className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-2xl shadow-md shadow-emerald-500/20 flex items-center space-x-2 transition cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
           >
             <Save className="w-4 h-4 shrink-0" />
             <span>{saving ? "Saving..." : "Save Sheet"}</span>

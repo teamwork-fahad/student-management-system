@@ -15,7 +15,6 @@ import {
   Sparkles,
   ShieldCheck,
   Clock,
-  LogIn,
   LayoutDashboard,
   Sun,
   Moon,
@@ -115,76 +114,56 @@ export const LandingPage = () => {
 
       {/* Glassy Floating Navbar */}
       <div className="sticky top-3 z-40 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <header className="h-15 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800/80 rounded-3xl shadow-lg shadow-slate-900/5 dark:shadow-black/20 flex items-center justify-between px-6">
+        <header className="h-16 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800/80 rounded-2xl shadow-md shadow-slate-900/5 dark:shadow-black/20 flex items-center justify-between px-5 sm:px-6 transition-all duration-300">
 
           {/* Brand Logo */}
-          <div className="flex items-center space-x-3 cursor-pointer" onClick={() => navigate("/")}>
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 p-0.5 shadow-md shadow-blue-500/20">
+          <div className="flex items-center space-x-3.5 cursor-pointer group" onClick={() => navigate("/")}>
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-violet-600 p-0.5 shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform duration-200">
               <div className="w-full h-full bg-white dark:bg-slate-950 rounded-[14px] flex items-center justify-center font-black text-xl text-blue-600 dark:text-blue-400">
                 E
               </div>
             </div>
             <div>
-              <span className="text-xl font-black tracking-tight text-slate-900 dark:text-white block">
+              <span className="text-lg font-black tracking-tight text-slate-900 dark:text-white block group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                 EduMaster
               </span>
-              <span className="text-[10px] uppercase tracking-widest font-extrabold text-blue-600 dark:text-blue-400 block">
+              <span className="text-[10px] uppercase tracking-widest font-extrabold text-blue-600 dark:text-blue-400 block -mt-0.5">
                 Academy Portal
               </span>
             </div>
           </div>
 
-          {/* Quick Nav links */}
+          {/* Quick Nav links with Premium Animated Underline */}
           <nav className="hidden md:flex items-center space-x-8 text-sm font-semibold text-slate-600 dark:text-slate-300">
-            <a href="#hero" className="hover:text-blue-600 dark:hover:text-blue-400 transition">Home</a>
-            <a href="#courses" className="hover:text-blue-600 dark:hover:text-blue-400 transition">Courses</a>
-            <a href="#features" className="hover:text-blue-600 dark:hover:text-blue-400 transition">Features</a>
-            <a href="#inquiry" className="hover:text-blue-600 dark:hover:text-blue-400 transition">Inquiry</a>
+            <a href="#hero" className="group relative py-1 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 cursor-pointer">
+              <span>Home</span>
+              <span className="absolute bottom-0 left-0 w-0 h-[2.5px] bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full transition-all duration-300 ease-out group-hover:w-full" />
+            </a>
+            <a href="#courses" className="group relative py-1 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 cursor-pointer">
+              <span>Courses</span>
+              <span className="absolute bottom-0 left-0 w-0 h-[2.5px] bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full transition-all duration-300 ease-out group-hover:w-full" />
+            </a>
+            <a href="#features" className="group relative py-1 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 cursor-pointer">
+              <span>Features</span>
+              <span className="absolute bottom-0 left-0 w-0 h-[2.5px] bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full transition-all duration-300 ease-out group-hover:w-full" />
+            </a>
+            <a href="#inquiry" className="group relative py-1 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 cursor-pointer">
+              <span>Inquiry</span>
+              <span className="absolute bottom-0 left-0 w-0 h-[2.5px] bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full transition-all duration-300 ease-out group-hover:w-full" />
+            </a>
           </nav>
 
-          {/* Controls & Auth Buttons */}
-          <div className="flex items-center space-x-3">
+          {/* Controls & Theme Toggle */}
+          <div className="flex items-center">
             {/* Theme Toggle Button */}
             <button
+              type="button"
               onClick={toggleTheme}
-              className="p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700/80 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer active:scale-95 shadow-2xs"
               title={`Switch to ${isDark ? "Light" : "Dark"} Mode`}
             >
               {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
             </button>
-
-            {isAuthenticated ? (
-              <button
-                onClick={() => {
-                  if (user?.role === "STUDENT") {
-                    navigate("/student/dashboard");
-                  } else {
-                    requestPinUnlock(() => navigate("/dashboard"));
-                  }
-                }}
-                className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-2xl text-xs font-bold shadow-lg shadow-blue-500/25 flex items-center space-x-2 transition"
-              >
-                <LayoutDashboard className="w-4 h-4" />
-                <span>{user?.role === "STUDENT" ? "Student Portal" : "Admin ERP Dashboard"}</span>
-              </button>
-            ) : (
-              <>
-                <button
-                  onClick={() => openAuth("STUDENT", "login")}
-                  className="px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-2xl transition flex items-center space-x-1.5"
-                >
-                  <LogIn className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                  <span>Student Login</span>
-                </button>
-
-                <button
-                  onClick={() => openAuth("STUDENT", "register")}
-                  className="hidden sm:inline-flex px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-2xl text-xs font-bold shadow-lg shadow-blue-500/25 transition"
-                >
-                  Register Now
-                </button>
-              </>
-            )}
           </div>
         </header>
       </div>

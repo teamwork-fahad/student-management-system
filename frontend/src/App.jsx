@@ -18,23 +18,15 @@ import { Attendance } from "./pages/Attendance";
 import { PublicAttendanceReport } from "./pages/PublicAttendanceReport";
 import { Fees } from "./pages/Fees";
 import { Expenses } from "./pages/Expenses";
+import { AdminLogin } from "./pages/AdminLogin";
 
 import { ThemeProvider } from "./context/ThemeContext";
 
 const AdminProtectedRoute = ({ children }) => {
-  const { isAuthenticated, user } = useAuth();
-  const { isPinUnlocked, requestPinUnlock } = usePin();
+  const { isPinUnlocked } = usePin();
 
-  if (!isAuthenticated) {
-    return <Navigate to="/" replace />;
-  }
-  if (user?.role === "STUDENT") {
-    return <Navigate to="/student/dashboard" replace />;
-  }
-  // If PIN is not unlocked (e.g. direct URL access or auto-lock), redirect to home
-  // The home page will show the PIN modal via requestPinUnlock
   if (!isPinUnlocked) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/adminlogin" replace />;
   }
   return children;
 };
@@ -58,10 +50,11 @@ export const App = () => {
           <BrowserRouter>
             <PinLockModal />
             <Routes>
-            {/* Public Landing Page & Reports */}
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<LandingPage />} />
-            <Route path="/public/attendance" element={<PublicAttendanceReport />} />
+              {/* Public Landing Page, Reports & Admin PIN Login */}
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<LandingPage />} />
+              <Route path="/adminlogin" element={<AdminLogin />} />
+              <Route path="/public/attendance" element={<PublicAttendanceReport />} />
 
 
             {/* Student Portal Protected Route */}

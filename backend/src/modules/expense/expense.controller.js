@@ -14,17 +14,30 @@ import {
 } from "../../utils/cacheHelper.js";
 
 const createExpenseSchema = z.object({
-  title: z.string().trim().min(2, "Expense title must be at least 2 characters"),
-  category: z.string().trim().min(1, "Category is required"),
+  title: z
+    .string({ invalid_type_error: "Expense title must be a string", required_error: "Expense title is required" })
+    .trim()
+    .min(1, "Expense title is required"),
+  category: z.string().trim().nullish(),
+  categoryId: z.string().trim().nullish(),
+  categoryName: z.string().trim().nullish(),
   amount: z
     .union([z.string(), z.number()])
     .transform((val) => Number(val))
-    .refine((val) => val > 0, { message: "Amount must be greater than 0" }),
-  paymentMode: z.string().trim().optional(),
-  expenseDate: z.coerce.date().optional(),
-  vendorName: z.string().trim().optional(),
-  receiptNumber: z.string().trim().optional(),
-  remarks: z.string().trim().optional(),
+    .refine((val) => !isNaN(val) && val > 0, { message: "Amount must be greater than 0" }),
+  paymentMode: z.string().trim().nullish(),
+  expenseDate: z
+    .union([z.string(), z.date()])
+    .nullish()
+    .transform((val) => {
+      if (!val) return new Date();
+      const d = new Date(val);
+      return isNaN(d.getTime()) ? new Date() : d;
+    }),
+  paidTo: z.string().trim().nullish(),
+  vendorName: z.string().trim().nullish(),
+  receiptNumber: z.string().trim().nullish(),
+  remarks: z.string().trim().nullish(),
 });
 
 export const getExpenses = asyncHandler(async (req, res) => {
