@@ -137,6 +137,43 @@ export const AppLayout = () => {
               </Link>
             );
           })}
+
+          {/* Finance Accordion Group */}
+          <div className="pt-2">
+            {(!collapsed || mobileOpen) && (
+              <p className="px-4 text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider mb-1">
+                Finance Module
+              </p>
+            )}
+            <div className="space-y-1">
+              {[
+                { name: "Expense Dashboard", href: "/dashboard/finance/dashboard", icon: LayoutDashboard },
+                { name: "Expenses", href: "/dashboard/expenses", icon: Wallet },
+                { name: "Party (Vendors)", href: "/dashboard/finance/parties", icon: Users },
+                { name: "Recurring Expenses", href: "/dashboard/finance/recurring", icon: Calendar },
+                { name: "Expense Reports", href: "/dashboard/finance/reports", icon: BarChart3 },
+              ].map((subItem) => {
+                const isSubActive = location.pathname === subItem.href;
+                const SubIcon = subItem.icon;
+                return (
+                  <Link
+                    key={subItem.name}
+                    to={subItem.href}
+                    onClick={() => setMobileOpen(false)}
+                    title={collapsed ? subItem.name : undefined}
+                    className={`flex items-center ${collapsed ? "md:justify-center md:px-0" : "px-4"} py-2.5 text-xs font-semibold rounded-2xl transition-all duration-200 cursor-pointer active:scale-[0.98] ${
+                      isSubActive
+                        ? "bg-rose-600 text-white shadow-md shadow-rose-500/25 font-bold"
+                        : "text-slate-600 dark:text-slate-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 dark:hover:text-rose-400"
+                    }`}
+                  >
+                    <SubIcon className={`w-4 h-4 shrink-0 ${isSubActive ? "text-white" : "text-rose-500/80"} ${collapsed ? "md:mr-0" : "mr-3"}`} />
+                    {(!collapsed || mobileOpen) && <span className="truncate">{subItem.name}</span>}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
         </nav>
 
         {/* User Info & Quick Actions Footer */}

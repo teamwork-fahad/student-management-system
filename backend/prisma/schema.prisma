@@ -67,6 +67,8 @@ enum PaymentMode {
   CARD
   BANK_TRANSFER
   CHEQUE
+  BANK
+  OTHER
 }
 
 enum DocumentType {
@@ -372,34 +374,115 @@ model StudentDocument {
 }
 
 model ExpenseCategory {
-  id          String    @id @default(cuid())
-  name        String    @unique
-  type        String?   @default("EXPENSE")
-  description String?
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  expenses    Expense[]
+  id                String             @id @default(cuid())
+  name              String             @unique
+  type              String?            @default("EXPENSE")
+  description       String?
+  isActive          Boolean            @default(true)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  expenses          Expense[]
+  recurringExpenses RecurringExpense[]
+}
+
+model ExpenseParty {
+  id                 String                     @id @default(cuid())
+  name               String
+  contactPerson      String?
+  mobile             String?
+  email              String?
+  address            String?
+  notes              String?
+  status             String                     @default("ACTIVE")
+  createdAt          DateTime                   @default(now())
+  updatedAt          DateTime                   @updatedAt
+  expenses           Expense[]
+  recurringExpenses  RecurringExpense[]
+  recurringInstances RecurringExpenseInstance[]
+
+  @@index([name])
+  @@index([status])
 }
 
 model Expense {
-  id            String           @id @default(cuid())
-  title         String
-  amount        Float
-  expenseDate   DateTime         @default(now())
-  paymentMode   PaymentMode      @default(CASH)
-  categoryId    String?
-  paidTo        String?
-  remarks       String?
-  receiptUrl    String?
-  createdBy     String?
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
-  category      ExpenseCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  id                  String                    @id @default(cuid())
+  expenseNumber       String?                   @unique
+  title               String
+  amount              Float
+  expenseDate         DateTime                  @default(now())
+  paymentMode         PaymentMode               @default(CASH)
+  categoryId          String?
+  partyId             String?
+  paidTo              String?
+  referenceNumber     String?
+  remarks             String?
+  receiptUrl          String?
+  createdBy           String?
+  updatedBy           String?
+  recurringExpenseId  String?
+  recurringInstanceId String?                   @unique
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
 
+  category            ExpenseCategory?          @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  party               ExpenseParty?             @relation(fields: [partyId], references: [id], onDelete: SetNull)
+  recurringExpense    RecurringExpense?         @relation(fields: [recurringExpenseId], references: [id], onDelete: SetNull)
+  recurringInstance   RecurringExpenseInstance? @relation(fields: [recurringInstanceId], references: [id], onDelete: SetNull)
+
+  @@index([expenseNumber])
   @@index([expenseDate])
   @@index([paymentMode])
   @@index([categoryId])
+  @@index([partyId])
+}
+
+model RecurringExpense {
+  id           String                     @id @default(cuid())
+  title        String
+  amount       Float
+  paymentMode  PaymentMode                @default(CASH)
+  frequency    String                     // DAILY, WEEKLY, MONTHLY, QUARTERLY, HALF_YEARLY, YEARLY
+  startDate    DateTime
+  endDate      DateTime?
+  nextDueDate  DateTime
+  reminderDays Int                        @default(3)
+  description  String?
+  status       String                     @default("ACTIVE") // ACTIVE, PAUSED, COMPLETED
+  categoryId   String?
+  partyId      String?
+  createdBy    String?
+  createdAt    DateTime                   @default(now())
+  updatedAt    DateTime                   @updatedAt
+
+  category     ExpenseCategory?           @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  party        ExpenseParty?              @relation(fields: [partyId], references: [id], onDelete: SetNull)
+  instances    RecurringExpenseInstance[]
+  expenses     Expense[]
+
+  @@index([status])
+  @@index([nextDueDate])
+  @@index([categoryId])
+  @@index([partyId])
+}
+
+model RecurringExpenseInstance {
+  id                 String           @id @default(cuid())
+  recurringExpenseId String
+  dueDate            DateTime
+  amount             Float
+  status             String           @default("UPCOMING") // UPCOMING, DUE, OVERDUE, PAID
+  paidDate           DateTime?
+  partyId            String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  recurringExpense   RecurringExpense @relation(fields: [recurringExpenseId], references: [id], onDelete: Cascade)
+  party              ExpenseParty?    @relation(fields: [partyId], references: [id], onDelete: SetNull)
+  expense            Expense?
+
+  @@index([recurringExpenseId])
+  @@index([dueDate])
+  @@index([status])
 }
 
 enum NotificationType {

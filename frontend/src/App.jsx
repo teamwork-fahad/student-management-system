@@ -20,6 +20,13 @@ import { Fees } from "./pages/Fees";
 import { Expenses } from "./pages/Expenses";
 import { AdminLogin } from "./pages/AdminLogin";
 
+// Finance Module Pages
+import { FinanceDashboard } from "./pages/finance/FinanceDashboard";
+import { Parties } from "./pages/finance/Parties";
+import { PartyDetails } from "./pages/finance/PartyDetails";
+import { RecurringExpenses } from "./pages/finance/RecurringExpenses";
+import { ExpenseReports } from "./pages/finance/ExpenseReports";
+
 import { ThemeProvider } from "./context/ThemeContext";
 
 const AdminProtectedRoute = ({ children }) => {
@@ -56,44 +63,48 @@ export const App = () => {
               <Route path="/adminlogin" element={<AdminLogin />} />
               <Route path="/public/attendance" element={<PublicAttendanceReport />} />
 
+              {/* Student Portal Protected Route */}
+              <Route
+                path="/student/dashboard"
+                element={
+                  <StudentProtectedRoute>
+                    <StudentDashboard />
+                  </StudentProtectedRoute>
+                }
+              />
 
-            {/* Student Portal Protected Route */}
-            <Route
-              path="/student/dashboard"
-              element={
-                <StudentProtectedRoute>
-                  <StudentDashboard />
-                </StudentProtectedRoute>
-              }
-            />
+              {/* Admin ERP Layout Routes */}
+              <Route
+                path="/dashboard"
+                element={
+                  <AdminProtectedRoute>
+                    <AppLayout />
+                  </AdminProtectedRoute>
+                }
+              >
+                <Route index element={<Dashboard />} />
+                <Route path="inquiries" element={<Inquiries />} />
+                <Route path="admissions" element={<Admissions />} />
+                <Route path="students" element={<Students />} />
+                <Route path="students/:id" element={<StudentProfilePage />} />
+                <Route path="courses" element={<Courses />} />
+                <Route path="attendance" element={<Attendance />} />
+                <Route path="fees" element={<Fees />} />
+                <Route path="expenses" element={<Expenses />} />
+                <Route path="finance/dashboard" element={<FinanceDashboard />} />
+                <Route path="finance/parties" element={<Parties />} />
+                <Route path="finance/parties/:id" element={<PartyDetails />} />
+                <Route path="finance/recurring" element={<RecurringExpenses />} />
+                <Route path="finance/reports" element={<ExpenseReports />} />
+                <Route path="analytics" element={<AnalyticsDashboard />} />
+              </Route>
 
-            {/* Admin ERP Layout Routes */}
-            <Route
-              path="/dashboard"
-              element={
-                <AdminProtectedRoute>
-                  <AppLayout />
-                </AdminProtectedRoute>
-              }
-            >
-              <Route index element={<Dashboard />} />
-              <Route path="inquiries" element={<Inquiries />} />
-              <Route path="admissions" element={<Admissions />} />
-              <Route path="students" element={<Students />} />
-              <Route path="students/:id" element={<StudentProfilePage />} />
-              <Route path="courses" element={<Courses />} />
-              <Route path="attendance" element={<Attendance />} />
-              <Route path="fees" element={<Fees />} />
-              <Route path="expenses" element={<Expenses />} />
-              <Route path="analytics" element={<AnalyticsDashboard />} />
-            </Route>
-
-            {/* Fallback redirect */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </BrowserRouter>
-      </PinProvider>
-    </AuthProvider>
+              {/* Fallback redirect */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </BrowserRouter>
+        </PinProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 };
