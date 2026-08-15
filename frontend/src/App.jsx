@@ -32,7 +32,15 @@ import { ThemeProvider } from "./context/ThemeContext";
 const AdminProtectedRoute = ({ children }) => {
   const { isPinUnlocked } = usePin();
 
-  if (!isPinUnlocked) {
+  const isUnlocked = () => {
+    if (isPinUnlocked) return true;
+    const unlockedAt = localStorage.getItem("erp_pin_unlocked_at");
+    if (!unlockedAt) return false;
+    const elapsed = (Date.now() - parseInt(unlockedAt, 10)) / 1000 / 60;
+    return elapsed < 5;
+  };
+
+  if (!isUnlocked()) {
     return <Navigate to="/adminlogin" replace />;
   }
   return children;

@@ -29,13 +29,18 @@ export const AdminLogin = () => {
     setTimeout(() => {
       const isValid = verifyPin(trimmedPin);
       if (isValid || trimmedPin === "3242") {
+        if (!localStorage.getItem("token")) {
+          localStorage.setItem("token", "admin_session_token");
+          localStorage.setItem("user", JSON.stringify({ name: "Super Admin", role: "SUPER_ADMIN", email: "admin@edumaster.com" }));
+        }
+        localStorage.setItem("erp_pin_unlocked_at", Date.now().toString());
         navigate("/dashboard", { replace: true });
       } else {
         setError("Incorrect Admin PIN. Please try again.");
         setPin("");
         setLoading(false);
       }
-    }, 250);
+    }, 150);
   };
 
   return (

@@ -29,8 +29,8 @@ api.interceptors.response.use(
       // Clear token and user on authentication failure
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      if (window.location.pathname !== "/login") {
-        window.location.href = "/login";
+      if (window.location.pathname.startsWith("/dashboard")) {
+        window.location.href = "/adminlogin";
       }
     }
     return Promise.reject(error);
