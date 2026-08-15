@@ -14,8 +14,8 @@ export const errorMiddleware = (error, req, res, next) => {
     const fieldName = firstIssue?.path?.filter(Boolean).join(".");
     let msg = firstIssue?.message;
 
-    if (!msg || msg === "Invalid input" || msg === "Required") {
-      msg = fieldName ? `Invalid value provided for field: ${fieldName}` : "Validation failed";
+    if (!msg || msg.startsWith("Invalid input") || msg === "Required") {
+      msg = fieldName ? `Invalid value provided for field '${fieldName}'` : "Validation failed";
     }
 
     return errorResponse(res, msg, 400);

@@ -652,24 +652,24 @@ export const StudentProfilePage = () => {
 
         {/* Row 2: Student Main Avatar, Full Name & Contact Info */}
         <div className="flex items-start space-x-3.5 sm:space-x-4 pt-1">
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-cyan-950 to-slate-950 text-cyan-400 border border-cyan-800 flex items-center justify-center font-black text-xl sm:text-2xl shadow-lg shrink-0">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 dark:from-cyan-950 dark:to-slate-950 text-white dark:text-cyan-400 border border-blue-500/20 dark:border-cyan-800 flex items-center justify-center font-black text-xl sm:text-2xl shadow-lg shrink-0">
             {studentData.fullName[0]?.toUpperCase()}
           </div>
 
           <div className="space-y-1 min-w-0 flex-1">
-            <h1 className="text-lg sm:text-2xl font-black text-white tracking-tight leading-snug break-words">
+            <h1 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-snug break-words">
               {toTitleCase(studentData.fullName)}
             </h1>
 
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400 font-mono">
-              <span className="flex items-center space-x-1 whitespace-nowrap text-slate-300 font-semibold">
-                <Phone className="w-3.5 h-3.5 text-cyan-400 inline shrink-0" />
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-mono">
+              <span className="flex items-center space-x-1 whitespace-nowrap text-slate-700 dark:text-slate-300 font-semibold">
+                <Phone className="w-3.5 h-3.5 text-blue-600 dark:text-cyan-400 inline shrink-0" />
                 <span>{studentData.mobile}</span>
               </span>
 
               {studentData.email && (
-                <span className="flex items-center space-x-1 text-slate-400 truncate">
-                  <Mail className="w-3.5 h-3.5 text-slate-500 inline shrink-0" />
+                <span className="flex items-center space-x-1 text-slate-600 dark:text-slate-400 truncate">
+                  <Mail className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 inline shrink-0" />
                   <span className="truncate">{studentData.email}</span>
                 </span>
               )}

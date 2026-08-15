@@ -86,23 +86,33 @@ export const Expenses = () => {
     e.preventDefault();
     setError("");
 
-    if (!title || !amount || Number(amount) <= 0) {
+    const cleanTitle = (title || "").trim();
+    const parsedAmount = Number(amount);
+
+    if (!cleanTitle || isNaN(parsedAmount) || parsedAmount <= 0) {
       setError("Please enter a valid expense title and amount.");
       return;
     }
 
     setSubmitting(true);
     try {
-      await api.post("/expenses", {
-        title,
-        amount: Number(amount),
-        expenseDate,
-        paymentMode,
-        categoryId: categoryId || undefined,
-        categoryName: !categoryId && newCategoryName ? newCategoryName : undefined,
-        paidTo,
-        remarks,
-      });
+      const payload = {
+        title: cleanTitle,
+        amount: parsedAmount,
+        expenseDate: expenseDate || new Date().toISOString().split("T")[0],
+        paymentMode: paymentMode || "CASH",
+      };
+
+      if (categoryId) {
+        payload.categoryId = categoryId;
+      } else if (newCategoryName.trim()) {
+        payload.categoryName = newCategoryName.trim();
+      }
+
+      if (paidTo.trim()) payload.paidTo = paidTo.trim();
+      if (remarks.trim()) payload.remarks = remarks.trim();
+
+      await api.post("/expenses", payload);
 
       setIsModalOpen(false);
       setTitle("");
@@ -422,42 +432,42 @@ export const Expenses = () => {
 
       {/* ADD EXPENSE MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0f172a]/45 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
-          <div className="w-full max-w-[480px] max-h-[calc(100vh-24px)] overflow-y-auto bg-white border border-[#E2E8F0] rounded-[16px] p-5 sm:p-6 space-y-4 shadow-[0_20px_50px_rgba(15,23,42,0.18)] text-[#0F172A] my-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
-              <h3 className="text-base font-bold text-[#0F172A]">Record New Expense</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto">
+          <div className="w-full max-w-[480px] max-h-[calc(100vh-24px)] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-6 space-y-4 shadow-2xl text-slate-900 dark:text-white my-auto font-sans">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">Record New Expense</h3>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="text-[#94A3B8] hover:text-[#0F172A] transition p-1 rounded-lg hover:bg-[#F1F5F9]"
+                className="text-slate-400 hover:text-slate-900 dark:hover:text-white transition p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {error && (
-              <div className="p-3 bg-[#FFF1F2] border border-[#FECDD3] text-[#BE123C] rounded-[10px] text-xs flex items-center space-x-2">
-                <AlertCircle className="w-4 h-4 text-[#E11D48] shrink-0" />
+              <div className="p-3 bg-rose-50 dark:bg-rose-950/80 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 rounded-2xl text-xs flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
             <form onSubmit={handleCreateExpense} className="space-y-3.5 text-xs">
               <div>
-                <label className="block font-semibold text-[#334155] mb-1">Expense Title / Description *</label>
+                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Expense Title / Description *</label>
                 <input
                   type="text"
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g. Office Rent, Electricity Bill, Lab Assets"
-                  className="w-full h-[40px] px-3 bg-white border border-[#CBD5E1] rounded-[9px] text-[#0F172A] text-xs outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder-[#94A3B8] font-medium"
+                  className="w-full h-[40px] px-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-xs outline-none focus:border-rose-500 placeholder-slate-400 font-medium"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-[#334155] mb-1">Amount (₹) *</label>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Amount (₹) *</label>
                   <input
                     type="number"
                     required
@@ -465,16 +475,16 @@ export const Expenses = () => {
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     placeholder="Enter amount"
-                    className="w-full h-[40px] px-3 bg-white border border-[#CBD5E1] rounded-[9px] text-[#0F172A] text-xs outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder-[#94A3B8] font-bold"
+                    className="w-full h-[40px] px-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-xs outline-none focus:border-rose-500 placeholder-slate-400 font-bold"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-[#334155] mb-1">Payment Mode</label>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Payment Mode</label>
                   <select
                     value={paymentMode}
                     onChange={(e) => setPaymentMode(e.target.value)}
-                    className="w-full h-[40px] px-3 bg-white border border-[#CBD5E1] rounded-[9px] text-[#0F172A] text-xs outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 font-medium cursor-pointer"
+                    className="w-full h-[40px] px-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-xs outline-none focus:border-rose-500 font-medium cursor-pointer"
                   >
                     <option value="CASH">CASH</option>
                     <option value="UPI">UPI / GPAY</option>
@@ -486,79 +496,79 @@ export const Expenses = () => {
               </div>
 
               <div>
-                <label className="block font-semibold text-[#334155] mb-1">Expense Category</label>
+                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Expense Category</label>
                 <select
                   value={categoryId}
                   onChange={(e) => setCategoryId(e.target.value)}
-                  className="w-full h-[40px] px-3 bg-white border border-[#CBD5E1] rounded-[9px] text-[#0F172A] text-xs outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 font-medium cursor-pointer"
+                  className="w-full h-[40px] px-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-xs outline-none focus:border-rose-500 font-medium cursor-pointer"
                 >
                   <option value="">Select Existing Category...</option>
                   {categories.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
+                    <option key={c.id} value={c.id} className="bg-white dark:bg-slate-950">{c.name}</option>
                   ))}
                 </select>
               </div>
 
               {!categoryId && (
                 <div>
-                  <label className="block font-semibold text-[#334155] mb-1">Or Create New Category</label>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Or Create New Category</label>
                   <input
                     type="text"
                     value={newCategoryName}
                     onChange={(e) => setNewCategoryName(e.target.value)}
                     placeholder="e.g. Marketing & Ads"
-                    className="w-full h-[40px] px-3 bg-white border border-[#CBD5E1] rounded-[9px] text-[#0F172A] text-xs outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder-[#94A3B8] font-medium"
+                    className="w-full h-[40px] px-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-xs outline-none focus:border-rose-500 placeholder-slate-400 font-medium"
                   />
                 </div>
               )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-[#334155] mb-1">Expense Date</label>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Expense Date</label>
                   <input
                     type="date"
                     value={expenseDate}
                     onChange={(e) => setExpenseDate(e.target.value)}
                     onClick={(e) => e.target.showPicker?.()}
-                    className="w-full h-[40px] px-3 bg-white border border-[#CBD5E1] rounded-[9px] text-[#0F172A] text-xs outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 font-medium cursor-pointer"
+                    className="w-full h-[40px] px-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-xs outline-none focus:border-rose-500 font-medium cursor-pointer"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-[#334155] mb-1">Paid To (Person / Vendor)</label>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Paid To (Person / Vendor)</label>
                   <input
                     type="text"
                     value={paidTo}
                     onChange={(e) => setPaidTo(e.target.value)}
                     placeholder="Vendor / Payee Name"
-                    className="w-full h-[40px] px-3 bg-white border border-[#CBD5E1] rounded-[9px] text-[#0F172A] text-xs outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder-[#94A3B8] font-medium"
+                    className="w-full h-[40px] px-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-xs outline-none focus:border-rose-500 placeholder-slate-400 font-medium"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-semibold text-[#334155] mb-1">Remarks / Voucher Note</label>
+                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Remarks / Voucher Note</label>
                 <input
                   type="text"
                   value={remarks}
                   onChange={(e) => setRemarks(e.target.value)}
                   placeholder="Voucher or invoice note..."
-                  className="w-full h-[40px] px-3 bg-white border border-[#CBD5E1] rounded-[9px] text-[#0F172A] text-xs outline-none focus:border-[#2563EB] focus:ring-3 focus:ring-[#2563EB]/10 placeholder-[#94A3B8] font-medium"
+                  className="w-full h-[40px] px-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-xs outline-none focus:border-rose-500 placeholder-slate-400 font-medium"
                 />
               </div>
 
-              <div className="flex justify-end space-x-2 pt-3 border-t border-[#E2E8F0]">
+              <div className="flex justify-end space-x-2 pt-3 border-t border-slate-200 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0] rounded-[8px] font-semibold text-xs transition cursor-pointer"
+                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold text-xs transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 bg-[#E11D48] hover:bg-[#BE123C] text-white rounded-[8px] font-bold text-xs shadow-xs transition disabled:opacity-50 cursor-pointer"
+                  className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl font-bold text-xs shadow-md transition disabled:opacity-50 cursor-pointer"
                 >
                   {submitting ? "Saving..." : "Record Expense"}
                 </button>
