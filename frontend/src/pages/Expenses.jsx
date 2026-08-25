@@ -15,15 +15,18 @@ import {
   AlertCircle,
   X,
   Tag,
+  Building2,
 } from "lucide-react";
 
 export const Expenses = () => {
   const [expenses, setExpenses] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [parties, setParties] = useState([]);
   const [stats, setStats] = useState({ totalExpense: 0, totalCount: 0, categoryStats: {}, monthlyStats: {} });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedParty, setSelectedParty] = useState("");
 
   // View Mode: 'table' | 'grid'
   const [viewMode, setViewMode] = useState("table");
@@ -43,29 +46,33 @@ export const Expenses = () => {
   const [expenseDate, setExpenseDate] = useState(new Date().toISOString().split("T")[0]);
   const [paymentMode, setPaymentMode] = useState("CASH");
   const [categoryId, setCategoryId] = useState("");
+  const [partyId, setPartyId] = useState("");
   const [newCategoryName, setNewCategoryName] = useState("");
   const [paidTo, setPaidTo] = useState("");
+  const [referenceNumber, setReferenceNumber] = useState("");
   const [remarks, setRemarks] = useState("");
 
   useEffect(() => {
     fetchExpenses();
     fetchStats();
-  }, [selectedCategory]);
+  }, [selectedCategory, selectedParty]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, selectedCategory]);
+  }, [search, selectedCategory, selectedParty]);
 
   const fetchExpenses = async () => {
     setLoading(true);
     try {
       const params = { limit: 100 };
       if (selectedCategory) params.categoryId = selectedCategory;
+      if (selectedParty) params.partyId = selectedParty;
 
       const res = await api.get("/expenses", { params });
       const data = res.data?.data;
       setExpenses(data?.expenses || []);
       setCategories(data?.categories || []);
+      setParties(data?.parties || []);
     } catch (err) {
       console.error("Fetch expenses error:", err);
     } finally {
@@ -109,7 +116,9 @@ export const Expenses = () => {
         payload.categoryName = newCategoryName.trim();
       }
 
+      if (partyId) payload.partyId = partyId;
       if (paidTo.trim()) payload.paidTo = paidTo.trim();
+      if (referenceNumber.trim()) payload.referenceNumber = referenceNumber.trim();
       if (remarks.trim()) payload.remarks = remarks.trim();
 
       await api.post("/expenses", payload);
@@ -119,7 +128,9 @@ export const Expenses = () => {
       setAmount("");
       setRemarks("");
       setPaidTo("");
+      setReferenceNumber("");
       setCategoryId("");
+      setPartyId("");
       setNewCategoryName("");
 
       fetchExpenses();
@@ -145,8 +156,11 @@ export const Expenses = () => {
   const filteredExpenses = expenses.filter(
     (e) =>
       e.title.toLowerCase().includes(search.toLowerCase()) ||
+      (e.expenseNumber || "").toLowerCase().includes(search.toLowerCase()) ||
       (e.remarks || "").toLowerCase().includes(search.toLowerCase()) ||
-      (e.paidTo || "").toLowerCase().includes(search.toLowerCase())
+      (e.paidTo || "").toLowerCase().includes(search.toLowerCase()) ||
+      (e.party?.name || "").toLowerCase().includes(search.toLowerCase()) ||
+      (e.referenceNumber || "").toLowerCase().includes(search.toLowerCase())
   );
 
   // Pagination calculation
@@ -157,12 +171,14 @@ export const Expenses = () => {
   const paginatedExpenses = filteredExpenses.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
-    <div className="space-y-6 font-sans">
+    <div className="space-y-6 font-sans pb-10">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">Expense Management ERP</h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Track institute operational expenses, vendor payments, and monthly outflows.</p>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+            <Wallet className="w-7 h-7 text-rose-600 dark:text-rose-400" /> Expense Transactions
+          </h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Track institute operational expenses, vendor payments, and voucher records.</p>
         </div>
 
         <div className="flex items-center space-x-2 sm:space-x-3 flex-wrap gap-y-2">
@@ -172,7 +188,7 @@ export const Expenses = () => {
               type="button"
               onClick={() => setViewMode("table")}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition ${
-                viewMode === "table" ? "bg-blue-600 text-white shadow-md shadow-blue-500/20" : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                viewMode === "table" ? "bg-rose-600 text-white shadow-md shadow-rose-500/20" : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
               title="Table List View"
             >
@@ -183,7 +199,7 @@ export const Expenses = () => {
               type="button"
               onClick={() => setViewMode("grid")}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition ${
-                viewMode === "grid" ? "bg-blue-600 text-white shadow-md shadow-blue-500/20" : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                viewMode === "grid" ? "bg-rose-600 text-white shadow-md shadow-rose-500/20" : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
               title="Grid Cards View"
             >
@@ -194,7 +210,7 @@ export const Expenses = () => {
 
           <button
             onClick={() => setIsModalOpen(true)}
-            className="px-4 py-2.5 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-bold text-xs rounded-2xl shadow-lg shadow-rose-500/20 flex items-center space-x-2 transition whitespace-nowrap"
+            className="px-4 py-2.5 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-bold text-xs rounded-2xl shadow-lg shadow-rose-500/20 flex items-center space-x-2 transition whitespace-nowrap cursor-pointer"
           >
             <PlusCircle className="w-4 h-4 shrink-0" />
             <span>Add New Expense</span>
@@ -206,12 +222,12 @@ export const Expenses = () => {
       <div className="grid grid-cols-1 min-[420px]:grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 sm:p-5 rounded-3xl shadow-sm">
           <span className="text-[11px] uppercase font-bold text-rose-600 dark:text-rose-400 block mb-1 whitespace-nowrap">Total Expenses Recorded</span>
-          <span className="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400 whitespace-nowrap">₹{Number(stats.totalExpense || 0).toLocaleString("en-IN")}</span>
+          <span className="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400 whitespace-nowrap">₹{Number(stats.summary?.totalExpense || stats.totalExpense || 0).toLocaleString("en-IN")}</span>
         </div>
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 sm:p-5 rounded-3xl shadow-sm">
           <span className="text-[11px] uppercase font-bold text-blue-600 dark:text-blue-400 block mb-1 whitespace-nowrap">Total Expense Transactions</span>
-          <span className="text-lg sm:text-xl font-black text-slate-900 dark:text-white whitespace-nowrap">{stats.totalCount || 0} Records</span>
+          <span className="text-lg sm:text-xl font-black text-slate-900 dark:text-white whitespace-nowrap">{stats.summary?.totalCount || stats.totalCount || 0} Records</span>
         </div>
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 sm:p-5 rounded-3xl shadow-sm col-span-1 min-[420px]:col-span-2 sm:col-span-1">
@@ -230,23 +246,39 @@ export const Expenses = () => {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by expense title, paid to, or remarks..."
+            placeholder="Search by Expense ID (EXP-000001), title, party, or reference..."
             className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs font-medium text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:border-rose-500 outline-none shadow-sm"
           />
         </div>
 
-        <div className="flex items-center space-x-2 w-full sm:w-auto bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 px-4 py-2.5 rounded-2xl text-xs shadow-sm">
-          <Filter className="w-4 h-4 text-slate-400 shrink-0" />
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full sm:w-auto bg-transparent border-none text-xs font-bold text-slate-900 dark:text-slate-200 outline-none cursor-pointer truncate"
-          >
-            <option value="" className="bg-white dark:bg-slate-950">All Categories</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id} className="bg-white dark:bg-slate-950">{c.name}</option>
-            ))}
-          </select>
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto">
+          <div className="flex items-center space-x-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 px-3 py-2.5 rounded-2xl text-xs shadow-sm flex-1 sm:flex-none">
+            <Filter className="w-4 h-4 text-slate-400 shrink-0" />
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="bg-transparent border-none text-xs font-bold text-slate-900 dark:text-slate-200 outline-none cursor-pointer truncate"
+            >
+              <option value="" className="bg-white dark:bg-slate-950">All Categories</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id} className="bg-white dark:bg-slate-950">{c.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex items-center space-x-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 px-3 py-2.5 rounded-2xl text-xs shadow-sm flex-1 sm:flex-none">
+            <Building2 className="w-4 h-4 text-slate-400 shrink-0" />
+            <select
+              value={selectedParty}
+              onChange={(e) => setSelectedParty(e.target.value)}
+              className="bg-transparent border-none text-xs font-bold text-slate-900 dark:text-slate-200 outline-none cursor-pointer truncate"
+            >
+              <option value="" className="bg-white dark:bg-slate-950">All Parties</option>
+              {parties.map((p) => (
+                <option key={p.id} value={p.id} className="bg-white dark:bg-slate-950">{p.name}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -259,14 +291,16 @@ export const Expenses = () => {
         ) : viewMode === "table" ? (
           /* TABLE LIST VIEW */
           <div className="overflow-x-auto border border-slate-200 dark:border-slate-800/80 rounded-2xl">
-            <table className="w-full text-left text-xs min-w-[750px]">
+            <table className="w-full text-left text-xs min-w-[850px]">
               <thead className="bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-200 dark:border-slate-800">
                 <tr>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Expense ID</th>
                   <th className="py-3.5 px-4 whitespace-nowrap">Date</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap">Expense Title</th>
                   <th className="py-3.5 px-4 whitespace-nowrap">Category</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Party / Payee</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Title / Remarks</th>
                   <th className="py-3.5 px-4 whitespace-nowrap">Mode</th>
-                  <th className="py-3.5 px-4 whitespace-nowrap">Paid To / Remarks</th>
+                  <th className="py-3.5 px-4 whitespace-nowrap">Reference</th>
                   <th className="py-3.5 px-4 text-right whitespace-nowrap">Amount</th>
                   <th className="py-3.5 px-4 text-center whitespace-nowrap">Action</th>
                 </tr>
@@ -274,24 +308,31 @@ export const Expenses = () => {
               <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
                 {paginatedExpenses.map((exp) => (
                   <tr key={exp.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition">
+                    <td className="py-3.5 px-4 font-mono font-bold text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                      {exp.expenseNumber || `EXP-${exp.id.slice(-6).toUpperCase()}`}
+                    </td>
                     <td className="py-3.5 px-4 text-slate-500 dark:text-slate-400 font-mono whitespace-nowrap">
                       {formatDate(exp.expenseDate)}
-                    </td>
-                    <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white whitespace-nowrap">
-                      {exp.title}
                     </td>
                     <td className="py-3.5 px-4 whitespace-nowrap">
                       <span className="px-2 py-0.5 bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 rounded font-semibold text-[10px]">
                         {exp.category?.name || "General"}
                       </span>
                     </td>
+                    <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white whitespace-nowrap">
+                      {exp.party?.name || exp.paidTo || "N/A"}
+                    </td>
+                    <td className="py-3.5 px-4 text-slate-600 dark:text-slate-400 truncate max-w-xs whitespace-nowrap">
+                      <div className="font-semibold text-slate-900 dark:text-white">{exp.title}</div>
+                      {exp.remarks && <div className="text-[10px] text-slate-400 truncate">{exp.remarks}</div>}
+                    </td>
                     <td className="py-3.5 px-4 whitespace-nowrap">
                       <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded font-bold uppercase text-[10px]">
                         {exp.paymentMode || "CASH"}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-slate-500 dark:text-slate-400 truncate max-w-xs whitespace-nowrap">
-                      {exp.paidTo ? `Paid to ${exp.paidTo} - ` : ""}{exp.remarks || "N/A"}
+                    <td className="py-3.5 px-4 font-mono text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                      {exp.referenceNumber || "—"}
                     </td>
                     <td className="py-3.5 px-4 text-right font-extrabold text-rose-600 dark:text-rose-400 text-sm whitespace-nowrap">
                       ₹{Number(exp.amount).toLocaleString("en-IN")}
@@ -316,14 +357,14 @@ export const Expenses = () => {
             {paginatedExpenses.map((exp) => (
               <div
                 key={exp.id}
-                className="card h-full flex flex-col bg-white dark:bg-slate-950/80 border border-[#E2E8F0] dark:border-slate-800 rounded-[12px] p-[14px] shadow-[0_2px_6px_rgba(15,23,42,0.04)] hover:-translate-y-[2px] hover:shadow-[0_6px_16px_rgba(15,23,42,0.08)] transition-all duration-200 ease-in-out"
+                className="card h-full flex flex-col bg-white dark:bg-slate-950/80 border border-[#E2E8F0] dark:border-slate-800 rounded-[12px] p-[14px] shadow-sm hover:-translate-y-[2px] transition-all"
               >
                 <div className="card-header flex items-center justify-between">
+                  <span className="font-mono font-bold text-xs text-blue-600 dark:text-blue-400">
+                    {exp.expenseNumber || `EXP-${exp.id.slice(-6).toUpperCase()}`}
+                  </span>
                   <span className="px-2 py-0.5 bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 rounded font-semibold text-[10px]">
                     {exp.category?.name || "General"}
-                  </span>
-                  <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded font-bold uppercase text-[10px]">
-                    {exp.paymentMode || "CASH"}
                   </span>
                 </div>
 
@@ -334,6 +375,12 @@ export const Expenses = () => {
                       Date: {formatDate(exp.expenseDate)}
                     </p>
                   </div>
+
+                  {(exp.party?.name || exp.paidTo) && (
+                    <p className="text-xs text-slate-600 dark:text-slate-300 font-semibold">
+                      Paid to: {exp.party?.name || exp.paidTo}
+                    </p>
+                  )}
 
                   {exp.remarks && (
                     <p className="text-xs text-slate-500 dark:text-slate-400 italic break-words">"{exp.remarks}"</p>
@@ -357,29 +404,13 @@ export const Expenses = () => {
           </div>
         )}
 
-        {/* PAGINATION CONTROLS BAR (10 EXPENSES PER PAGE) */}
+        {/* PAGINATION CONTROLS */}
         {filteredExpenses.length > 0 && (
           <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600 dark:text-slate-400 font-medium">
-            <div className="flex flex-wrap items-center gap-2">
-              <span>Show</span>
-              <select
-                value={itemsPerPage}
-                onChange={(e) => {
-                  setItemsPerPage(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-2.5 py-1 font-bold focus:outline-none focus:border-rose-500 cursor-pointer shadow-sm"
-              >
-                <option value={10}>10 expenses per page</option>
-                <option value={20}>20 expenses per page</option>
-                <option value={50}>50 expenses per page</option>
-                <option value={100}>100 expenses per page</option>
-              </select>
-              <span>
-                Showing <strong className="text-slate-900 dark:text-white">{indexOfFirstItem + 1}</strong> to{" "}
-                <strong className="text-slate-900 dark:text-white">{Math.min(indexOfLastItem, filteredExpenses.length)}</strong> of{" "}
-                <strong className="text-rose-600 dark:text-rose-400">{filteredExpenses.length}</strong> expenses
-              </span>
+            <div>
+              Showing <strong className="text-slate-900 dark:text-white">{indexOfFirstItem + 1}</strong> to{" "}
+              <strong className="text-slate-900 dark:text-white">{Math.min(indexOfLastItem, filteredExpenses.length)}</strong> of{" "}
+              <strong className="text-rose-600 dark:text-rose-400">{filteredExpenses.length}</strong> expenses
             </div>
 
             <div className="flex items-center space-x-1.5">
@@ -387,7 +418,7 @@ export const Expenses = () => {
                 type="button"
                 disabled={validCurrentPage === 1}
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                className="px-3 py-1.5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-rose-500 font-bold transition disabled:opacity-40 disabled:hover:border-slate-200 dark:disabled:hover:border-slate-800 disabled:hover:text-slate-500 cursor-pointer shadow-sm"
+                className="px-3 py-1.5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-300 hover:border-rose-500 font-bold transition disabled:opacity-40"
               >
                 ◀ Prev
               </button>
@@ -395,33 +426,27 @@ export const Expenses = () => {
               <div className="flex items-center space-x-1">
                 {Array.from({ length: totalPages }, (_, i) => i + 1)
                   .filter((p) => p === 1 || p === totalPages || Math.abs(p - validCurrentPage) <= 1)
-                  .map((p, idx, arr) => {
-                    const prevP = arr[idx - 1];
-                    const showEllipsis = prevP && p - prevP > 1;
-                    return (
-                      <React.Fragment key={p}>
-                        {showEllipsis && <span className="px-1 text-slate-600 font-bold">...</span>}
-                        <button
-                          type="button"
-                          onClick={() => setCurrentPage(p)}
-                          className={`px-3 py-1.5 rounded-xl font-extrabold text-xs transition cursor-pointer ${
-                            p === validCurrentPage
-                              ? "bg-rose-600 text-white shadow"
-                              : "bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white shadow-sm"
-                          }`}
-                        >
-                          {p}
-                        </button>
-                      </React.Fragment>
-                    );
-                  })}
+                  .map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setCurrentPage(p)}
+                      className={`px-3 py-1.5 rounded-xl font-extrabold text-xs transition ${
+                        p === validCurrentPage
+                          ? "bg-rose-600 text-white shadow"
+                          : "bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
               </div>
 
               <button
                 type="button"
-                disabled={validCurrentPage >= totalPages}
+                disabled={validCurrentPage === totalPages}
                 onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                className="px-3 py-1.5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-rose-500 font-bold transition disabled:opacity-40 disabled:hover:border-slate-200 dark:disabled:hover:border-slate-800 disabled:hover:text-slate-500 cursor-pointer shadow-sm"
+                className="px-3 py-1.5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-300 hover:border-rose-500 font-bold transition disabled:opacity-40"
               >
                 Next ▶
               </button>
@@ -433,7 +458,7 @@ export const Expenses = () => {
       {/* ADD EXPENSE MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 dark:bg-slate-950/80 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto">
-          <div className="w-full max-w-[480px] max-h-[calc(100vh-24px)] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-6 space-y-4 shadow-2xl text-slate-900 dark:text-white my-auto font-sans">
+          <div className="w-full max-w-[500px] max-h-[calc(100vh-24px)] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 sm:p-6 space-y-4 shadow-2xl text-slate-900 dark:text-white my-auto font-sans">
             <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
               <h3 className="text-base font-bold text-slate-900 dark:text-white">Record New Expense</h3>
               <button
@@ -495,18 +520,34 @@ export const Expenses = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Expense Category</label>
-                <select
-                  value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
-                  className="w-full h-[40px] px-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-xs outline-none focus:border-rose-500 font-medium cursor-pointer"
-                >
-                  <option value="">Select Existing Category...</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id} className="bg-white dark:bg-slate-950">{c.name}</option>
-                  ))}
-                </select>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Select Party (Vendor)</label>
+                  <select
+                    value={partyId}
+                    onChange={(e) => setPartyId(e.target.value)}
+                    className="w-full h-[40px] px-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-xs outline-none focus:border-rose-500 font-medium cursor-pointer"
+                  >
+                    <option value="">Select Existing Party...</option>
+                    {parties.map((p) => (
+                      <option key={p.id} value={p.id} className="bg-white dark:bg-slate-950">{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Expense Category</label>
+                  <select
+                    value={categoryId}
+                    onChange={(e) => setCategoryId(e.target.value)}
+                    className="w-full h-[40px] px-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-xs outline-none focus:border-rose-500 font-medium cursor-pointer"
+                  >
+                    <option value="">Select Existing Category...</option>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id} className="bg-white dark:bg-slate-950">{c.name}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               {!categoryId && (
@@ -535,15 +576,26 @@ export const Expenses = () => {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Paid To (Person / Vendor)</label>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Reference / Invoice #</label>
                   <input
                     type="text"
-                    value={paidTo}
-                    onChange={(e) => setPaidTo(e.target.value)}
-                    placeholder="Vendor / Payee Name"
+                    value={referenceNumber}
+                    onChange={(e) => setReferenceNumber(e.target.value)}
+                    placeholder="Invoice or UTR reference"
                     className="w-full h-[40px] px-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-xs outline-none focus:border-rose-500 placeholder-slate-400 font-medium"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Paid To (If not selecting a party)</label>
+                <input
+                  type="text"
+                  value={paidTo}
+                  onChange={(e) => setPaidTo(e.target.value)}
+                  placeholder="Vendor / Payee Name"
+                  className="w-full h-[40px] px-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-xs outline-none focus:border-rose-500 placeholder-slate-400 font-medium"
+                />
               </div>
 
               <div>
@@ -580,3 +632,5 @@ export const Expenses = () => {
     </div>
   );
 };
+
+export default Expenses;

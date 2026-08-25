@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   getExpensesService,
   createExpenseService,
+  updateExpenseService,
   deleteExpenseService,
   getExpenseStatsService,
 } from "./expense.service.js";
@@ -21,6 +22,7 @@ const createExpenseSchema = z.object({
   category: z.string().trim().nullish(),
   categoryId: z.string().trim().nullish(),
   categoryName: z.string().trim().nullish(),
+  partyId: z.string().trim().nullish(),
   amount: z
     .union([z.string(), z.number()])
     .transform((val) => Number(val))
@@ -36,13 +38,14 @@ const createExpenseSchema = z.object({
     }),
   paidTo: z.string().trim().nullish(),
   vendorName: z.string().trim().nullish(),
-  receiptNumber: z.string().trim().nullish(),
+  referenceNumber: z.string().trim().nullish(),
   remarks: z.string().trim().nullish(),
+  receiptUrl: z.string().trim().nullish(),
 });
 
 export const getExpenses = asyncHandler(async (req, res) => {
   const cacheKey = buildCacheKey("sms:expenses:list", req.query);
-  const result = await fetchWithCache(cacheKey, 60, () => getExpensesService(req.query));
+  const result = await fetchWithCache(cacheKey, 30, () => getExpensesService(req.query));
   return successResponse(res, "Expenses fetched successfully", result, 200);
 });
 
@@ -58,6 +61,17 @@ export const createExpense = asyncHandler(async (req, res) => {
   return successResponse(res, "Expense recorded successfully", expense, 201);
 });
 
+export const updateExpense = asyncHandler(async (req, res) => {
+  const expense = await updateExpenseService(req.params.id, {
+    ...req.body,
+    updatedBy: req.user?.id,
+  });
+
+  await clearCachePatterns(["sms:expenses:*"]);
+
+  return successResponse(res, "Expense updated successfully", expense, 200);
+});
+
 export const deleteExpense = asyncHandler(async (req, res) => {
   await deleteExpenseService(req.params.id);
 
@@ -68,6 +82,6 @@ export const deleteExpense = asyncHandler(async (req, res) => {
 
 export const getExpenseStats = asyncHandler(async (req, res) => {
   const cacheKey = "sms:expenses:stats";
-  const stats = await fetchWithCache(cacheKey, 60, () => getExpenseStatsService());
+  const stats = await fetchWithCache(cacheKey, 30, () => getExpenseStatsService());
   return successResponse(res, "Expense statistics fetched successfully", stats, 200);
 });
