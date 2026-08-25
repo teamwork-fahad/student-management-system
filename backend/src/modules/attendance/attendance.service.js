@@ -639,7 +639,8 @@ _Sent via Student Management System_`;
         attendanceRate,
       },
       text,
-      whatsappUrl: `https://wa.me/?text=${encodedText}`,
+      whatsappUrl: `https://api.whatsapp.com/send?text=${encodedText}`,
+      webWhatsappUrl: `https://web.whatsapp.com/send?text=${encodedText}`,
       apiWhatsappUrl: `whatsapp://send?text=${encodedText}`,
     };
   } catch (err) {

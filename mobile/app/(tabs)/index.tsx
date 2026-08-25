@@ -87,7 +87,7 @@ export default function AttendanceActiveScreen() {
     const cleanNum = mobile.replace(/\D/g, '');
     const numWithCode = cleanNum.length === 10 ? `91${cleanNum}` : cleanNum;
     const text = `Hello ${name}, Greetings from SMS!`;
-    const url = `https://wa.me/${numWithCode}?text=${encodeURIComponent(text)}`;
+    const url = `https://api.whatsapp.com/send?phone=${numWithCode}&text=${encodeURIComponent(text)}`;
     Linking.openURL(url).catch(() => Alert.alert('Error', 'Unable to open WhatsApp.'));
   };
 
@@ -155,7 +155,7 @@ export default function AttendanceActiveScreen() {
         try {
           await Linking.openURL(whatsappUrl);
         } catch {
-          await Linking.openURL(`https://wa.me/?text=${encodeURIComponent(text)}`);
+          await Linking.openURL(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`);
         }
       }
     } catch (err: any) {
@@ -173,7 +173,7 @@ export default function AttendanceActiveScreen() {
         try {
           await Linking.openURL(whatsappUrl);
         } catch {
-          await Linking.openURL(`https://wa.me/?text=${encodeURIComponent(text)}`);
+          await Linking.openURL(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`);
         }
       }
     } catch (err: any) {

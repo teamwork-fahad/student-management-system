@@ -428,7 +428,14 @@ _Student Management System_`;
     mobile: student.mobile,
     pendingAmount,
     text,
-    whatsappUrl: formattedMobile ? `https://wa.me/${formattedMobile}?text=${encodedText}` : `https://wa.me/?text=${encodedText}`,
-    apiWhatsappUrl: formattedMobile ? `whatsapp://send?phone=${formattedMobile}&text=${encodedText}` : `whatsapp://send?text=${encodedText}`,
+    whatsappUrl: formattedMobile
+      ? `https://api.whatsapp.com/send?phone=${formattedMobile}&text=${encodedText}`
+      : `https://api.whatsapp.com/send?text=${encodedText}`,
+    webWhatsappUrl: formattedMobile
+      ? `https://web.whatsapp.com/send?phone=${formattedMobile}&text=${encodedText}`
+      : `https://web.whatsapp.com/send?text=${encodedText}`,
+    apiWhatsappUrl: formattedMobile
+      ? `whatsapp://send?phone=${formattedMobile}&text=${encodedText}`
+      : `whatsapp://send?text=${encodedText}`,
   };
 };

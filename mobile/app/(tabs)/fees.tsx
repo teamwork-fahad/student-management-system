@@ -96,7 +96,7 @@ export default function MobileFeeManagerScreen() {
         try {
           await Linking.openURL(whatsappUrl);
         } catch {
-          await Linking.openURL(`https://wa.me/?text=${encodeURIComponent(text)}`);
+          await Linking.openURL(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`);
         }
       }
     } catch (err: any) {
