@@ -45,16 +45,22 @@ export const deduplicateStudents = (studentRows) => {
         s.status = "ACTIVE";
       }
 
-      const courseList = s.allAdmissions.map((a) => ({
-        id: a.id,
-        admissionNumber: a.admissionNumber,
-        courseName: a.courseNameSnapshot || a.course?.name || "General Course",
-        courseFees: Number(a.finalFees || a.courseFees || 0),
-        paidAmount: Number(a.paidAmount || 0),
-        pendingAmount: Number(a.pendingAmount || 0),
-        admissionDate: a.admissionDate,
-        status: a.status,
-      }));
+      const courseList = s.allAdmissions.map((a) => {
+        const fees = Number(a.finalFees || a.courseFees || 0);
+        const paid = Number(a.paidAmount || 0);
+        const isInactive = a.status === "COMPLETED" || a.status === "CANCELLED";
+        const pending = isInactive ? 0 : Math.max(0, fees - paid);
+        return {
+          id: a.id,
+          admissionNumber: a.admissionNumber,
+          courseName: a.courseNameSnapshot || a.course?.name || "General Course",
+          courseFees: fees,
+          paidAmount: paid,
+          pendingAmount: pending,
+          admissionDate: a.admissionDate,
+          status: a.status,
+        };
+      });
 
       const courseNames = [...new Set(courseList.map((c) => c.courseName).filter(Boolean))];
       const primaryCourse = courseNames[0] || "General Course";
@@ -68,10 +74,12 @@ export const deduplicateStudents = (studentRows) => {
         (sum, a) => sum + Number(a.paidAmount || 0),
         0
       );
-      const totalPending = s.allAdmissions.reduce(
-        (sum, a) => sum + Number(a.pendingAmount || 0),
-        0
-      );
+      const totalPending = s.allAdmissions.reduce((sum, a) => {
+        if (a.status === "COMPLETED" || a.status === "CANCELLED") return sum;
+        const fees = Number(a.finalFees || a.courseFees || 0);
+        const paid = Number(a.paidAmount || 0);
+        return sum + Math.max(0, fees - paid);
+      }, 0);
 
       s.courseInfo = {
         primaryCourse,
@@ -81,8 +89,11 @@ export const deduplicateStudents = (studentRows) => {
         courseList,
       };
 
+      const activeAdmissions = s.allAdmissions.filter((a) => a.status === "ACTIVE");
+      const primaryAdm = activeAdmissions[0] || s.allAdmissions[0];
+
       s.admission = {
-        ...s.allAdmissions[0],
+        ...primaryAdm,
         courseNameSnapshot: courseNames.join(", "),
         courseFees: totalCourseFees,
         finalFees: totalCourseFees,
@@ -395,6 +406,31 @@ export const getStudentById = async (idOrStudentId) => {
 
   student.allAdmissions = allAdmissions;
   student.allPayments = allPayments;
+
+  if (allAdmissions.length > 0) {
+    const courseNames = [...new Set(allAdmissions.map((a) => a.courseNameSnapshot || a.course?.name).filter(Boolean))];
+    const totalCourseFees = allAdmissions.reduce((sum, a) => sum + Number(a.finalFees || a.courseFees || 0), 0);
+    const totalPaid = allAdmissions.reduce((sum, a) => sum + Number(a.paidAmount || 0), 0);
+    const totalPending = allAdmissions.reduce((sum, a) => {
+      if (a.status === "COMPLETED" || a.status === "CANCELLED") return sum;
+      const fees = Number(a.finalFees || a.courseFees || 0);
+      const paid = Number(a.paidAmount || 0);
+      return sum + Math.max(0, fees - paid);
+    }, 0);
+
+    const activeAdmissions = allAdmissions.filter((a) => a.status === "ACTIVE");
+    const primaryAdm = activeAdmissions[0] || allAdmissions[0];
+
+    student.admission = {
+      ...primaryAdm,
+      courseNameSnapshot: courseNames.join(", "),
+      courseFees: totalCourseFees,
+      finalFees: totalCourseFees,
+      paidAmount: totalPaid,
+      pendingAmount: totalPending,
+    };
+  }
+
   student.attendanceStats = {
     totalClasses,
     presentCount,
