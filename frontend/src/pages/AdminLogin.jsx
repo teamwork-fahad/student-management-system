@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { usePin } from "../context/PinContext";
+import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
-import { Lock, ShieldCheck, ArrowLeft, Sun, Moon, AlertCircle } from "lucide-react";
+import { Lock, ShieldCheck, ArrowLeft, Sun, Moon, AlertCircle, Info } from "lucide-react";
 
 export const AdminLogin = () => {
   const navigate = useNavigate();
   const { verifyPin } = usePin();
+  const { setAdminSession } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
   const [pin, setPin] = useState("");
@@ -29,13 +31,23 @@ export const AdminLogin = () => {
     setTimeout(() => {
       const isValid = verifyPin(trimmedPin);
       if (isValid || trimmedPin === "3242") {
+        const adminUserData = { name: "Super Admin", role: "SUPER_ADMIN", email: "admin@edumaster.com" };
+        
+        if (setAdminSession) {
+          setAdminSession(adminUserData, "admin_session_token");
+        } else {
+          localStorage.setItem("token", "admin_session_token");
+          localStorage.setItem("user", JSON.stringify(adminUserData));
+        }
+
+        localStorage.setItem("erp_pin_unlocked_at", Date.now().toString());
         navigate("/dashboard", { replace: true });
       } else {
         setError("Incorrect Admin PIN. Please try again.");
         setPin("");
         setLoading(false);
       }
-    }, 250);
+    }, 150);
   };
 
   return (
@@ -110,11 +122,15 @@ export const AdminLogin = () => {
                   }}
                   autoFocus
                   maxLength={6}
-                  placeholder="••••••"
+                  placeholder="••••"
                   className="w-full h-12 text-center text-xl tracking-[0.5em] font-black bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-slate-100 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none shadow-2xs transition-all placeholder:tracking-normal placeholder:font-normal placeholder:text-slate-400"
                 />
                 <Lock className="w-4 h-4 text-slate-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
+              <p className="mt-2 text-[11px] text-slate-500 dark:text-slate-400 text-center flex items-center justify-center space-x-1">
+                <Info className="w-3.5 h-3.5 text-blue-500 inline mr-1" />
+                <span>Default PIN: <strong className="font-bold text-slate-800 dark:text-slate-200">3242</strong></span>
+              </p>
             </div>
 
             <button

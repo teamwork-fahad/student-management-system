@@ -52,6 +52,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const setAdminSession = (userData, jwtToken) => {
+    localStorage.setItem("token", jwtToken);
+    localStorage.setItem("user", JSON.stringify(userData));
+    setToken(jwtToken);
+    setUser(userData);
+  };
+
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -69,6 +76,7 @@ export const AuthProvider = ({ children }) => {
         login,
         registerStudent,
         logout,
+        setAdminSession,
       }}
     >
       {children}

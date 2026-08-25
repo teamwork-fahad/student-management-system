@@ -25,6 +25,7 @@ import {
   Moon,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Sparkles,
   Search,
 } from "lucide-react";
@@ -38,6 +39,9 @@ export const AppLayout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
+  const isFinanceRoute = location.pathname.startsWith("/dashboard/finance") || location.pathname === "/dashboard/expenses";
+  const [financeOpen, setFinanceOpen] = useState(isFinanceRoute);
+
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
@@ -47,7 +51,6 @@ export const AppLayout = () => {
     { name: "Courses", href: "/dashboard/courses", icon: BookOpen },
     { name: "Attendance", href: "/dashboard/attendance", icon: CalendarCheck },
     { name: "Fees & Revenue", href: "/dashboard/fees", icon: CreditCard },
-    { name: "Expenses ERP", href: "/dashboard/expenses", icon: Wallet },
   ];
 
   const handleLogout = () => {
@@ -137,6 +140,62 @@ export const AppLayout = () => {
               </Link>
             );
           })}
+
+          {/* Collapsible Finance Parent Group */}
+          <div className="pt-1">
+            <button
+              type="button"
+              onClick={() => setFinanceOpen(!financeOpen)}
+              title={collapsed ? "Finance Module" : undefined}
+              className={`w-full flex items-center justify-between ${
+                collapsed ? "md:justify-center md:px-0" : "px-4"
+              } py-3 text-xs font-bold rounded-2xl transition-all duration-200 cursor-pointer ${
+                isFinanceRoute
+                  ? "bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/60"
+                  : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60"
+              }`}
+            >
+              <div className="flex items-center space-x-3">
+                <Wallet className={`w-5 h-5 shrink-0 ${isFinanceRoute ? "text-rose-600 dark:text-rose-400" : "text-rose-500"}`} />
+                {(!collapsed || mobileOpen) && <span>Finance</span>}
+              </div>
+              {(!collapsed || mobileOpen) && (
+                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${financeOpen ? "rotate-180 text-rose-600" : "text-slate-400"}`} />
+              )}
+            </button>
+
+            {/* Sub-Items Accordion Drawer */}
+            {financeOpen && (
+              <div className={`mt-1.5 space-y-1 ${collapsed ? "md:pl-0" : "pl-3 border-l-2 border-slate-200 dark:border-slate-800 ml-5"}`}>
+                {[
+                  { name: "Expense Dashboard", href: "/dashboard/finance/dashboard", icon: LayoutDashboard },
+                  { name: "Expenses", href: "/dashboard/expenses", icon: Wallet },
+                  { name: "Party (Vendors)", href: "/dashboard/finance/parties", icon: Users },
+                  { name: "Recurring Expenses", href: "/dashboard/finance/recurring", icon: Calendar },
+                  { name: "Expense Reports", href: "/dashboard/finance/reports", icon: BarChart3 },
+                ].map((subItem) => {
+                  const isSubActive = location.pathname === subItem.href;
+                  const SubIcon = subItem.icon;
+                  return (
+                    <Link
+                      key={subItem.name}
+                      to={subItem.href}
+                      onClick={() => setMobileOpen(false)}
+                      title={collapsed ? subItem.name : undefined}
+                      className={`flex items-center ${collapsed ? "md:justify-center md:px-0" : "px-3"} py-2 text-xs font-semibold rounded-xl transition-all duration-200 cursor-pointer ${
+                        isSubActive
+                          ? "bg-rose-600 text-white shadow-md shadow-rose-500/25 font-bold"
+                          : "text-slate-600 dark:text-slate-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 dark:hover:text-rose-400"
+                      }`}
+                    >
+                      <SubIcon className={`w-3.5 h-3.5 shrink-0 ${isSubActive ? "text-white" : "text-rose-500/80"} ${collapsed ? "md:mr-0" : "mr-2.5"}`} />
+                      {(!collapsed || mobileOpen) && <span className="truncate">{subItem.name}</span>}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </nav>
 
         {/* User Info & Quick Actions Footer */}
