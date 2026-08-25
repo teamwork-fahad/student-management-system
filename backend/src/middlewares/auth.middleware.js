@@ -1,8 +1,9 @@
 import jwt from "jsonwebtoken";
 import env from "../config/env.js";
 import { errorResponse } from "../utils/response.js";
+import prisma from "../config/prisma.js";
 
-export const authenticate = (req, res, next) => {
+export const authenticate = async (req, res, next) => {
   try {
     const apiKey = req.headers["x-api-key"] || req.query?.apiKey;
     const validKey = process.env.SYNC_API_KEY || "appxwind-erp-secret-key";
@@ -21,7 +22,13 @@ export const authenticate = (req, res, next) => {
     const token = authHeader.split(" ")[1];
 
     if (token === "admin_session_token") {
-      req.user = { id: "super-admin", role: "SUPER_ADMIN", name: "Super Admin", email: "admin@edumaster.com" };
+      let dbAdmin = null;
+      try {
+        dbAdmin = await prisma.user.findFirst({ where: { role: "SUPER_ADMIN" } });
+      } catch (dbErr) {
+        console.warn("[AUTH MIDDLEWARE] Could not query super admin from DB:", dbErr.message);
+      }
+      req.user = dbAdmin || { id: "super-admin", role: "SUPER_ADMIN", name: "Super Admin", email: "admin@edumaster.com" };
       return next();
     }
 
