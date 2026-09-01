@@ -32,7 +32,7 @@ export const AdminLogin = () => {
       const isValid = verifyPin(trimmedPin);
       if (isValid || trimmedPin === "3242") {
         const adminUserData = { name: "Super Admin", role: "SUPER_ADMIN", email: "admin@edumaster.com" };
-        
+
         if (setAdminSession) {
           setAdminSession(adminUserData, "admin_session_token");
         } else {
@@ -129,7 +129,7 @@ export const AdminLogin = () => {
               </div>
               <p className="mt-2 text-[11px] text-slate-500 dark:text-slate-400 text-center flex items-center justify-center space-x-1">
                 <Info className="w-3.5 h-3.5 text-blue-500 inline mr-1" />
-                <span>Default PIN: <strong className="font-bold text-slate-800 dark:text-slate-200">3242</strong></span>
+                <span>Default PIN: <strong className="font-bold text-slate-800 dark:text-slate-200">3**2</strong></span>
               </p>
             </div>
 

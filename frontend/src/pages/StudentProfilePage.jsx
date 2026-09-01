@@ -424,6 +424,9 @@ export const StudentProfilePage = () => {
       schoolCollege: studentData.schoolCollege || "",
       address: studentData.address || "",
       status: studentData.status || "ACTIVE",
+      completionDate: studentData.completionDate
+        ? new Date(studentData.completionDate).toISOString().split("T")[0]
+        : new Date().toISOString().split("T")[0],
     });
     setEditError("");
     setShowEditModal(true);
@@ -640,7 +643,7 @@ export const StudentProfilePage = () => {
                 : studentData.status === "ON_HOLD"
                 ? "🟡 ON HOLD"
                 : studentData.status === "COMPLETED"
-                ? "🔵 COMPLETED"
+                ? `🔵 COMPLETED ${studentData.completionDate ? `(${formatDate(studentData.completionDate)})` : ""}`
                 : "🔴 DROPPED"}
             </span>
 
@@ -869,11 +872,11 @@ export const StudentProfilePage = () => {
                             ? "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800"
                             : admStatus === "COMPLETED"
                             ? "bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800"
-                            : admStatus === "DROPPED"
+                            : admStatus === "DROPPED" || admStatus === "CANCELLED"
                             ? "bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-800"
                             : "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800"
                         }`}>
-                          {admStatus}
+                          {admStatus === "CANCELLED" ? "DROPPED" : admStatus}
                         </span>
 
                         <span className="font-mono text-xs font-bold text-blue-600 dark:text-cyan-400 bg-blue-50 dark:bg-cyan-950 border border-blue-200 dark:border-cyan-800 px-2.5 py-1 rounded-xl whitespace-nowrap shrink-0">
@@ -1336,6 +1339,16 @@ export const StudentProfilePage = () => {
                   {formatDate(studentData.joinedDate || studentData.createdAt)}
                 </p>
               </div>
+
+              {studentData.completionDate && (
+                <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 space-y-1">
+                  <span className="text-emerald-700 dark:text-emerald-400 uppercase font-semibold text-[10px]">Course Completion Date</span>
+                  <p className="font-bold text-emerald-900 dark:text-emerald-300 text-sm flex items-center gap-2 font-mono">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    {formatDate(studentData.completionDate)}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -1418,6 +1431,18 @@ export const StudentProfilePage = () => {
                   <option value="DROPPED">🔴 DROPPED</option>
                 </select>
               </div>
+
+              {editForm.status === "COMPLETED" && (
+                <div>
+                  <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">Course Completion Date</label>
+                  <input
+                    type="date"
+                    value={editForm.completionDate}
+                    onChange={(e) => setEditForm({ ...editForm, completionDate: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:border-blue-500 dark:focus:border-cyan-500 font-bold"
+                  />
+                </div>
+              )}
             </div>
 
             <div>

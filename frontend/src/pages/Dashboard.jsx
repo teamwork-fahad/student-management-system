@@ -84,6 +84,7 @@ export const Dashboard = () => {
       icon: <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />,
       iconBg: "bg-blue-50 dark:bg-blue-950/80 border-blue-200 dark:border-blue-800",
       accent: "text-blue-600 dark:text-blue-400",
+      link: "/dashboard/students",
     },
     {
       label: "Fees Collected",
@@ -92,14 +93,16 @@ export const Dashboard = () => {
       icon: <CircleDollarSign className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />,
       iconBg: "bg-emerald-50 dark:bg-emerald-950/80 border-emerald-200 dark:border-emerald-800",
       accent: "text-emerald-600 dark:text-emerald-400",
+      link: "/dashboard/fees",
     },
     {
       label: "Pending Dues",
       value: fmtK(pendingAmt),
-      sub: "Outstanding balance",
+      sub: "Click to view student-wise pending dues list",
       icon: <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />,
       iconBg: "bg-amber-50 dark:bg-amber-950/80 border-amber-200 dark:border-amber-800",
       accent: "text-amber-600 dark:text-amber-400",
+      link: "/dashboard/students?paymentFilter=PENDING",
     },
     {
       label: "Graduated Students",
@@ -108,6 +111,7 @@ export const Dashboard = () => {
       icon: <GraduationCap className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />,
       iconBg: "bg-indigo-50 dark:bg-indigo-950/80 border-indigo-200 dark:border-indigo-800",
       accent: "text-indigo-600 dark:text-indigo-400",
+      link: "/dashboard/students?status=COMPLETED",
     },
   ];
 
@@ -193,17 +197,24 @@ export const Dashboard = () => {
       {/* ── QUICK KPI CARDS ─────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {kpis.map((card) => (
-          <div
+          <Link
             key={card.label}
-            className="glass-card relative overflow-hidden rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
+            to={card.link}
+            className="glass-card relative overflow-hidden rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md block group cursor-pointer"
+            title={`Click to view ${card.label} details`}
           >
             <div className="flex items-start justify-between mb-3">
-              <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{card.label}</p>
+              <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider group-hover:text-blue-600 dark:group-hover:text-cyan-400 transition">{card.label}</p>
               <div className={`p-2.5 rounded-2xl border ${card.iconBg}`}>{card.icon}</div>
             </div>
             <div className={`text-3xl font-black tracking-tight mb-1 ${card.accent}`}>{card.value}</div>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{card.sub}</p>
-          </div>
+            <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+              <span>{card.sub}</span>
+              <span className="font-bold text-blue-600 dark:text-cyan-400 group-hover:translate-x-1 transition flex items-center gap-0.5">
+                View &rarr;
+              </span>
+            </div>
+          </Link>
         ))}
       </div>
 

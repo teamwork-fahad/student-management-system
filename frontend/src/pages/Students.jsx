@@ -63,7 +63,7 @@ export const Students = () => {
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, total: 0 });
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState(() => searchParams.get("status") || searchParams.get("statusFilter") || "");
 
   // Bulk selection state
   const [selectedStudentIds, setSelectedStudentIds] = useState([]);
@@ -149,7 +149,7 @@ export const Students = () => {
   const [departmentFilter, setDepartmentFilter] = useState("");
   const [programFilter, setProgramFilter] = useState("");
   const [courseFilter, setCourseFilter] = useState("");
-  const [paymentFilter, setPaymentFilter] = useState("");
+  const [paymentFilter, setPaymentFilter] = useState(() => searchParams.get("paymentFilter") || "");
   const [sortBy, setSortBy] = useState("name_asc");
   const [stats, setStats] = useState({
     totalStudents: 0,

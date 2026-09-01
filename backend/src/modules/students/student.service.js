@@ -41,8 +41,19 @@ export const deduplicateStudents = (studentRows) => {
   const result = Array.from(map.values()).map((s) => {
     if (s.allAdmissions && s.allAdmissions.length > 0) {
       const hasActiveAdmission = s.allAdmissions.some((a) => a.status === "ACTIVE" && a.deletedAt === null);
-      if (hasActiveAdmission) {
+      const allAdmissionsCompleted = s.allAdmissions.every((a) => a.status === "COMPLETED" || a.deletedAt !== null);
+      const allAdmissionsCancelledOrCompleted = s.allAdmissions.every(
+        (a) => a.status === "CANCELLED" || a.status === "COMPLETED" || a.deletedAt !== null
+      );
+
+      if (s.status === "DROPPED" || s.status === "ON_HOLD" || s.status === "REVISION") {
+        // Respect explicit student status set on student profile
+      } else if (hasActiveAdmission) {
         s.status = "ACTIVE";
+      } else if (allAdmissionsCompleted) {
+        s.status = "COMPLETED";
+      } else if (allAdmissionsCancelledOrCompleted) {
+        s.status = "DROPPED";
       }
 
       const courseList = s.allAdmissions.map((a) => {
@@ -452,6 +463,11 @@ export const updateStudentFullService = async (idOrStudentId, updateData) => {
     fullName,
     mobile,
     email,
+    fatherName,
+    whatsapp,
+    gender,
+    qualification,
+    schoolCollege,
     address,
     status,
     courseFees,
@@ -489,6 +505,11 @@ export const updateStudentFullService = async (idOrStudentId, updateData) => {
         ...(formattedName && { fullName: formattedName }),
         ...(mobile && { mobile }),
         ...(email !== undefined && { email }),
+        ...(fatherName !== undefined && { fatherName }),
+        ...(whatsapp !== undefined && { whatsapp }),
+        ...(gender !== undefined && { gender }),
+        ...(qualification !== undefined && { qualification }),
+        ...(schoolCollege !== undefined && { schoolCollege }),
         ...(address !== undefined && { address }),
         ...(status && { status }),
         completionDate: finalCompletionDate,

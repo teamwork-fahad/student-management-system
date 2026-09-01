@@ -972,9 +972,14 @@ export const updateAdmissionStatusService = async (admissionId, status) => {
   const admission = await prisma.admission.findUnique({ where: { id: admissionId } });
   if (!admission) throw createHttpError("Admission record not found", 404);
 
+  let targetAdmissionStatus = status;
+  if (status === "DROPPED" || status === "CANCELLED") {
+    targetAdmissionStatus = "CANCELLED";
+  }
+
   const updatedAdm = await prisma.admission.update({
     where: { id: admissionId },
-    data: { status },
+    data: { status: targetAdmissionStatus },
   });
 
   // Sync primary Student status with updated course admission status
@@ -989,11 +994,16 @@ export const updateAdmissionStatusService = async (admissionId, status) => {
   });
 
   if (student) {
-    let newStudentStatus = status;
-    if (status === "CANCELLED") newStudentStatus = "DROPPED";
+    let targetStudentStatus = status;
+    if (status === "CANCELLED") targetStudentStatus = "DROPPED";
+    const validStudentStatuses = ["ACTIVE", "ON_HOLD", "COMPLETED", "DROPPED", "TRANSFERRED", "REVISION"];
+    if (!validStudentStatuses.includes(targetStudentStatus)) {
+      targetStudentStatus = "DROPPED";
+    }
+
     await prisma.student.update({
       where: { id: student.id },
-      data: { status: newStudentStatus },
+      data: { status: targetStudentStatus },
     });
   }
 
@@ -1054,13 +1064,25 @@ export const bulkUpdateAdmissionStatusService = async (admissionIds = [], status
     throw createHttpError("No admissions selected for bulk update", 400);
   }
 
+  let targetAdmissionStatus = status;
+  if (status === "DROPPED" || status === "CANCELLED") {
+    targetAdmissionStatus = "CANCELLED";
+  }
+
+  let targetStudentStatus = status;
+  if (status === "CANCELLED") targetStudentStatus = "DROPPED";
+  const validStudentStatuses = ["ACTIVE", "ON_HOLD", "COMPLETED", "DROPPED", "TRANSFERRED", "REVISION"];
+  if (!validStudentStatuses.includes(targetStudentStatus)) {
+    targetStudentStatus = "DROPPED";
+  }
+
   // 1. Update Admission status for all selected IDs
   await prisma.admission.updateMany({
     where: {
       id: { in: admissionIds },
       deletedAt: null,
     },
-    data: { status },
+    data: { status: targetAdmissionStatus },
   });
 
   // 2. Fetch affected student IDs
@@ -1085,11 +1107,11 @@ export const bulkUpdateAdmissionStatusService = async (admissionIds = [], status
     });
 
     if (studentAdmissions.length > 0) {
-      const allSame = studentAdmissions.every((a) => a.status === status);
+      const allSame = studentAdmissions.every((a) => a.status === targetAdmissionStatus);
       if (allSame) {
         await prisma.student.update({
           where: { id: sId },
-          data: { status },
+          data: { status: targetStudentStatus },
         });
       }
     }
