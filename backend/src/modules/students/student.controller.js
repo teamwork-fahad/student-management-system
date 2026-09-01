@@ -86,7 +86,7 @@ export const updateStudentController = asyncHandler(async (req, res) => {
   const validatedData = updateStudentSchema.parse(req.body);
   const updatedStudent = await updateStudentFullService(req.params.id, validatedData);
 
-  await clearCachePatterns(["sms:students:*", "sms:admissions:*"]);
+  await clearCachePatterns(["sms:students:*", "sms:admissions:*", "sms:attendance:*"]);
 
   return successResponse(
     res,
@@ -100,7 +100,7 @@ export const bulkUpdateStudentStatusController = asyncHandler(async (req, res) =
   const validatedData = bulkUpdateStudentStatusSchema.parse(req.body);
   const result = await bulkUpdateStudentStatus(validatedData.studentIds, validatedData.status);
 
-  await clearCachePatterns(["sms:students:*", "sms:admissions:*"]);
+  await clearCachePatterns(["sms:students:*", "sms:admissions:*", "sms:attendance:*"]);
 
   return successResponse(
     res,

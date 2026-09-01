@@ -196,7 +196,7 @@ export const Attendance = () => {
   };
 
   const markedCount = Object.values(attendanceState).filter((s) => s && s !== "UNMARKED").length;
-  const unmarkedCount = students.length - markedCount;
+  const unmarkedCount = Math.max(0, students.length - markedCount);
 
   const filteredStudents = students.filter((s) => {
     const currentStatus = attendanceState[s.studentId] || "UNMARKED";

@@ -136,8 +136,19 @@ export const getAttendanceByDate = async (dateStr, courseId) => {
     const where = {
       deletedAt: null,
       OR: [
-        { status: { in: ["ACTIVE", "REVISION"] } },
-        { admission: { status: "ACTIVE" } },
+        {
+          status: { in: ["ACTIVE", "REVISION"] },
+          admission: {
+            status: { notIn: ["COMPLETED", "CANCELLED"] },
+          },
+        },
+        {
+          attendances: {
+            some: {
+              date: targetDate,
+            },
+          },
+        },
       ],
     };
 
