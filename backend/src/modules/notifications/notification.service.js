@@ -170,3 +170,101 @@ export const markAllNotificationsAsRead = async (userId) => {
 
   return { message: "All notifications marked as read" };
 };
+
+/**
+ * Fetch list of active students with upcoming birthdays within N days (default: 30)
+ */
+export const getUpcomingBirthdays = async (daysWindow = 30, includeCompleted = true) => {
+  const statusFilter = includeCompleted
+    ? { in: ["ACTIVE", "REVISION", "COMPLETED"] }
+    : { in: ["ACTIVE", "REVISION"] };
+
+  const activeStudents = await prisma.student.findMany({
+    where: {
+      deletedAt: null,
+      status: statusFilter,
+      dob: { not: null },
+    },
+    select: {
+      id: true,
+      studentId: true,
+      fullName: true,
+      mobile: true,
+      email: true,
+      dob: true,
+      gender: true,
+      status: true,
+    },
+  });
+
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const maxDays = Number(daysWindow) || 30;
+
+  const upcomingList = [];
+
+  for (const student of activeStudents) {
+    if (!student.dob) continue;
+    const dob = new Date(student.dob);
+    if (isNaN(dob.getTime())) continue;
+
+    const birthMonth = dob.getMonth();
+    const birthDate = dob.getDate();
+    const birthYear = dob.getFullYear();
+
+    let targetYear = now.getFullYear();
+    let nextBday = new Date(targetYear, birthMonth, birthDate);
+
+    // If nextBday is before today (e.g. earlier in current year), push to next year
+    if (nextBday < startOfToday) {
+      targetYear += 1;
+      nextBday = new Date(targetYear, birthMonth, birthDate);
+    }
+
+    const diffTime = nextBday - startOfToday;
+    const daysUntil = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+    if (daysUntil >= 0 && daysUntil <= maxDays) {
+      const turningAge = targetYear - birthYear;
+      const isToday = daysUntil === 0;
+      const daysUntilText = isToday
+        ? "Today 🎂"
+        : daysUntil === 1
+        ? "Tomorrow 🎁"
+        : `In ${daysUntil} days`;
+
+      const formattedDate = nextBday.toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        weekday: "short",
+      });
+
+      upcomingList.push({
+        id: student.id,
+        studentId: student.studentId,
+        fullName: student.fullName,
+        mobile: student.mobile,
+        email: student.email,
+        dob: student.dob,
+        status: student.status,
+        nextBirthdayDate: formattedDate,
+        rawNextBirthday: nextBday,
+        turningAge,
+        daysUntil,
+        isToday,
+        daysUntilText,
+      });
+    }
+  }
+
+  // Sort chronologically by daysUntil ascending
+  upcomingList.sort((a, b) => a.daysUntil - b.daysUntil);
+
+  return {
+    count: upcomingList.length,
+    todayCount: upcomingList.filter((s) => s.isToday).length,
+    daysWindow: maxDays,
+    students: upcomingList,
+  };
+};
+

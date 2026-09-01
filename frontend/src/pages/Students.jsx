@@ -7,6 +7,7 @@ import { EmptyState } from "../components/common/EmptyState";
 import { Modal } from "../components/common/Modal";
 import { SearchableSelect } from "../components/common/SearchableSelect";
 import { ReceiptModal } from "../components/receipts/ReceiptModal";
+import { UpcomingBirthdaysWidget } from "../components/notifications/UpcomingBirthdaysWidget";
 import { formatDate } from "../utils/formatters";
 import {
   Users,
@@ -40,6 +41,7 @@ import {
   Trash2,
   User,
   ExternalLink,
+  Cake,
 } from "lucide-react";
 
 export const toTitleCase = (str) => {
@@ -710,8 +712,25 @@ export const Students = () => {
             <LayoutGrid className="w-4 h-4" />
             <span className="hidden sm:inline">Grid View</span>
           </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("birthdays")}
+            className={`p-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition ${viewMode === "birthdays" ? "bg-pink-600 text-white shadow-md shadow-pink-500/20" : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            title="Upcoming Birthdays Hub"
+          >
+            <Cake className="w-4 h-4" />
+            <span className="hidden sm:inline">Birthdays 🎂</span>
+          </button>
         </div>
       </div>
+
+      {/* RENDER UPCOMING BIRTHDAYS WIDGET WHEN BIRTHDAYS MODE IS ACTIVE */}
+      {viewMode === "birthdays" && (
+        <div className="mb-6">
+          <UpcomingBirthdaysWidget />
+        </div>
+      )}
 
       {/* KPI STATS SUMMARY CARDS HEADER */}
       <div className="grid grid-cols-1 min-[420px]:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">

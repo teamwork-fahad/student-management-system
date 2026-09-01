@@ -193,3 +193,118 @@ export const sendForgotPasswordEmail = async (toEmail, studentName, resetOtp) =>
     return false;
   }
 };
+
+/**
+ * Send daily 9:00 AM Birthday Digest Email to Admin
+ */
+export const sendAdminBirthdayDigestEmail = async (birthdayStudents = []) => {
+  if (!birthdayStudents || birthdayStudents.length === 0) return false;
+
+  const count = birthdayStudents.length;
+  const studentRowsHtml = birthdayStudents
+    .map(
+      (s, index) => `
+      <tr style="border-bottom: 1px solid #334155;">
+        <td style="padding: 10px; color: #94a3b8;">${index + 1}</td>
+        <td style="padding: 10px; font-weight: bold; color: #ffffff;">${s.fullName}</td>
+        <td style="padding: 10px; color: #38bdf8; font-family: monospace;">${s.studentId || "N/A"}</td>
+        <td style="padding: 10px; color: #cbd5e1;">${s.mobile || "N/A"}</td>
+        <td style="padding: 10px; color: #cbd5e1;">${s.email || "N/A"}</td>
+      </tr>
+    `
+    )
+    .join("");
+
+  const mailOptions = {
+    from: `"AppXwinD ERP" <noreply@appxwind.com>`,
+    to: ADMIN_NOTIFICATION_EMAIL,
+    subject: `🎂 [9:00 AM Alert] Today's Birthdays (${count} Student${count > 1 ? "s" : ""})`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 650px; padding: 24px; border: 1px solid #1e293b; border-radius: 16px; background-color: #0f172a; color: #f8fafc;">
+        <div style="text-align: center; padding-bottom: 16px; border-bottom: 1px solid #1e293b;">
+          <h1 style="color: #ec4899; margin: 0; font-size: 24px;">🎂 Today's Birthday Digest</h1>
+          <p style="color: #94a3b8; font-size: 14px; margin-top: 6px;">Daily 9:00 AM Automated Birthday Report</p>
+        </div>
+        
+        <p style="color: #cbd5e1; margin-top: 20px;">
+          Good Morning! 🎉 Today we have <strong>${count}</strong> active student${count > 1 ? "s" : ""} celebrating their birthday:
+        </p>
+        
+        <table style="width: 100%; border-collapse: collapse; margin-top: 15px; text-align: left; font-size: 13px;">
+          <thead>
+            <tr style="background-color: #1e293b; color: #f1f5f9;">
+              <th style="padding: 10px;">#</th>
+              <th style="padding: 10px;">Student Name</th>
+              <th style="padding: 10px;">Student ID</th>
+              <th style="padding: 10px;">Mobile</th>
+              <th style="padding: 10px;">Email</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${studentRowsHtml}
+          </tbody>
+        </table>
+        
+        <div style="margin-top: 24px; padding: 16px; background: #1e293b; border-radius: 12px; font-size: 13px; color: #cbd5e1; text-align: center;">
+          <p style="margin: 0; font-weight: bold; color: #38bdf8;">💡 Tip: You can send WhatsApp greetings to these students directly from the Dashboard!</p>
+        </div>
+        
+        <div style="margin-top: 20px; font-size: 11px; color: #64748b; text-align: center;">
+          AppXwinD Technology Daily Birthday Alert Service
+        </div>
+      </div>
+    `,
+  };
+
+  try {
+    const info = await getTransporter().sendMail(mailOptions);
+    console.log(`[EMAIL SENT] Admin Birthday Digest sent to ${ADMIN_NOTIFICATION_EMAIL}:`, info.messageId || info);
+    return true;
+  } catch (err) {
+    console.error("[EMAIL ERROR] Failed to send admin birthday digest:", err);
+    return false;
+  }
+};
+
+/**
+ * Send Happy Birthday Wish Email directly to Student
+ */
+export const sendStudentBirthdayWishEmail = async (student) => {
+  if (!student || !student.email) return false;
+
+  const mailOptions = {
+    from: `"AppXwinD Technology" <support@appxwind.com>`,
+    to: student.email,
+    subject: `🎉 Happy Birthday ${student.fullName}! 🎂 Best Wishes from AppXwinD Technology`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; padding: 24px; border: 1px solid #334155; border-radius: 16px; background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: #f8fafc; text-align: center;">
+        <div style="font-size: 48px; margin-bottom: 10px;">🎈 🎂 🎁</div>
+        <h1 style="color: #f472b6; margin: 0; font-size: 26px;">Happy Birthday, ${student.fullName}!</h1>
+        <p style="color: #cbd5e1; font-size: 15px; margin-top: 12px; line-height: 1.6;">
+          Wishing you a wonderful day filled with joy, happiness, and great success in your learning journey!
+        </p>
+        
+        <div style="margin: 24px 0; padding: 20px; background-color: rgba(255, 255, 255, 0.05); border-radius: 12px; border: 1px dashed #f472b6;">
+          <p style="color: #38bdf8; font-weight: bold; font-size: 16px; margin: 0;">
+            🌟 "Keep learning, keep growing, and shine bright!"
+          </p>
+          <p style="color: #94a3b8; font-size: 12px; margin-top: 8px;">- Warm regards from all of us at AppXwinD Technology</p>
+        </div>
+
+        <div style="font-size: 12px; color: #64748b; margin-top: 20px;">
+          Student ID: <span style="font-family: monospace; color: #94a3b8;">${student.studentId || "N/A"}</span>
+        </div>
+      </div>
+    `,
+  };
+
+  try {
+    const info = await getTransporter().sendMail(mailOptions);
+    console.log(`[EMAIL SENT] Birthday wish sent to student ${student.email}:`, info.messageId || info);
+    return true;
+  } catch (err) {
+    console.error(`[EMAIL ERROR] Failed to send birthday wish to ${student.email}:`, err);
+    return false;
+  }
+};
+

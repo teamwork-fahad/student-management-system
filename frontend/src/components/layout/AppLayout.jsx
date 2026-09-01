@@ -259,8 +259,8 @@ export const AppLayout = () => {
       {/* Main Content Workspace */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Glassy Floating Top Navbar */}
-        <div className="px-3 sm:px-6 pt-3 shrink-0">
-          <header className="h-16 bg-white/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800/80 backdrop-blur-xl rounded-2xl flex items-center justify-between px-4 shadow-sm z-30">
+        <div className="px-3 sm:px-6 pt-3 shrink-0 relative z-50">
+          <header className="h-16 bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 backdrop-blur-xl rounded-2xl flex items-center justify-between px-4 shadow-sm relative z-50">
             <div className="flex items-center space-x-3">
               <button
                 onClick={() => setMobileOpen(true)}

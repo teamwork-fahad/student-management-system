@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/axios";
 import { LoadingSpinner } from "../components/common/LoadingSpinner";
+import { UpcomingBirthdaysWidget } from "../components/notifications/UpcomingBirthdaysWidget";
 import { formatDate } from "../utils/formatters";
 import {
   Users, CircleDollarSign, Clock, UserPlus,
@@ -248,6 +249,9 @@ export const Dashboard = () => {
           </Link>
         </div>
       </div>
+
+      {/* ── UPCOMING BIRTHDAYS HUB ──────────────────────────────────── */}
+      <UpcomingBirthdaysWidget />
 
       {/* ── RECENT ADMISSIONS SECTION (With Table & Mobile Cards) ─────── */}
       <div className="glass-card rounded-3xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 bg-white dark:bg-slate-900 shadow-sm">
