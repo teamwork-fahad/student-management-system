@@ -1,0 +1,313 @@
+openapi: 3.0.3
+info:
+  title: Student Management System Frontend API
+  version: 1.0.0
+  description: Frontend-facing API subset used by web admin dashboards and portal screens.
+servers:
+  - url: http://localhost:3000
+    description: Local backend server
+security:
+  - bearerAuth: []
+paths:
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login admin or staff user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              admin:
+                summary: Admin login
+                value:
+                  email: admin@school.com
+                  password: Admin@123
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  /api/v1/auth/me:
+    get:
+      tags: [Auth]
+      summary: Get current authenticated user
+      responses:
+        '200':
+          description: Current user data
+
+  /api/v1/courses/public:
+    get:
+      tags: [Courses]
+      summary: Public list of courses
+      security: []
+      responses:
+        '200':
+          description: Course catalog
+
+  /api/v1/courses:
+    get:
+      tags: [Courses]
+      summary: List all courses for admin/faculty
+      responses:
+        '200':
+          description: Courses list
+    post:
+      tags: [Courses]
+      summary: Create course
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourseCreateRequest'
+            examples:
+              basic:
+                value:
+                  name: BSc Computer Science
+                  category: SCIENCE
+                  duration: 3 years
+      responses:
+        '201':
+          description: Course created
+
+  /api/v1/courses/{id}:
+    get:
+      tags: [Courses]
+      summary: Get one course
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Course detail
+
+  /api/v1/students:
+    get:
+      tags: [Students]
+      summary: List students
+      responses:
+        '200':
+          description: Student records
+
+  /api/v1/students/{id}:
+    get:
+      tags: [Students]
+      summary: Get student profile
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Student details
+    put:
+      tags: [Students]
+      summary: Update student
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentUpdateRequest'
+      responses:
+        '200':
+          description: Updated student
+
+  /api/v1/admissions:
+    get:
+      tags: [Admissions]
+      summary: List admissions
+      responses:
+        '200':
+          description: Admission list
+    post:
+      tags: [Admissions]
+      summary: Create admission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdmissionCreateRequest'
+      responses:
+        '201':
+          description: Admission created
+
+  /api/v1/inquiries:
+    get:
+      tags: [Inquiries]
+      summary: List inquiries
+      responses:
+        '200':
+          description: Inquiries list
+    post:
+      tags: [Inquiries]
+      summary: Create inquiry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InquiryCreateRequest'
+      responses:
+        '201':
+          description: Inquiry created
+
+  /api/v1/fees:
+    get:
+      tags: [Fees]
+      summary: Get fee history
+      responses:
+        '200':
+          description: Fee history
+    post:
+      tags: [Fees]
+      summary: Collect fee payment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeeCreateRequest'
+      responses:
+        '201':
+          description: Fee created
+
+  /api/v1/attendance:
+    get:
+      tags: [Attendance]
+      summary: Get attendance by date
+      responses:
+        '200':
+          description: Attendance records
+    post:
+      tags: [Attendance]
+      summary: Mark attendance
+      responses:
+        '201':
+          description: Attendance saved
+
+  /api/v1/expenses:
+    get:
+      tags: [Expenses]
+      summary: Get expenses
+      responses:
+        '200':
+          description: Expenses list
+
+  /api/v1/notifications:
+    get:
+      tags: [Notifications]
+      summary: Get notifications
+      responses:
+        '200':
+          description: Notification list
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+  schemas:
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: admin@school.com
+        password:
+          type: string
+          format: password
+          example: Admin@123
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Login successful
+        data:
+          type: object
+          additionalProperties: true
+    CourseCreateRequest:
+      type: object
+      required: [name, category]
+      properties:
+        name:
+          type: string
+          example: BSc Computer Science
+        category:
+          type: string
+          example: SCIENCE
+        duration:
+          type: string
+          example: 3 years
+    StudentUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Ayesha Khan
+        phone:
+          type: string
+          example: '+923001234567'
+        status:
+          type: string
+          example: ACTIVE
+    AdmissionCreateRequest:
+      type: object
+      properties:
+        studentName:
+          type: string
+          example: Ayesha Khan
+        courseId:
+          type: string
+          example: c_123
+        admissionYear:
+          type: integer
+          example: 2026
+    InquiryCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Ali Hassan
+        phone:
+          type: string
+          example: '+923001234567'
+        course:
+          type: string
+          example: Computer Science
+        source:
+          type: string
+          example: WEBSITE
+    FeeCreateRequest:
+      type: object
+      properties:
+        studentId:
+          type: string
+          example: stu_123
+        amount:
+          type: number
+          example: 25000
+        paymentMethod:
+          type: string
+          example: CASH

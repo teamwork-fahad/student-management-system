@@ -1,0 +1,918 @@
+openapi: 3.0.3
+info:
+  title: Student Management System API
+  version: 1.0.0
+  description: |
+    Backend API specification for the Student Management System.
+    Includes authentication, admissions, courses, students, attendance,
+    fees, expenses, notifications, inquiries, departments, and sync endpoints.
+
+servers:
+  - url: http://localhost:3000
+    description: Local backend server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/auth/register-student:
+    post:
+      tags: [Auth]
+      summary: Register a student
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Student registered successfully
+
+  /api/v1/auth/forgot-password:
+    post:
+      tags: [Auth]
+      summary: Request password reset
+      security: []
+      responses:
+        '200':
+          description: Reset link sent if user exists
+
+  /api/v1/auth/reset-password:
+    post:
+      tags: [Auth]
+      summary: Reset password
+      security: []
+      responses:
+        '200':
+          description: Password reset successful
+
+  /api/v1/auth/me:
+    get:
+      tags: [Auth]
+      summary: Get current user details
+      responses:
+        '200':
+          description: User profile
+
+  /api/v1/auth/student-profile:
+    get:
+      tags: [Auth]
+      summary: Get current student profile
+      responses:
+        '200':
+          description: Student profile data
+
+  /api/v1/auth/admin:
+    get:
+      tags: [Auth]
+      summary: Admin dashboard
+      responses:
+        '200':
+          description: Admin dashboard data
+
+  /api/v1/courses/public:
+    get:
+      tags: [Courses]
+      summary: Public course listing
+      security: []
+      responses:
+        '200':
+          description: List of public courses
+
+  /api/v1/courses:
+    get:
+      tags: [Courses]
+      summary: List all courses
+      responses:
+        '200':
+          description: Courses list
+    post:
+      tags: [Courses]
+      summary: Create a course
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '201':
+          description: Course created
+
+  /api/v1/courses/bulk-delete:
+    post:
+      tags: [Courses]
+      summary: Bulk delete courses
+      responses:
+        '200':
+          description: Delete result
+
+  /api/v1/courses/bulk-category:
+    post:
+      tags: [Courses]
+      summary: Bulk update course category
+      responses:
+        '200':
+          description: Bulk category update result
+
+  /api/v1/courses/{id}:
+    get:
+      tags: [Courses]
+      summary: Get course by ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Course details
+    put:
+      tags: [Courses]
+      summary: Update course
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Course updated
+    delete:
+      tags: [Courses]
+      summary: Delete course
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Course deleted
+
+  /api/v1/courses/{id}/students:
+    get:
+      tags: [Courses]
+      summary: Get students in a course
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Course students
+
+  /api/v1/inquiries/public:
+    post:
+      tags: [Inquiries]
+      summary: Create public inquiry
+      security: []
+      responses:
+        '201':
+          description: Inquiry created
+
+  /api/v1/inquiries/lead-sources:
+    get:
+      tags: [Inquiries]
+      summary: List lead sources
+      responses:
+        '200':
+          description: Lead sources
+    post:
+      tags: [Inquiries]
+      summary: Create lead source
+      responses:
+        '201':
+          description: Lead source created
+
+  /api/v1/inquiries:
+    get:
+      tags: [Inquiries]
+      summary: List inquiries
+      responses:
+        '200':
+          description: Inquiry list
+    post:
+      tags: [Inquiries]
+      summary: Create inquiry
+      responses:
+        '201':
+          description: Inquiry created
+
+  /api/v1/inquiries/bulk-delete:
+    post:
+      tags: [Inquiries]
+      summary: Bulk delete inquiries
+      responses:
+        '200':
+          description: Delete result
+
+  /api/v1/inquiries/{id}:
+    get:
+      tags: [Inquiries]
+      summary: Get inquiry by ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Inquiry details
+    put:
+      tags: [Inquiries]
+      summary: Update inquiry
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Inquiry updated
+    delete:
+      tags: [Inquiries]
+      summary: Delete inquiry
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Inquiry deleted
+
+  /api/v1/inquiries/{id}/follow-up:
+    post:
+      tags: [Inquiries]
+      summary: Add follow-up to inquiry
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '201':
+          description: Follow-up created
+
+  /api/v1/inquiries/{id}/follow-ups:
+    get:
+      tags: [Inquiries]
+      summary: Get follow-up history
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Follow-up history
+
+  /api/v1/inquiries/{id}/convert:
+    post:
+      tags: [Inquiries]
+      summary: Convert inquiry
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Inquiry converted
+
+  /api/v1/admissions:
+    get:
+      tags: [Admissions]
+      summary: List admissions
+      responses:
+        '200':
+          description: Admissions list
+    post:
+      tags: [Admissions]
+      summary: Create admission
+      responses:
+        '201':
+          description: Admission created
+
+  /api/v1/admissions/statistics:
+    get:
+      tags: [Admissions]
+      summary: Admission statistics
+      responses:
+        '200':
+          description: Statistics data
+
+  /api/v1/admissions/search:
+    get:
+      tags: [Admissions]
+      summary: Search admissions
+      responses:
+        '200':
+          description: Search results
+
+  /api/v1/admissions/bulk-status:
+    post:
+      tags: [Admissions]
+      summary: Bulk update admission statuses
+      responses:
+        '200':
+          description: Status update result
+
+  /api/v1/admissions/{id}:
+    get:
+      tags: [Admissions]
+      summary: Get admission by ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Admission details
+    put:
+      tags: [Admissions]
+      summary: Update admission
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Admission updated
+    delete:
+      tags: [Admissions]
+      summary: Delete admission
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Admission deleted
+
+  /api/v1/admissions/{id}/status:
+    patch:
+      tags: [Admissions]
+      summary: Update admission status
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Status updated
+
+  /api/v1/students:
+    get:
+      tags: [Students]
+      summary: List students
+      responses:
+        '200':
+          description: Students list
+
+  /api/v1/students/bulk-status:
+    patch:
+      tags: [Students]
+      summary: Bulk update student status
+      responses:
+        '200':
+          description: Status update result
+
+  /api/v1/students/{id}:
+    get:
+      tags: [Students]
+      summary: Get student by ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Student details
+    put:
+      tags: [Students]
+      summary: Update student
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Student updated
+    patch:
+      tags: [Students]
+      summary: Partial update student
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Student updated
+    delete:
+      tags: [Students]
+      summary: Delete student
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Student deleted
+
+  /api/v1/students/{id}/courses:
+    post:
+      tags: [Students]
+      summary: Add course to student
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Course assigned
+
+  /api/v1/fees:
+    get:
+      tags: [Fees]
+      summary: Get fee history
+      responses:
+        '200':
+          description: Fee history list
+    post:
+      tags: [Fees]
+      summary: Collect fee payment
+      responses:
+        '201':
+          description: Fee payment created
+
+  /api/v1/fees/collect:
+    post:
+      tags: [Fees]
+      summary: Collect fee payment alias
+      responses:
+        '201':
+          description: Fee payment created
+
+  /api/v1/fees/{id}:
+    put:
+      tags: [Fees]
+      summary: Update fee payment
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Fee updated
+    delete:
+      tags: [Fees]
+      summary: Delete fee payment
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Fee deleted
+
+  /api/v1/fees/student/{studentId}:
+    get:
+      tags: [Fees]
+      summary: Get student fee summary
+      parameters:
+        - $ref: '#/components/parameters/StudentIdParam'
+      responses:
+        '200':
+          description: Student fee summary
+
+  /api/v1/fees/student/{studentId}/whatsapp-reminder:
+    get:
+      tags: [Fees]
+      summary: Generate WhatsApp fee reminder
+      parameters:
+        - $ref: '#/components/parameters/StudentIdParam'
+      responses:
+        '200':
+          description: Reminder generated
+
+  /api/v1/attendance/public-report:
+    get:
+      tags: [Attendance]
+      summary: Public attendance report
+      security: []
+      responses:
+        '200':
+          description: Public attendance report
+
+  /api/v1/attendance/stats:
+    get:
+      tags: [Attendance]
+      summary: Attendance statistics
+      responses:
+        '200':
+          description: Attendance stats
+
+  /api/v1/attendance/whatsapp-report:
+    get:
+      tags: [Attendance]
+      summary: Attendance WhatsApp report
+      responses:
+        '200':
+          description: WhatsApp report data
+
+  /api/v1/attendance/student/{studentId}:
+    get:
+      tags: [Attendance]
+      summary: Student attendance history
+      parameters:
+        - $ref: '#/components/parameters/StudentIdParam'
+      responses:
+        '200':
+          description: Student attendance history
+
+  /api/v1/attendance:
+    get:
+      tags: [Attendance]
+      summary: Get attendance by date
+      responses:
+        '200':
+          description: Attendance record
+    post:
+      tags: [Attendance]
+      summary: Mark attendance
+      responses:
+        '201':
+          description: Attendance marked
+
+  /api/v1/expenses/stats:
+    get:
+      tags: [Expenses]
+      summary: Get expense stats
+      responses:
+        '200':
+          description: Expense stats
+
+  /api/v1/expenses/parties:
+    get:
+      tags: [Expenses]
+      summary: List expense parties
+      responses:
+        '200':
+          description: Parties list
+    post:
+      tags: [Expenses]
+      summary: Create party
+      responses:
+        '201':
+          description: Party created
+
+  /api/v1/expenses/parties/{id}:
+    get:
+      tags: [Expenses]
+      summary: Get party by ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Party details
+    put:
+      tags: [Expenses]
+      summary: Update party
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Party updated
+    delete:
+      tags: [Expenses]
+      summary: Delete party
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Party deleted
+
+  /api/v1/expenses/recurring:
+    get:
+      tags: [Expenses]
+      summary: List recurring expenses
+      responses:
+        '200':
+          description: Recurring expenses
+    post:
+      tags: [Expenses]
+      summary: Create recurring expense
+      responses:
+        '201':
+          description: Recurring expense created
+
+  /api/v1/expenses/recurring/{id}:
+    get:
+      tags: [Expenses]
+      summary: Get recurring expense by ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Recurring expense details
+    put:
+      tags: [Expenses]
+      summary: Update recurring expense
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Recurring expense updated
+    delete:
+      tags: [Expenses]
+      summary: Delete recurring expense
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Recurring expense deleted
+
+  /api/v1/expenses/recurring/instances/{instanceId}/pay:
+    post:
+      tags: [Expenses]
+      summary: Pay recurring expense instance
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Payment status updated
+
+  /api/v1/expenses/reports/daily:
+    get:
+      tags: [Expenses]
+      summary: Daily report
+      responses:
+        '200':
+          description: Daily report
+
+  /api/v1/expenses/reports/monthly:
+    get:
+      tags: [Expenses]
+      summary: Monthly report
+      responses:
+        '200':
+          description: Monthly report
+
+  /api/v1/expenses/reports/yearly:
+    get:
+      tags: [Expenses]
+      summary: Yearly report
+      responses:
+        '200':
+          description: Yearly report
+
+  /api/v1/expenses/reports/category:
+    get:
+      tags: [Expenses]
+      summary: Category-wise report
+      responses:
+        '200':
+          description: Category report
+
+  /api/v1/expenses/reports/party:
+    get:
+      tags: [Expenses]
+      summary: Party-wise report
+      responses:
+        '200':
+          description: Party report
+
+  /api/v1/expenses/reports/payment-method:
+    get:
+      tags: [Expenses]
+      summary: Payment method report
+      responses:
+        '200':
+          description: Payment method report
+
+  /api/v1/expenses/reports/pending-recurring:
+    get:
+      tags: [Expenses]
+      summary: Pending recurring report
+      responses:
+        '200':
+          description: Pending recurring report
+
+  /api/v1/expenses/{id}:
+    put:
+      tags: [Expenses]
+      summary: Update expense
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Expense updated
+    delete:
+      tags: [Expenses]
+      summary: Delete expense
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Expense deleted
+
+  /api/v1/expenses:
+    get:
+      tags: [Expenses]
+      summary: Get expenses
+      responses:
+        '200':
+          description: Expenses list
+    post:
+      tags: [Expenses]
+      summary: Create expense
+      responses:
+        '201':
+          description: Expense created
+
+  /api/v1/notifications:
+    get:
+      tags: [Notifications]
+      summary: Get notifications
+      responses:
+        '200':
+          description: Notifications list
+
+  /api/v1/notifications/birthdays/upcoming:
+    get:
+      tags: [Notifications]
+      summary: Upcoming birthdays
+      responses:
+        '200':
+          description: Upcoming birthdays list
+
+  /api/v1/notifications/read-all:
+    patch:
+      tags: [Notifications]
+      summary: Mark all notifications as read
+      responses:
+        '200':
+          description: All notifications marked read
+
+  /api/v1/notifications/{id}/read:
+    patch:
+      tags: [Notifications]
+      summary: Mark one notification as read
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Notification marked read
+
+  /api/v1/departments:
+    get:
+      tags: [Departments]
+      summary: List departments
+      responses:
+        '200':
+          description: Departments list
+    post:
+      tags: [Departments]
+      summary: Create department
+      responses:
+        '201':
+          description: Department created
+
+  /api/v1/departments/{id}:
+    get:
+      tags: [Departments]
+      summary: Get department by ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Department details
+    put:
+      tags: [Departments]
+      summary: Update department
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Department updated
+    delete:
+      tags: [Departments]
+      summary: Delete department
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Department deleted
+
+  /api/v1/sync/export:
+    get:
+      tags: [Sync]
+      summary: Export sync data
+      responses:
+        '200':
+          description: Export data
+
+  /api/v1/sync/import-internship:
+    post:
+      tags: [Sync]
+      summary: Import internship students
+      responses:
+        '200':
+          description: Import result
+    get:
+      tags: [Sync]
+      summary: Import internship students (GET alias)
+      responses:
+        '200':
+          description: Import result
+
+  /api/v1/sync/merge-internship-courses:
+    post:
+      tags: [Sync]
+      summary: Merge internship courses
+      responses:
+        '200':
+          description: Merge result
+    get:
+      tags: [Sync]
+      summary: Merge internship courses (GET alias)
+      responses:
+        '200':
+          description: Merge result
+
+  /api/v1/sync/fix-admission-links:
+    post:
+      tags: [Sync]
+      summary: Fix admission links
+      responses:
+        '200':
+          description: Fix result
+    get:
+      tags: [Sync]
+      summary: Fix admission links (GET alias)
+      responses:
+        '200':
+          description: Fix result
+
+  /api/v1/sync/fix-active-students:
+    post:
+      tags: [Sync]
+      summary: Fix active students
+      responses:
+        '200':
+          description: Fix result
+    get:
+      tags: [Sync]
+      summary: Fix active students (GET alias)
+      responses:
+        '200':
+          description: Fix result
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Resource ID
+
+    StudentIdParam:
+      name: studentId
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Student ID
+
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Unauthorized
+        statusCode:
+          type: integer
+          example: 401
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+        data:
+          type: object
+          additionalProperties: true

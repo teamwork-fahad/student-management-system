@@ -1,0 +1,102 @@
+openapi: 3.0.3
+info:
+  title: Student Management System Mobile API
+  version: 1.0.0
+  description: Mobile application endpoints for student profile, attendance, and fee status.
+servers:
+  - url: http://localhost:3000
+    description: Local backend server
+security:
+  - bearerAuth: []
+paths:
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Mobile login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              student:
+                value:
+                  email: student@example.com
+                  password: Student@123
+      responses:
+        '200':
+          description: Login successful
+
+  /api/v1/auth/student-profile:
+    get:
+      tags: [Auth]
+      summary: Get logged in student profile
+      responses:
+        '200':
+          description: Student profile
+
+  /api/v1/attendance/student/{studentId}:
+    get:
+      tags: [Attendance]
+      summary: Get student attendance history
+      parameters:
+        - $ref: '#/components/parameters/StudentIdParam'
+      responses:
+        '200':
+          description: Attendance history
+
+  /api/v1/fees/student/{studentId}:
+    get:
+      tags: [Fees]
+      summary: Get student fee summary
+      parameters:
+        - $ref: '#/components/parameters/StudentIdParam'
+      responses:
+        '200':
+          description: Fee summary
+
+  /api/v1/notifications:
+    get:
+      tags: [Notifications]
+      summary: Get notifications for user
+      responses:
+        '200':
+          description: Notification list
+
+  /api/v1/courses/public:
+    get:
+      tags: [Courses]
+      summary: Public course catalog
+      security: []
+      responses:
+        '200':
+          description: Course list
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    StudentIdParam:
+      name: studentId
+      in: path
+      required: true
+      schema:
+        type: string
+  schemas:
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: student@example.com
+        password:
+          type: string
+          format: password
+          example: Student@123

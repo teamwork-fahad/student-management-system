@@ -3,6 +3,11 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import morgan from "morgan";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import swaggerUi from "swagger-ui-express";
+import yaml from "yaml";
 import routes from "./routes/index.js";
 import env from "./config/env.js";
 import {
@@ -10,6 +15,39 @@ import {
   notFoundMiddleware,
 } from "./middlewares/error.middleware.js";
 import { successResponse } from "./utils/response.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const openApiDocs = {
+  main: yaml.parse(
+    fs.readFileSync(path.resolve(__dirname, "../openapi.yaml"), "utf8")
+  ),
+  frontend: yaml.parse(
+    fs.readFileSync(path.resolve(__dirname, "../openapi.frontend.yaml"), "utf8")
+  ),
+  mobile: yaml.parse(
+    fs.readFileSync(path.resolve(__dirname, "../openapi.mobile.yaml"), "utf8")
+  ),
+};
+
+const serveSwaggerDocs = (spec, routePath, title) => {
+  const yamlPath = `${routePath}/openapi.yaml`;
+
+  app.get(yamlPath, (req, res) => {
+    res.setHeader("Content-Type", "application/yaml; charset=utf-8");
+    res.send(yaml.stringify(spec));
+  });
+
+  app.use(
+    routePath,
+    swaggerUi.serve,
+    swaggerUi.setup(spec, {
+      explorer: true,
+      customSiteTitle: title,
+    })
+  );
+};
 
 const app = express();
 
@@ -63,6 +101,14 @@ app.use("/api", apiLimiter);
 app.get("/", (req, res) => {
   return successResponse(res, "Student Management System API", {}, 200);
 });
+
+serveSwaggerDocs(openApiDocs.main, "/api-docs", "Student Management System API Docs");
+serveSwaggerDocs(
+  openApiDocs.frontend,
+  "/api-docs/frontend",
+  "Frontend API Docs"
+);
+serveSwaggerDocs(openApiDocs.mobile, "/api-docs/mobile", "Mobile API Docs");
 
 app.use("/api", routes);
 
