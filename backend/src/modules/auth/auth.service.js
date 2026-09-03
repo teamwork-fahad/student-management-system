@@ -7,6 +7,7 @@ import {
   sendAdminRegistrationNotification,
   sendForgotPasswordEmail,
 } from "../../utils/emailService.js";
+import { createNotification } from "../notifications/notification.service.js";
 
 export const loginService = async (identifier, password) => {
   const cleanId = String(identifier).trim();
@@ -18,52 +19,39 @@ export const loginService = async (identifier, password) => {
         { email: { equals: cleanId, mode: "insensitive" } },
         { student: { mobile: cleanId } },
         { student: { studentId: { equals: cleanId, mode: "insensitive" } } },
+        { student: { email: { equals: cleanId, mode: "insensitive" } } },
       ],
     },
     include: {
       student: {
         include: {
           admission: {
-            include: { course: true },
+            include: {
+              course: true,
+            },
           },
         },
       },
     },
   });
 
-  // If user account is not linked yet, check if an imported student record exists!
   if (!user) {
-    const unlinkedStudent = await prisma.student.findFirst({
-      where: {
-        OR: [
-          { mobile: cleanId },
-          { studentId: { equals: cleanId, mode: "insensitive" } },
-          { email: { equals: cleanId, mode: "insensitive" } },
-        ],
-        userId: null,
-      },
-    });
+    throw createHttpError("Invalid Email/Mobile/Student ID or Password", 401);
+  }
 
-    if (unlinkedStudent) {
-      throw createHttpError(
-        `Welcome student! Your profile (${unlinkedStudent.fullName} - ${unlinkedStudent.studentId}) exists in EduMaster, but you need to click 'Register' once to set your password.`,
-        400
-      );
-    }
-
-    throw createHttpError("Invalid credentials. Please check your details or click Register.", 401);
+  if (!user.isActive) {
+    throw createHttpError(
+      "Your account is inactive. Please contact system administrator.",
+      403
+    );
   }
 
   const isPasswordValid = await bcrypt.compare(password, user.password);
-
   if (!isPasswordValid) {
-    throw createHttpError("Invalid credentials. Please check your password.", 401);
+    throw createHttpError("Invalid Email/Mobile/Student ID or Password", 401);
   }
 
-  // Generate JWT Token
   const token = generateToken(user);
-
-  // Remove password from response
   const { password: _, ...userData } = user;
 
   return {
@@ -150,6 +138,13 @@ export const registerStudentService = async ({
       email: cleanEmail || userEmail,
     });
 
+    await createNotification({
+      title: "🎓 Student Profile Linked",
+      message: `Student account linked: ${newUser.name} (${existingUnlinkedStudent.studentId}). Mobile: ${cleanMobile}`,
+      type: "NEW_STUDENT",
+      link: `/students`,
+    });
+
     const token = generateToken(newUser);
     const { password: _, ...userData } = newUser;
 
@@ -177,12 +172,24 @@ export const registerStudentService = async ({
   const adminUser = await prisma.user.findFirst({ where: { role: "SUPER_ADMIN" } });
   const adminId = adminUser?.id || "admin";
 
-  if (!courseId) {
-    throw createHttpError("Please select a course for student registration.", 400);
+  let courseObj = null;
+  if (courseId && courseId !== "NOT_IN_LIST" && courseId !== "SKIP") {
+    courseObj = await prisma.course.findUnique({ where: { id: courseId } });
   }
-  const courseObj = await prisma.course.findUnique({ where: { id: courseId } });
+
   if (!courseObj) {
-    throw createHttpError("Selected course not found.", 400);
+    // Fallback to first available course or create a general course
+    courseObj = await prisma.course.findFirst({ where: { isActive: true } });
+    if (!courseObj) {
+      courseObj = await prisma.course.create({
+        data: {
+          name: "General / Unassigned Course",
+          code: "CRS-GEN-001",
+          description: "General enrollment for self-registered students",
+          fees: 0,
+        },
+      });
+    }
   }
 
   const defaultLs = (await prisma.leadSource.findFirst())?.id || "default_ls";
@@ -266,6 +273,14 @@ export const registerStudentService = async ({
     studentId: result.student.studentId,
     mobile: cleanMobile,
     email: cleanEmail || userEmail,
+  });
+
+  // Create In-App Admin Notification in Database
+  await createNotification({
+    title: "🎓 New Student Registration",
+    message: `New student self-registered: ${result.newUser.name} (${result.student.studentId}). Mobile: ${cleanMobile}`,
+    type: "NEW_STUDENT",
+    link: `/students`,
   });
 
   const token = generateToken(result.newUser);

@@ -7,6 +7,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import swaggerUi from "swagger-ui-express";
+import { apiReference } from "@scalar/express-api-reference";
 import yaml from "yaml";
 import routes from "./routes/index.js";
 import env from "./config/env.js";
@@ -41,20 +42,28 @@ const serveSwaggerDocs = (spec, routePath, title) => {
 
   app.use(
     routePath,
-    swaggerUi.serve,
-    swaggerUi.setup(spec, {
-      explorer: true,
-      customSiteTitle: title,
-    })
+    swaggerUi.serveFiles(spec, { explorer: true, customSiteTitle: title }),
+    swaggerUi.setup(spec, { explorer: true, customSiteTitle: title })
   );
 };
 
 const app = express();
 
-// Security HTTP Headers
+// Security HTTP Headers with CSP configuration for API Docs (Scalar & Swagger)
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net"],
+        scriptSrcElem: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+        imgSrc: ["'self'", "data:", "https:"],
+        connectSrc: ["'self'", "http:", "https:"],
+      },
+    },
   })
 );
 
@@ -102,13 +111,25 @@ app.get("/", (req, res) => {
   return successResponse(res, "Student Management System API", {}, 200);
 });
 
-serveSwaggerDocs(openApiDocs.main, "/api-docs", "Student Management System API Docs");
+// Modern Scalar UI at /docs
+app.use(
+  "/docs",
+  apiReference({
+    spec: {
+      content: openApiDocs.main,
+    },
+    theme: "purple",
+    pageTitle: "Student Management System API Reference",
+  })
+);
+
 serveSwaggerDocs(
   openApiDocs.frontend,
   "/api-docs/frontend",
   "Frontend API Docs"
 );
 serveSwaggerDocs(openApiDocs.mobile, "/api-docs/mobile", "Mobile API Docs");
+serveSwaggerDocs(openApiDocs.main, "/api-docs", "Student Management System API Docs");
 
 app.use("/api", routes);
 

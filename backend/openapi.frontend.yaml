@@ -85,12 +85,43 @@ paths:
         - $ref: '#/components/parameters/IdParam'
       responses:
         '200':
-          description: Course detail
+  /api/v1/courses/{id}/students:
+    get:
+      tags: [Courses]
+      summary: Get enrolled students in a course
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [ALL, ACTIVE, COMPLETED, DROPPED, ON_HOLD]
+          description: Filter enrolled students by status
+      responses:
+        '200':
+          description: Enrolled student records
 
   /api/v1/students:
     get:
       tags: [Students]
-      summary: List students
+      summary: List students (with course, status, search filters)
+      parameters:
+        - in: query
+          name: courseId
+          schema:
+            type: string
+          description: Filter students enrolled in a specific course ID
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [ACTIVE, ON_HOLD, COMPLETED, DROPPED, TRANSFERRED, REVISION]
+          description: Filter by student status
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Search by student name, mobile, ID, or course name
       responses:
         '200':
           description: Student records

@@ -8,7 +8,7 @@
     "build": "prisma generate",
     "vercel-build": "prisma generate",
     "postinstall": "prisma generate",
-    "dev": "nodemon src/server.js",
+    "dev": "nodemon -e js,yaml src/server.js",
     "db:sync": "node src/scripts/ensureDb.js",
     "db:push": "prisma db push",
     "seed": "node src/seed/superAdmin.js",
@@ -26,6 +26,7 @@
   "type": "module",
   "dependencies": {
     "@prisma/client": "^6.16.2",
+    "@scalar/express-api-reference": "^0.10.17",
     "@upstash/redis": "^1.38.2",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",

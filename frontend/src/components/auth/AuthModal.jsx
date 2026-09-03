@@ -37,8 +37,10 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
   const [forgotConfirmPass, setForgotConfirmPass] = useState("");
   const [forgotSubmitting, setForgotSubmitting] = useState(false);
 
-  // Courses dropdown list
+  // Courses & Departments dropdown lists
   const [courses, setCourses] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [regDepartmentId, setRegDepartmentId] = useState("");
 
   // Alert feedback
   const [errorMessage, setErrorMessage] = useState("");
@@ -46,21 +48,34 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
 
   useEffect(() => {
     if (isOpen) {
-      fetchCourses();
+      fetchCoursesAndDepartments();
       setErrorMessage("");
       setSuccessMessage("");
       setForgotStep(1);
     }
   }, [isOpen]);
 
-  const fetchCourses = async () => {
+  const fetchCoursesAndDepartments = async () => {
     try {
-      const res = await api.get("/courses/public");
-      setCourses(res.data.data || []);
+      const [cRes, dRes] = await Promise.allSettled([
+        api.get("/courses/public"),
+        api.get("/departments/public"),
+      ]);
+      if (cRes.status === "fulfilled") {
+        setCourses(cRes.value.data?.data || []);
+      }
+      if (dRes.status === "fulfilled") {
+        setDepartments(dRes.value.data?.data || []);
+      }
     } catch {
       // ignore
     }
   };
+
+  const filteredCourses = courses.filter((c) => {
+    if (!regDepartmentId || regDepartmentId === "NOT_IN_LIST") return true;
+    return c.departmentId === regDepartmentId || c.category === regDepartmentId;
+  });
 
   if (!isOpen) return null;
 
@@ -577,14 +592,39 @@ export const AuthModal = ({ isOpen, onClose, initialRole = "STUDENT", initialMod
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Enrolled / Interested Course</label>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Department (Optional)
+                </label>
+                <select
+                  value={regDepartmentId}
+                  onChange={(e) => {
+                    setRegDepartmentId(e.target.value);
+                    setRegCourseId("");
+                  }}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 outline-none focus:border-blue-600 transition"
+                >
+                  <option value="">Select Department (Optional)...</option>
+                  <option value="NOT_IN_LIST">❓ Don't know / Not in list</option>
+                  {departments.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name} {d.code ? `(${d.code})` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Enrolled / Interested Course (Optional)
+                </label>
                 <select
                   value={regCourseId}
                   onChange={(e) => setRegCourseId(e.target.value)}
                   className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 outline-none focus:border-blue-600 transition"
                 >
-                  <option value="">Select Academic Program...</option>
-                  {courses.map((c) => (
+                  <option value="">Select Academic Program (Optional)...</option>
+                  <option value="NOT_IN_LIST">❓ Don't know / Not in list</option>
+                  {filteredCourses.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name} ({c.code}) - ₹{Number(c.fees).toLocaleString("en-IN")}
                     </option>

@@ -12,6 +12,7 @@ import { authorize } from '../../middlewares/role.middleware.js';
 const router = express.Router();
 
 // Public / Authenticated read routes
+router.get('/public', getDepartments);
 router.get('/', authenticate, getDepartments);
 router.get('/:id', authenticate, getDepartmentById);
 
