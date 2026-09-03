@@ -35,6 +35,13 @@ const ensureUniqueCode = async (code, courseId = null) => {
 export const createCourse = async (courseData) => {
   await ensureUniqueCode(courseData.code);
 
+  if (!courseData.departmentId && courseData.category) {
+    const dept = await prisma.department.findUnique({ where: { name: courseData.category } }).catch(() => null);
+    if (dept) {
+      courseData.departmentId = dept.id;
+    }
+  }
+
   return prisma.course.create({
     data: courseData,
   });
@@ -48,7 +55,20 @@ export const getAllCourses = async (query = {}) => {
   };
 
   if (departmentId) {
-    where.departmentId = departmentId;
+    const dept = await prisma.department.findUnique({ where: { id: departmentId } }).catch(() => null);
+    if (dept) {
+      where.OR = [
+        { departmentId: departmentId },
+        { category: dept.name },
+        { department: { name: dept.name } },
+      ];
+    } else {
+      where.OR = [
+        { departmentId: departmentId },
+        { category: departmentId },
+        { department: { name: departmentId } },
+      ];
+    }
   } else if (category) {
     where.OR = [
       { category: category },
@@ -185,6 +205,13 @@ export const getCourseById = async (id) => {
 export const updateCourse = async (id, courseData) => {
   await findActiveCourseById(id);
   await ensureUniqueCode(courseData.code, id);
+
+  if (!courseData.departmentId && courseData.category) {
+    const dept = await prisma.department.findUnique({ where: { name: courseData.category } }).catch(() => null);
+    if (dept) {
+      courseData.departmentId = dept.id;
+    }
+  }
 
   return prisma.course.update({
     where: {

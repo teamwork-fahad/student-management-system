@@ -651,9 +651,20 @@ export const Students = () => {
   };
 
   // 3-Level Cascading Filter Calculations
+  const selectedDeptObj = departmentsList.find(
+    (d) => d.id === departmentFilter || d.name === departmentFilter
+  );
+  const selectedDeptName = selectedDeptObj ? selectedDeptObj.name : departmentFilter;
+
   const coursesInDept = coursesList.filter((c) => {
     if (!departmentFilter) return true;
-    return (c.departmentId === departmentFilter) || (c.department?.id === departmentFilter);
+    return (
+      c.departmentId === departmentFilter ||
+      c.department?.id === departmentFilter ||
+      c.department?.name === departmentFilter ||
+      c.category === departmentFilter ||
+      (selectedDeptName && (c.category === selectedDeptName || c.department?.name === selectedDeptName))
+    );
   });
 
   const availablePrograms = Array.from(
@@ -2213,7 +2224,7 @@ export const Students = () => {
                   options={coursesList.map((c) => ({
                     value: c.id,
                     label: `${c.name} (${c.code})`,
-                    subLabel: `Fee: ₹${Number(c.fees).toLocaleString("en-IN")}`,
+                    subLabel: c.department?.name || c.category || "",
                   }))}
                   value={addCourseForm.courseId}
                   onChange={(_, val) => handleSelectAddCourse(val)}

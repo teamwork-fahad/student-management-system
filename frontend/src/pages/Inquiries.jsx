@@ -689,7 +689,7 @@ export const Inquiries = () => {
                   <select
                     value={inqDeptId}
                     onChange={(e) => setInqDeptId(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 text-xs font-medium shadow-xs"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 outline-none focus:border-blue-500 text-xs font-medium shadow-xs cursor-pointer"
                   >
                     <option value="">-- All Departments --</option>
                     {departments.map((d) => (
@@ -703,14 +703,28 @@ export const Inquiries = () => {
                 <div className="sm:col-span-2">
                   <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Course Interested (Searchable)</label>
                   <SearchableSelect
-                    options={courses
-                      .filter((c) => !inqDeptId || c.departmentId === inqDeptId || c.department?.id === inqDeptId)
-                      .map((c) => ({
-                        value: c.id,
-                        label: `${c.name} (${c.code})`,
-                        subLabel: `Fee: ₹${Number(c.fees).toLocaleString("en-IN")}`,
-                        departmentName: c.department?.name || c.category,
-                      }))}
+                    options={(() => {
+                      const selDept = departments.find((d) => d.id === inqDeptId || d.name === inqDeptId);
+                      const selDeptName = selDept ? selDept.name : inqDeptId;
+
+                      return courses
+                        .filter((c) => {
+                          if (!inqDeptId) return true;
+                          return (
+                            c.departmentId === inqDeptId ||
+                            c.department?.id === inqDeptId ||
+                            c.department?.name === inqDeptId ||
+                            c.category === inqDeptId ||
+                            (selDeptName && (c.category === selDeptName || c.department?.name === selDeptName))
+                          );
+                        })
+                        .map((c) => ({
+                          value: c.id,
+                          label: `${c.name} (${c.code})`,
+                          subLabel: c.department?.name || c.category || "",
+                          departmentName: c.department?.name || c.category,
+                        }));
+                    })()}
                     value={addCourseId}
                     onChange={(_, val) => setAddCourseId(val)}
                     placeholder="-- Select / Search Course --"

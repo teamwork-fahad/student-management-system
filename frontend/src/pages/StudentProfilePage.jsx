@@ -1615,15 +1615,29 @@ export const StudentProfilePage = () => {
               <div>
                 <label className="text-slate-600 dark:text-slate-400 block mb-1 font-semibold">2. Select Course (Searchable) *</label>
                 <SearchableSelect
-                  options={coursesList
-                    .filter((c) => !addCourseDeptId || c.departmentId === addCourseDeptId || c.department?.id === addCourseDeptId)
-                    .map((c) => ({
-                      value: c.id,
-                      label: `${c.name} (${c.code})`,
-                      subLabel: `Fee: ₹${Number(c.fees).toLocaleString("en-IN")}`,
-                      departmentName: c.department?.name || c.category,
-                      fees: c.fees,
-                    }))}
+                  options={(() => {
+                    const selDept = departments.find((d) => d.id === addCourseDeptId || d.name === addCourseDeptId);
+                    const selDeptName = selDept ? selDept.name : addCourseDeptId;
+
+                    return coursesList
+                      .filter((c) => {
+                        if (!addCourseDeptId) return true;
+                        return (
+                          c.departmentId === addCourseDeptId ||
+                          c.department?.id === addCourseDeptId ||
+                          c.department?.name === addCourseDeptId ||
+                          c.category === addCourseDeptId ||
+                          (selDeptName && (c.category === selDeptName || c.department?.name === selDeptName))
+                        );
+                      })
+                      .map((c) => ({
+                        value: c.id,
+                        label: `${c.name} (${c.code})`,
+                        subLabel: c.department?.name || c.category || "",
+                        departmentName: c.department?.name || c.category,
+                        fees: c.fees,
+                      }));
+                  })()}
                   value={addCourseForm.courseId}
                   onChange={(_, val) => handleCourseSelectionChange(val)}
                   placeholder="-- Search Course --"
@@ -1716,15 +1730,29 @@ export const StudentProfilePage = () => {
                   2. Transfer / Reassign Course (Search Box)
                 </label>
                 <SearchableSelect
-                  options={coursesList
-                    .filter((c) => !editCourseDeptId || c.departmentId === editCourseDeptId || c.department?.id === editCourseDeptId)
-                    .map((c) => ({
-                      value: c.id,
-                      label: `${c.name} (${c.code})`,
-                      subLabel: `Fee: ₹${Number(c.fees).toLocaleString("en-IN")}`,
-                      departmentName: c.department?.name || c.category,
-                      fees: c.fees,
-                    }))}
+                  options={(() => {
+                    const selDept = departments.find((d) => d.id === editCourseDeptId || d.name === editCourseDeptId);
+                    const selDeptName = selDept ? selDept.name : editCourseDeptId;
+
+                    return coursesList
+                      .filter((c) => {
+                        if (!editCourseDeptId) return true;
+                        return (
+                          c.departmentId === editCourseDeptId ||
+                          c.department?.id === editCourseDeptId ||
+                          c.department?.name === editCourseDeptId ||
+                          c.category === editCourseDeptId ||
+                          (selDeptName && (c.category === selDeptName || c.department?.name === selDeptName))
+                        );
+                      })
+                      .map((c) => ({
+                        value: c.id,
+                        label: `${c.name} (${c.code})`,
+                        subLabel: c.department?.name || c.category || "",
+                        departmentName: c.department?.name || c.category,
+                        fees: c.fees,
+                      }));
+                  })()}
                   value={editCourseForm.courseId}
                   onChange={(e, targetCourseId) => {
                     const selectedId = targetCourseId || e?.target?.value;

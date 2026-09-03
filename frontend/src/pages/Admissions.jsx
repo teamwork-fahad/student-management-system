@@ -15,6 +15,8 @@ import { SearchableSelect } from "../components/common/SearchableSelect";
 export const Admissions = () => {
   const [inquiries, setInquiries] = useState([]);
   const [courses, setCourses] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [selectedDeptId, setSelectedDeptId] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -58,13 +60,15 @@ export const Admissions = () => {
   const fetchPrerequisites = async () => {
     setLoading(true);
     try {
-      const [inquiriesRes, coursesRes] = await Promise.all([
+      const [inquiriesRes, coursesRes, deptsRes] = await Promise.all([
         api.get("/inquiries?status=INTERESTED"),
         api.get("/courses"),
+        api.get("/departments"),
       ]);
 
       setInquiries(inquiriesRes.data?.data || []);
       setCourses(coursesRes.data?.data || []);
+      setDepartments(deptsRes.data?.data || []);
     } catch (err) {
       console.error("Prerequisites fetch error:", err);
       setError("Failed to load inquiries and courses. Please check connection.");
@@ -237,7 +241,7 @@ export const Admissions = () => {
             <UserCheck className="w-4 h-4" /> 1. Inquiry & Course Mapping
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                 Select Inquiry <span className="text-rose-500">*</span>
@@ -258,14 +262,48 @@ export const Admissions = () => {
 
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                Enrolled Course
+                Filter Department
+              </label>
+              <select
+                value={selectedDeptId}
+                onChange={(e) => setSelectedDeptId(e.target.value)}
+                className="w-full h-11 px-3.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-xs font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none shadow-2xs cursor-pointer"
+              >
+                <option value="">-- All Departments --</option>
+                {departments.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name} {d.code ? `(${d.code})` : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                Enrolled Course (Searchable)
               </label>
               <SearchableSelect
-                options={courses.map((c) => ({
-                  value: c.id,
-                  label: `${c.name} (${c.code})`,
-                  subLabel: `Tuition Fee: ₹${Number(c.fees).toLocaleString("en-IN")}`,
-                }))}
+                options={(() => {
+                  const selDept = departments.find((d) => d.id === selectedDeptId || d.name === selectedDeptId);
+                  const selDeptName = selDept ? selDept.name : selectedDeptId;
+
+                  return courses
+                    .filter((c) => {
+                      if (!selectedDeptId) return true;
+                      return (
+                        c.departmentId === selectedDeptId ||
+                        c.department?.id === selectedDeptId ||
+                        c.department?.name === selectedDeptId ||
+                        c.category === selectedDeptId ||
+                        (selDeptName && (c.category === selDeptName || c.department?.name === selDeptName))
+                      );
+                    })
+                    .map((c) => ({
+                      value: c.id,
+                      label: `${c.name} (${c.code})`,
+                      subLabel: c.department?.name || c.category || "",
+                    }));
+                })()}
                 value={formData.courseId}
                 onChange={(_, val) => setFormData((prev) => ({ ...prev, courseId: val }))}
                 placeholder="-- Search & Select Course --"

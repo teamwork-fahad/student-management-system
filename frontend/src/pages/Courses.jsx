@@ -473,14 +473,23 @@ export const Courses = ({ defaultTab }) => {
   };
 
   // 3-Level Cascading Calculations for Courses page
-  const coursesInDept = courses.filter((c) => {
-    if (!departmentFilter) return true;
+  const selectedDeptObj = departments.find(
+    (d) => d.id === departmentFilter || d.name === departmentFilter
+  );
+  const selectedDeptName = selectedDeptObj ? selectedDeptObj.name : departmentFilter;
+
+  const isCourseInDept = (c, deptIdOrName) => {
+    if (!deptIdOrName) return true;
     return (
-      c.departmentId === departmentFilter ||
-      c.department?.id === departmentFilter ||
-      c.department?.name === departmentFilter
+      c.departmentId === deptIdOrName ||
+      c.department?.id === deptIdOrName ||
+      c.department?.name === deptIdOrName ||
+      c.category === deptIdOrName ||
+      (selectedDeptName && (c.category === selectedDeptName || c.department?.name === selectedDeptName))
     );
-  });
+  };
+
+  const coursesInDept = courses.filter((c) => isCourseInDept(c, departmentFilter));
 
   const availablePrograms = Array.from(
     new Set(
@@ -505,11 +514,7 @@ export const Courses = ({ defaultTab }) => {
         (c.category || "").toLowerCase().includes(q) ||
         (c.department?.name || "").toLowerCase().includes(q);
 
-      const matchesDept =
-        !departmentFilter ||
-        c.departmentId === departmentFilter ||
-        c.department?.id === departmentFilter ||
-        c.department?.name === departmentFilter;
+      const matchesDept = isCourseInDept(c, departmentFilter);
 
       const matchesProgram =
         !programFilter || (c.category || "") === programFilter;
