@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Plus,
   BookOpen,
@@ -39,10 +39,20 @@ export const COURSE_CATEGORIES = [
 
 const STATIC_COURSE_CATEGORIES = COURSE_CATEGORIES;
 
-export const Courses = () => {
+export const Courses = ({ defaultTab }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const isSuperAdmin = user?.role === "SUPER_ADMIN";
+
+  const isDepartmentsRoute = defaultTab === "departments" || location.pathname.includes("/departments");
+  const [activeTab, setActiveTab] = useState(isDepartmentsRoute ? "departments" : "courses");
+
+  useEffect(() => {
+    if (defaultTab === "departments" || location.pathname.includes("/departments")) {
+      setActiveTab("departments");
+    }
+  }, [location.pathname, defaultTab]);
   const [courses, setCourses] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -596,16 +606,63 @@ export const Courses = () => {
 
   return (
     <div className="space-y-6 font-sans">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-            Course Catalog & Department Categories
-          </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Manage academic programs, department categories, tuition fees, and duration.
-          </p>
-        </div>
+      {/* Top Main Navigation Tabs */}
+      <div className="flex items-center space-x-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab("courses");
+            if (location.pathname.includes("/departments")) {
+              navigate("/dashboard/courses");
+            }
+          }}
+          className={`px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all flex items-center space-x-2 cursor-pointer ${
+            activeTab === "courses"
+              ? "bg-blue-600 text-white shadow-md shadow-blue-500/25"
+              : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:text-slate-900 dark:hover:text-white"
+          }`}
+        >
+          <BookOpen className="w-4 h-4" />
+          <span>All Courses List</span>
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${activeTab === "courses" ? "bg-white/20 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"}`}>
+            {totalCourses}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab("departments");
+            if (!location.pathname.includes("/departments")) {
+              navigate("/dashboard/courses/departments");
+            }
+          }}
+          className={`px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all flex items-center space-x-2 cursor-pointer ${
+            activeTab === "departments"
+              ? "bg-blue-600 text-white shadow-md shadow-blue-500/25"
+              : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:text-slate-900 dark:hover:text-white"
+          }`}
+        >
+          <Building2 className="w-4 h-4" />
+          <span>Departments</span>
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${activeTab === "departments" ? "bg-white/20 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"}`}>
+            {departments.length}
+          </span>
+        </button>
+      </div>
+
+      {activeTab === "courses" ? (
+        <>
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                Course Catalog & Department Categories
+              </h1>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Manage academic programs, department categories, tuition fees, and duration.
+              </p>
+            </div>
 
         <div className="flex items-center space-x-3">
           {/* View Mode Toggle Switch (Table View Default) */}
@@ -1203,6 +1260,235 @@ export const Courses = () => {
             >
               Next ▶
             </button>
+          </div>
+        </div>
+      )}
+        </>
+      ) : (
+        /* DEPARTMENT MANAGEMENT VIEW */
+        <div className="space-y-6">
+          {/* Top Action & Info Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div>
+              <div className="flex items-center space-x-2">
+                <Building2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <h2 className="text-lg font-black text-slate-900 dark:text-white">
+                  Academic Department Categories
+                </h2>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Manage academy streams, department codes, active statuses, and linked course programs.
+              </p>
+            </div>
+
+            {isSuperAdmin && (
+              <button
+                type="button"
+                onClick={() => {
+                  setDeptForm({ name: "", code: "", description: "" });
+                  setEditingDept(null);
+                  setDeptError("");
+                  setIsDeptModalOpen(true);
+                }}
+                className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-2xl shadow-md shadow-blue-500/20 flex items-center space-x-2 transition cursor-pointer shrink-0"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Create Department</span>
+              </button>
+            )}
+          </div>
+
+          {/* Department KPI Stats */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center space-x-3 shadow-sm">
+              <div className="p-3 bg-blue-50 dark:bg-blue-950/80 border border-blue-200 dark:border-blue-800 rounded-2xl text-blue-600 dark:text-blue-400 shrink-0">
+                <Building2 className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Departments</p>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white">{departments.length}</h3>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center space-x-3 shadow-sm">
+              <div className="p-3 bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 rounded-2xl text-emerald-600 dark:text-emerald-400 shrink-0">
+                <CheckCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Active Departments</p>
+                <h3 className="text-xl font-black text-emerald-600 dark:text-emerald-400">
+                  {departments.filter((d) => d.isActive !== false).length}
+                </h3>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center space-x-3 shadow-sm">
+              <div className="p-3 bg-purple-50 dark:bg-purple-950/80 border border-purple-200 dark:border-purple-800 rounded-2xl text-purple-600 dark:text-purple-400 shrink-0">
+                <BookOpen className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Linked Courses</p>
+                <h3 className="text-xl font-black text-purple-600 dark:text-purple-300">{courses.length}</h3>
+              </div>
+            </div>
+          </div>
+
+          {/* Departments Grid Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {departments.map((dept) => {
+              const deptCourses = courses.filter(
+                (c) => c.departmentId === dept.id || c.department?.id === dept.id || c.department?.name === dept.name || c.category === dept.name
+              );
+              const isActive = dept.isActive !== false;
+
+              return (
+                <div
+                  key={dept.id}
+                  className="p-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 flex flex-col justify-between space-y-4 hover:shadow-lg transition-all"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-black text-base text-slate-900 dark:text-white">
+                          {dept.name}
+                        </span>
+                        {dept.code && (
+                          <span className="px-2 py-0.5 bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-[10px] font-mono font-bold rounded-lg uppercase">
+                            {dept.code}
+                          </span>
+                        )}
+                      </div>
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase ${
+                        isActive
+                          ? "bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
+                          : "bg-rose-50 dark:bg-rose-950/80 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800"
+                      }`}>
+                        {isActive ? "ACTIVE" : "INACTIVE"}
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-3">
+                      {dept.description || "Academic department stream for associated course programs."}
+                    </p>
+
+                    <div className="flex items-center space-x-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                      <BookOpen className="w-4 h-4 text-blue-500" />
+                      <span>{deptCourses.length} Course(s) Linked</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDepartmentFilter(dept.id);
+                        setActiveTab("courses");
+                        navigate("/dashboard/courses");
+                      }}
+                      className="px-3 py-1.5 bg-blue-50 hover:bg-blue-600 dark:bg-blue-950/60 dark:hover:bg-blue-600 text-blue-600 hover:text-white dark:text-blue-400 rounded-xl text-xs font-bold transition flex items-center space-x-1 cursor-pointer"
+                    >
+                      <Search className="w-3.5 h-3.5" />
+                      <span>View Courses</span>
+                    </button>
+
+                    {isSuperAdmin && (
+                      <div className="flex items-center space-x-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingDept(dept);
+                            setDeptForm({ name: dept.name, code: dept.code || "", description: dept.description || "" });
+                            setDeptError("");
+                            setIsDeptModalOpen(true);
+                          }}
+                          className="p-2 text-slate-500 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer"
+                          title="Edit Department"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleDeptStatus(dept)}
+                          className="p-2 text-slate-500 hover:text-amber-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer"
+                          title={isActive ? "Deactivate Department" : "Activate Department"}
+                        >
+                          {isActive ? <XCircle className="w-4 h-4 text-rose-500" /> : <CheckCircle className="w-4 h-4 text-emerald-500" />}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteDept(dept)}
+                          className="p-2 text-slate-500 hover:text-rose-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer"
+                          title="Delete Department"
+                        >
+                          <Trash2 className="w-4 h-4 text-rose-500" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Department-wise Courses Table Breakdown */}
+          <div className="p-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm">
+            <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider flex items-center space-x-2">
+              <BookOpen className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <span>Department Course Breakdown</span>
+            </h3>
+
+            <div className="divide-y divide-slate-100 dark:divide-slate-800 space-y-4">
+              {departments.map((dept) => {
+                const deptCourses = courses.filter(
+                  (c) => c.departmentId === dept.id || c.department?.id === dept.id || c.department?.name === dept.name || c.category === dept.name
+                );
+
+                return (
+                  <div key={dept.id} className="pt-4 first:pt-0 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-extrabold text-sm text-slate-900 dark:text-white">
+                          🏢 {dept.name}
+                        </span>
+                        <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-bold rounded-lg">
+                          {deptCourses.length} course(s)
+                        </span>
+                      </div>
+                    </div>
+
+                    {deptCourses.length === 0 ? (
+                      <div className="p-3 bg-slate-50 dark:bg-slate-950/60 rounded-2xl text-xs text-slate-400 italic">
+                        No active courses currently assigned to this department.
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                        {deptCourses.map((c) => (
+                          <div key={c.id} className="p-3 bg-slate-50 dark:bg-slate-950/80 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between">
+                            <div>
+                              <span className="text-[10px] font-mono font-bold text-blue-600 dark:text-blue-400 block">{c.code}</span>
+                              <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate max-w-[180px]">{c.name}</h4>
+                              <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                                ₹{Number(c.fees).toLocaleString("en-IN")} • {c.duration} {c.durationType}
+                              </span>
+                            </div>
+                            {isSuperAdmin && (
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEditModal(c)}
+                                className="p-1.5 text-slate-400 hover:text-blue-600 transition"
+                                title="Edit Course"
+                              >
+                                <Edit className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}

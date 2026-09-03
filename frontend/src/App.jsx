@@ -96,6 +96,8 @@ export const App = () => {
                 <Route path="students" element={<Students />} />
                 <Route path="students/:id" element={<StudentProfilePage />} />
                 <Route path="courses" element={<Courses />} />
+                <Route path="courses/departments" element={<Courses defaultTab="departments" />} />
+                <Route path="departments" element={<Courses defaultTab="departments" />} />
                 <Route path="attendance" element={<Attendance />} />
                 <Route path="fees" element={<Fees />} />
                 <Route path="expenses" element={<Expenses />} />

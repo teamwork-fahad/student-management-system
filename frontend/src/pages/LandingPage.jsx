@@ -34,8 +34,10 @@ export const LandingPage = () => {
   const [authRole, setAuthRole] = useState("STUDENT");
   const [authMode, setAuthMode] = useState("login");
 
-  // Courses data
+  // Courses & Departments data
   const [courses, setCourses] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [selectedDept, setSelectedDept] = useState("ALL");
   const [loadingCourses, setLoadingCourses] = useState(true);
 
   // Inquiry Form state
@@ -50,6 +52,7 @@ export const LandingPage = () => {
 
   useEffect(() => {
     fetchCourses();
+    fetchDepartments();
   }, []);
 
   const fetchCourses = async () => {
@@ -60,6 +63,15 @@ export const LandingPage = () => {
       console.error("Failed to load courses", err);
     } finally {
       setLoadingCourses(false);
+    }
+  };
+
+  const fetchDepartments = async () => {
+    try {
+      const res = await api.get("/departments/public");
+      setDepartments(res.data.data || []);
+    } catch (err) {
+      console.error("Failed to load departments", err);
     }
   };
 
@@ -232,61 +244,142 @@ export const LandingPage = () => {
       {/* COURSES SHOWCASE SECTION */}
       <section id="courses" className="py-20 bg-slate-100/60 dark:bg-slate-900/40 border-t border-b border-slate-200 dark:border-slate-800/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-14">
+          <div className="text-center max-w-2xl mx-auto mb-10">
             <h2 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white sm:text-4xl">Featured Courses & Programs</h2>
-            <p className="mt-3 text-slate-600 dark:text-slate-400 text-sm">Select from our industry-oriented technology, computer, and academic programs.</p>
+            <p className="mt-3 text-slate-600 dark:text-slate-400 text-sm">Explore our academic and professional courses organized department-wise.</p>
           </div>
+
+          {/* Department Wise Filter Tabs */}
+          {!loadingCourses && (
+            <div className="flex items-center justify-center flex-wrap gap-2 mb-12">
+              <button
+                type="button"
+                onClick={() => setSelectedDept("ALL")}
+                className={`px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all duration-200 cursor-pointer flex items-center space-x-2 border ${
+                  selectedDept === "ALL"
+                    ? "bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/25 scale-105"
+                    : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-blue-400"
+                }`}
+              >
+                <span>All Departments</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${selectedDept === "ALL" ? "bg-white/20 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"}`}>
+                  {courses.length}
+                </span>
+              </button>
+
+              {departments.map((dept) => {
+                const count = courses.filter(
+                  (c) => c.departmentId === dept.id || c.department?.id === dept.id || c.department?.name === dept.name || c.category === dept.name
+                ).length;
+                const isSelected = selectedDept === dept.id || selectedDept === dept.name;
+
+                return (
+                  <button
+                    key={dept.id}
+                    type="button"
+                    onClick={() => setSelectedDept(dept.id)}
+                    className={`px-4 py-2.5 rounded-2xl text-xs font-extrabold transition-all duration-200 cursor-pointer flex items-center space-x-2 border ${
+                      isSelected
+                        ? "bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/25 scale-105"
+                        : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-blue-400"
+                    }`}
+                  >
+                    <span>{dept.name}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${isSelected ? "bg-white/20 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"}`}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {loadingCourses ? (
             <div className="text-center py-12 text-slate-400 text-sm">Loading available courses...</div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {courses.slice(0, 9).map((c) => (
-                <div
-                  key={c.id}
-                  className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 hover:border-blue-500/50 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col justify-between group"
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="px-3 py-1 bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 rounded-xl text-[11px] font-bold tracking-wide uppercase">
-                        {c.code}
-                      </span>
-                      <div className="flex items-center space-x-1 text-slate-500 dark:text-slate-400 text-xs font-semibold">
-                        <Clock className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                        <span>{c.duration} {c.durationType}</span>
+          ) : (() => {
+            const filteredPublicCourses = courses.filter((c) => {
+              if (selectedDept === "ALL") return true;
+              return (
+                c.departmentId === selectedDept ||
+                c.department?.id === selectedDept ||
+                c.department?.name === selectedDept ||
+                c.category === selectedDept
+              );
+            });
+
+            if (filteredPublicCourses.length === 0) {
+              return (
+                <div className="text-center py-16 px-4 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-lg mx-auto">
+                  <BookOpen className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+                  <h4 className="text-base font-bold text-slate-800 dark:text-slate-200">No Courses Found</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">There are no courses listed under this department at the moment.</p>
+                  <button
+                    onClick={() => setSelectedDept("ALL")}
+                    className="mt-4 px-4 py-2 bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 text-xs font-bold rounded-xl"
+                  >
+                    View All Courses
+                  </button>
+                </div>
+              );
+            }
+
+            return (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredPublicCourses.map((c) => {
+                  const deptName = c.department?.name || c.category || "General";
+                  return (
+                    <div
+                      key={c.id}
+                      className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 hover:border-blue-500/50 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col justify-between group"
+                    >
+                      <div>
+                        {/* Course Header & Badges */}
+                        <div className="flex items-center justify-between gap-2 mb-3">
+                          <span className="px-2.5 py-1 bg-blue-50 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 rounded-xl text-[10px] font-extrabold tracking-wide uppercase">
+                            {c.code}
+                          </span>
+                          <span className="px-2.5 py-1 bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60 rounded-xl text-[10px] font-extrabold tracking-wide truncate max-w-[140px]">
+                            🏢 {deptName}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center space-x-1 text-slate-500 dark:text-slate-400 text-xs font-semibold mb-3">
+                          <Clock className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+                          <span>{c.duration} {c.durationType}</span>
+                        </div>
+
+                        <h3 className="text-lg font-extrabold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors mb-2">
+                          {c.name}
+                        </h3>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 mb-4 font-normal leading-relaxed">
+                          {c.description || "Comprehensive course covering practical and theoretical fundamentals."}
+                        </p>
+                      </div>
+
+                      <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <div>
+                          <span className="text-[10px] uppercase font-bold text-slate-400 block">Tuition Fee</span>
+                          <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">
+                            ₹{Number(c.fees).toLocaleString("en-IN")}
+                          </span>
+                        </div>
+
+                        <button
+                          onClick={() => {
+                            setInqCourseId(c.id);
+                            document.getElementById("inquiry")?.scrollIntoView({ behavior: "smooth" });
+                          }}
+                          className="px-4 py-2 bg-blue-50 hover:bg-blue-600 dark:bg-blue-950/60 dark:hover:bg-blue-600 text-blue-600 hover:text-white dark:text-blue-400 rounded-xl text-xs font-bold transition cursor-pointer active:scale-95"
+                        >
+                          Enquire Now
+                        </button>
                       </div>
                     </div>
-
-                    <h3 className="text-lg font-extrabold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors mb-2">
-                      {c.name}
-                    </h3>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 mb-4 font-normal leading-relaxed">
-                      {c.description || "Comprehensive course covering practical and theoretical fundamentals."}
-                    </p>
-                  </div>
-
-                  <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Tuition Fee</span>
-                      <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">
-                        ₹{Number(c.fees).toLocaleString("en-IN")}
-                      </span>
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        setInqCourseId(c.id);
-                        document.getElementById("inquiry")?.scrollIntoView({ behavior: "smooth" });
-                      }}
-                      className="px-4 py-2 bg-blue-50 hover:bg-blue-600 dark:bg-blue-950/60 dark:hover:bg-blue-600 text-blue-600 hover:text-white dark:text-blue-400 rounded-xl text-xs font-bold transition"
-                    >
-                      Enquire Now
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+                  );
+                })}
+              </div>
+            );
+          })()}
         </div>
       </section>
 

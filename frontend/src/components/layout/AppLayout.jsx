@@ -28,6 +28,7 @@ import {
   ChevronDown,
   Sparkles,
   Search,
+  Building2,
 } from "lucide-react";
 
 export const AppLayout = () => {
@@ -42,13 +43,15 @@ export const AppLayout = () => {
   const isFinanceRoute = location.pathname.startsWith("/dashboard/finance") || location.pathname === "/dashboard/expenses";
   const [financeOpen, setFinanceOpen] = useState(isFinanceRoute);
 
+  const isCourseRoute = location.pathname.startsWith("/dashboard/courses") || location.pathname.startsWith("/dashboard/departments");
+  const [courseOpen, setCourseOpen] = useState(isCourseRoute);
+
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
     { name: "Inquiries & Leads", href: "/dashboard/inquiries", icon: MessageSquare },
     { name: "Admissions", href: "/dashboard/admissions", icon: UserPlus },
     { name: "Students", href: "/dashboard/students", icon: Users },
-    { name: "Courses", href: "/dashboard/courses", icon: BookOpen },
     { name: "Attendance", href: "/dashboard/attendance", icon: CalendarCheck },
     { name: "Fees & Revenue", href: "/dashboard/fees", icon: CreditCard },
   ];
@@ -140,6 +143,59 @@ export const AppLayout = () => {
               </Link>
             );
           })}
+
+          {/* Collapsible Courses Parent Group */}
+          <div className="pt-1">
+            <button
+              type="button"
+              onClick={() => setCourseOpen(!courseOpen)}
+              title={collapsed ? "Courses Module" : undefined}
+              className={`w-full flex items-center justify-between ${
+                collapsed ? "md:justify-center md:px-0" : "px-4"
+              } py-3 text-xs font-bold rounded-2xl transition-all duration-200 cursor-pointer ${
+                isCourseRoute
+                  ? "bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/60"
+                  : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60"
+              }`}
+            >
+              <div className="flex items-center space-x-3">
+                <BookOpen className={`w-5 h-5 shrink-0 ${isCourseRoute ? "text-blue-600 dark:text-blue-400" : "text-blue-500"}`} />
+                {(!collapsed || mobileOpen) && <span>Courses</span>}
+              </div>
+              {(!collapsed || mobileOpen) && (
+                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${courseOpen ? "rotate-180 text-blue-600" : "text-slate-400"}`} />
+              )}
+            </button>
+
+            {/* Sub-Items Accordion Drawer */}
+            {courseOpen && (
+              <div className={`mt-1.5 space-y-1 ${collapsed ? "md:pl-0" : "pl-3 border-l-2 border-slate-200 dark:border-slate-800 ml-5"}`}>
+                {[
+                  { name: "All Courses", href: "/dashboard/courses", icon: BookOpen },
+                  { name: "Departments", href: "/dashboard/courses/departments", icon: Building2 },
+                ].map((subItem) => {
+                  const isSubActive = location.pathname === subItem.href;
+                  const SubIcon = subItem.icon;
+                  return (
+                    <Link
+                      key={subItem.name}
+                      to={subItem.href}
+                      onClick={() => setMobileOpen(false)}
+                      title={collapsed ? subItem.name : undefined}
+                      className={`flex items-center ${collapsed ? "md:justify-center md:px-0" : "px-3"} py-2 text-xs font-semibold rounded-xl transition-all duration-200 cursor-pointer ${
+                        isSubActive
+                          ? "bg-blue-600 text-white shadow-md shadow-blue-500/25 font-bold"
+                          : "text-slate-600 dark:text-slate-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400"
+                      }`}
+                    >
+                      <SubIcon className={`w-3.5 h-3.5 shrink-0 ${isSubActive ? "text-white" : "text-blue-500/80"} ${collapsed ? "md:mr-0" : "mr-2.5"}`} />
+                      {(!collapsed || mobileOpen) && <span className="truncate">{subItem.name}</span>}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
           {/* Collapsible Finance Parent Group */}
           <div className="pt-1">
