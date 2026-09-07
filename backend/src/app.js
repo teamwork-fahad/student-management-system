@@ -7,6 +7,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import swaggerUi from "swagger-ui-express";
+import getAbsoluteSwaggerFsPath from "swagger-ui-dist/absolute-path.js";
 import { apiReference } from "@scalar/express-api-reference";
 import yaml from "yaml";
 import routes from "./routes/index.js";
@@ -42,6 +43,7 @@ const serveSwaggerDocs = (spec, routePath, title) => {
 
   app.use(
     routePath,
+    express.static(getAbsoluteSwaggerFsPath(), { index: false }),
     swaggerUi.serveFiles(spec, { explorer: true, customSiteTitle: title }),
     swaggerUi.setup(spec, { explorer: true, customSiteTitle: title })
   );
