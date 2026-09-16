@@ -136,6 +136,8 @@ export const createRecurringExpenseService = async (data) => {
     categoryId,
     categoryName,
     partyId,
+    partyName,
+    newPartyName,
     createdBy,
   } = data;
 
@@ -147,6 +149,23 @@ export const createRecurringExpenseService = async (data) => {
       create: { name: categoryName.trim() },
     });
     finalCategoryId = cat.id;
+  }
+
+  let finalPartyId = partyId;
+  const targetPartyName = partyName || newPartyName;
+  if (!finalPartyId && targetPartyName && targetPartyName.trim()) {
+    const trimmed = targetPartyName.trim();
+    const existingParty = await prisma.expenseParty.findFirst({
+      where: { name: { equals: trimmed, mode: "insensitive" } },
+    });
+    if (existingParty) {
+      finalPartyId = existingParty.id;
+    } else {
+      const newParty = await prisma.expenseParty.create({
+        data: { name: trimmed, status: "ACTIVE" },
+      });
+      finalPartyId = newParty.id;
+    }
   }
 
   const start = startDate ? new Date(startDate) : new Date();
@@ -165,7 +184,7 @@ export const createRecurringExpenseService = async (data) => {
       description: description ? description.trim() : null,
       status: "ACTIVE",
       categoryId: finalCategoryId || null,
-      partyId: partyId || null,
+      partyId: finalPartyId || null,
       createdBy: createdBy || null,
     },
     include: { category: true, party: true },
@@ -228,7 +247,24 @@ export const getRecurringExpenseByIdService = async (id) => {
 };
 
 export const updateRecurringExpenseService = async (id, data) => {
-  const { title, amount, paymentMode, frequency, nextDueDate, status, categoryId, partyId, description } = data;
+  const { title, amount, paymentMode, frequency, nextDueDate, status, categoryId, partyId, partyName, newPartyName, description } = data;
+
+  let finalPartyId = partyId;
+  const targetPartyName = partyName || newPartyName;
+  if (!finalPartyId && targetPartyName && targetPartyName.trim()) {
+    const trimmed = targetPartyName.trim();
+    const existingParty = await prisma.expenseParty.findFirst({
+      where: { name: { equals: trimmed, mode: "insensitive" } },
+    });
+    if (existingParty) {
+      finalPartyId = existingParty.id;
+    } else {
+      const newParty = await prisma.expenseParty.create({
+        data: { name: trimmed, status: "ACTIVE" },
+      });
+      finalPartyId = newParty.id;
+    }
+  }
 
   const updated = await prisma.recurringExpense.update({
     where: { id },
@@ -240,7 +276,7 @@ export const updateRecurringExpenseService = async (id, data) => {
       ...(nextDueDate && { nextDueDate: new Date(nextDueDate) }),
       ...(status && { status }),
       ...(categoryId !== undefined && { categoryId }),
-      ...(partyId !== undefined && { partyId }),
+      ...(finalPartyId !== undefined && { partyId: finalPartyId }),
       ...(description !== undefined && { description: description ? description.trim() : null }),
     },
     include: { category: true, party: true },

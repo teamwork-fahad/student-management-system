@@ -54,6 +54,7 @@ export const RecurringExpenses = () => {
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [partyId, setPartyId] = useState("");
+  const [newPartyName, setNewPartyName] = useState("");
 
   useEffect(() => {
     fetchRecurring();
@@ -78,19 +79,40 @@ export const RecurringExpenses = () => {
 
   const fetchOptions = async () => {
     try {
-      const [catRes, partyRes] = await Promise.all([
+      const [catRes, partyRes] = await Promise.allSettled([
         api.get("/expenses"),
-        api.get("/expenses/parties"),
+        api.get("/expenses/parties?limit=1000"),
       ]);
-      setCategories(catRes.data?.data?.categories || []);
-      setParties(partyRes.data?.data?.parties || []);
+
+      let catList = [];
+      let partyList = [];
+
+      if (catRes.status === "fulfilled") {
+        const d = catRes.value.data?.data;
+        catList = d?.categories || [];
+        if (d?.parties && d.parties.length > 0) {
+          partyList = d.parties;
+        }
+      }
+
+      if (partyRes.status === "fulfilled") {
+        const fetchedParties = partyRes.value.data?.data?.parties || [];
+        if (fetchedParties.length > 0) {
+          partyList = fetchedParties;
+        }
+      }
+
+      setCategories(catList);
+      setParties(partyList);
     } catch (err) {
       console.error("Fetch options error:", err);
     }
   };
 
   const handleOpenRuleModal = (rule = null) => {
+    fetchOptions();
     setError("");
+    setNewPartyName("");
     if (rule) {
       setEditingRule(rule);
       setTitle(rule.title || "");
@@ -141,6 +163,7 @@ export const RecurringExpenses = () => {
         description: description.trim() || undefined,
         categoryId: categoryId || undefined,
         partyId: partyId || undefined,
+        partyName: !partyId && newPartyName.trim() ? newPartyName.trim() : undefined,
       };
 
       if (editingRule) {
@@ -151,6 +174,7 @@ export const RecurringExpenses = () => {
 
       setIsRuleModalOpen(false);
       fetchRecurring();
+      fetchOptions();
     } catch (err) {
       setError(err.response?.data?.message || "Failed to save recurring expense rule.");
     } finally {
@@ -513,13 +537,23 @@ export const RecurringExpenses = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Assign Party (Vendor)</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-semibold text-slate-700 dark:text-slate-300">Assign Party (Vendor)</label>
+                    {parties.length === 0 && (
+                      <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold">No saved parties yet</span>
+                    )}
+                  </div>
                   <select
                     value={partyId}
-                    onChange={(e) => setPartyId(e.target.value)}
+                    onChange={(e) => {
+                      setPartyId(e.target.value);
+                      if (e.target.value) setNewPartyName("");
+                    }}
                     className="w-full h-[40px] px-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-xs outline-none focus:border-purple-500 font-medium cursor-pointer"
                   >
-                    <option value="">Select Party / Payee...</option>
+                    <option value="">
+                      {parties.length > 0 ? "Select Party / Payee..." : "-- No Saved Parties (Type Below) --"}
+                    </option>
                     {parties.map((p) => (
                       <option key={p.id} value={p.id} className="bg-white dark:bg-slate-950">{p.name}</option>
                     ))}
@@ -540,6 +574,21 @@ export const RecurringExpenses = () => {
                   </select>
                 </div>
               </div>
+
+              {!partyId && (
+                <div>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    {parties.length === 0 ? "Type Party / Payee Name" : "Or Type New Party / Payee Name"}
+                  </label>
+                  <input
+                    type="text"
+                    value={newPartyName}
+                    onChange={(e) => setNewPartyName(e.target.value)}
+                    placeholder="e.g. Broadband Vendor, Rent Landlord, Acme Corp"
+                    className="w-full h-[40px] px-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-xs outline-none focus:border-purple-500 font-medium placeholder-slate-400"
+                  />
+                </div>
+              )}
 
               <div>
                 <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Description / Notes</label>

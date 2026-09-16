@@ -1,6 +1,31 @@
 import prisma from "../../config/prisma.js";
 
 export const getPartiesService = async ({ page = 1, limit = 50, search, status }) => {
+  // Auto-sync distinct paidTo values from Expense table into ExpenseParty
+  try {
+    const distinctPaidTos = await prisma.expense.findMany({
+      where: { paidTo: { not: null } },
+      select: { paidTo: true },
+      distinct: ["paidTo"],
+    });
+
+    for (const item of distinctPaidTos) {
+      if (item.paidTo && item.paidTo.trim()) {
+        const name = item.paidTo.trim();
+        const existing = await prisma.expenseParty.findFirst({
+          where: { name: { equals: name, mode: "insensitive" } },
+        });
+        if (!existing) {
+          await prisma.expenseParty.create({
+            data: { name, status: "ACTIVE" },
+          });
+        }
+      }
+    }
+  } catch (syncErr) {
+    console.error("Auto-sync paidTo error:", syncErr);
+  }
+
   const skip = (Number(page) - 1) * Number(limit);
   const take = Number(limit);
 

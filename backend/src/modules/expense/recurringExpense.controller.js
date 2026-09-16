@@ -23,6 +23,7 @@ const createRecurringSchema = z.object({
   categoryId: z.string().trim().nullish(),
   categoryName: z.string().trim().nullish(),
   partyId: z.string().trim().nullish(),
+  partyName: z.string().trim().nullish(),
 });
 
 export const getRecurringExpenses = asyncHandler(async (req, res) => {

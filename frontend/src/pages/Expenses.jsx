@@ -68,11 +68,26 @@ export const Expenses = () => {
       if (selectedCategory) params.categoryId = selectedCategory;
       if (selectedParty) params.partyId = selectedParty;
 
-      const res = await api.get("/expenses", { params });
-      const data = res.data?.data;
-      setExpenses(data?.expenses || []);
-      setCategories(data?.categories || []);
-      setParties(data?.parties || []);
+      const [res, partyRes] = await Promise.allSettled([
+        api.get("/expenses", { params }),
+        api.get("/expenses/parties?limit=1000"),
+      ]);
+
+      if (res.status === "fulfilled") {
+        const data = res.value.data?.data;
+        setExpenses(data?.expenses || []);
+        setCategories(data?.categories || []);
+        if (data?.parties && data.parties.length > 0) {
+          setParties(data.parties);
+        }
+      }
+
+      if (partyRes.status === "fulfilled") {
+        const fetchedParties = partyRes.value.data?.data?.parties || [];
+        if (fetchedParties.length > 0) {
+          setParties(fetchedParties);
+        }
+      }
     } catch (err) {
       console.error("Fetch expenses error:", err);
     } finally {
@@ -522,13 +537,23 @@ export const Expenses = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Select Party (Vendor)</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-semibold text-slate-700 dark:text-slate-300">Select Party (Vendor)</label>
+                    {parties.length === 0 && (
+                      <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold">No saved parties yet</span>
+                    )}
+                  </div>
                   <select
                     value={partyId}
-                    onChange={(e) => setPartyId(e.target.value)}
+                    onChange={(e) => {
+                      setPartyId(e.target.value);
+                      if (e.target.value) setPaidTo("");
+                    }}
                     className="w-full h-[40px] px-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-xs outline-none focus:border-rose-500 font-medium cursor-pointer"
                   >
-                    <option value="">Select Existing Party...</option>
+                    <option value="">
+                      {parties.length > 0 ? "Select Existing Party..." : "-- No Saved Parties (Type Below) --"}
+                    </option>
                     {parties.map((p) => (
                       <option key={p.id} value={p.id} className="bg-white dark:bg-slate-950">{p.name}</option>
                     ))}
@@ -549,6 +574,21 @@ export const Expenses = () => {
                   </select>
                 </div>
               </div>
+
+              {!partyId && (
+                <div>
+                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    {parties.length === 0 ? "Type Party / Payee Name" : "Or Type New Party / Payee Name"}
+                  </label>
+                  <input
+                    type="text"
+                    value={paidTo}
+                    onChange={(e) => setPaidTo(e.target.value)}
+                    placeholder="e.g. Electricity Office, Landlord, Acme Supplies"
+                    className="w-full h-[40px] px-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-xs outline-none focus:border-rose-500 placeholder-slate-400 font-medium"
+                  />
+                </div>
+              )}
 
               {!categoryId && (
                 <div>
@@ -585,17 +625,6 @@ export const Expenses = () => {
                     className="w-full h-[40px] px-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-xs outline-none focus:border-rose-500 placeholder-slate-400 font-medium"
                   />
                 </div>
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Paid To (If not selecting a party)</label>
-                <input
-                  type="text"
-                  value={paidTo}
-                  onChange={(e) => setPaidTo(e.target.value)}
-                  placeholder="Vendor / Payee Name"
-                  className="w-full h-[40px] px-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-slate-100 text-xs outline-none focus:border-rose-500 placeholder-slate-400 font-medium"
-                />
               </div>
 
               <div>

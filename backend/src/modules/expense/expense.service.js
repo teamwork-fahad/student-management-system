@@ -90,6 +90,8 @@ export const createExpenseService = async (data) => {
     categoryName,
     category,
     partyId,
+    partyName,
+    newPartyName,
     paidTo,
     vendorName,
     referenceNumber,
@@ -109,14 +111,31 @@ export const createExpenseService = async (data) => {
     finalCategoryId = cat.id;
   }
 
-  const expenseNumber = await generateExpenseNumber();
+  let finalPartyId = partyId;
+  let targetPaidTo = paidTo || vendorName || partyName || newPartyName || null;
+  const rawPartyName = partyName || newPartyName || paidTo || vendorName;
 
-  // If partyId is provided, get party name
-  let targetPaidTo = paidTo || vendorName || null;
-  if (partyId && !targetPaidTo) {
-    const partyObj = await prisma.expenseParty.findUnique({ where: { id: partyId } });
+  if (!finalPartyId && rawPartyName && rawPartyName.trim()) {
+    const trimmed = rawPartyName.trim();
+    const existingParty = await prisma.expenseParty.findFirst({
+      where: { name: { equals: trimmed, mode: "insensitive" } },
+    });
+    if (existingParty) {
+      finalPartyId = existingParty.id;
+      targetPaidTo = existingParty.name;
+    } else {
+      const newParty = await prisma.expenseParty.create({
+        data: { name: trimmed, status: "ACTIVE" },
+      });
+      finalPartyId = newParty.id;
+      targetPaidTo = newParty.name;
+    }
+  } else if (finalPartyId && !targetPaidTo) {
+    const partyObj = await prisma.expenseParty.findUnique({ where: { id: finalPartyId } });
     if (partyObj) targetPaidTo = partyObj.name;
   }
+
+  const expenseNumber = await generateExpenseNumber();
 
   const expense = await prisma.expense.create({
     data: {
@@ -126,7 +145,7 @@ export const createExpenseService = async (data) => {
       expenseDate: expenseDate ? new Date(expenseDate) : new Date(),
       paymentMode: paymentMode || "CASH",
       categoryId: finalCategoryId || null,
-      partyId: partyId || null,
+      partyId: finalPartyId || null,
       paidTo: targetPaidTo,
       referenceNumber: referenceNumber ? referenceNumber.trim() : null,
       remarks: remarks ? remarks.trim() : null,
