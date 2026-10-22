@@ -133,6 +133,31 @@ export const Fees = () => {
   // Selected Month & Year modal state
   const [selectedMonthData, setSelectedMonthData] = useState(null);
   const [selectedYearData, setSelectedYearData] = useState(null);
+  const [selectedYearMonth, setSelectedYearMonth] = useState(null);
+  const [yearMonthSearch, setYearMonthSearch] = useState("");
+  const [monthModalSearch, setMonthModalSearch] = useState("");
+
+  const handleOpenYearModal = (yearData) => {
+    setSelectedYearData(yearData);
+    setSelectedYearMonth(null);
+    setYearMonthSearch("");
+  };
+
+  const handleCloseYearModal = () => {
+    setSelectedYearData(null);
+    setSelectedYearMonth(null);
+    setYearMonthSearch("");
+  };
+
+  const handleOpenMonthModal = (monthData) => {
+    setSelectedMonthData(monthData);
+    setMonthModalSearch("");
+  };
+
+  const handleCloseMonthModal = () => {
+    setSelectedMonthData(null);
+    setMonthModalSearch("");
+  };
 
   // Form state
   const [selectedStudentId, setSelectedStudentId] = useState("");
@@ -467,7 +492,7 @@ export const Fees = () => {
                     {yearlyList.map((y) => (
                       <tr
                         key={y.year}
-                        onClick={() => setSelectedYearData(y)}
+                        onClick={() => handleOpenYearModal(y)}
                         className="hover:bg-[#F8FAFC] transition-colors duration-150 cursor-pointer"
                       >
                         <td className="py-3.5 px-4 font-extrabold text-[#0F172A] text-sm">
@@ -507,7 +532,7 @@ export const Fees = () => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              setSelectedYearData(y);
+                              handleOpenYearModal(y);
                             }}
                             className="px-2.5 py-1 bg-[#EFF6FF] hover:bg-[#DBEAFE] text-[#2563EB] hover:text-[#1D4ED8] border border-[#BFDBFE] rounded-[8px] font-semibold text-[11px] inline-flex items-center space-x-1 transition cursor-pointer"
                           >
@@ -526,7 +551,7 @@ export const Fees = () => {
                 {yearlyList.map((y) => (
                   <div
                     key={y.year}
-                    onClick={() => setSelectedYearData(y)}
+                    onClick={() => handleOpenYearModal(y)}
                     className="p-5 bg-white border border-[#E2E8F0] rounded-[14px] flex flex-col cursor-pointer hover:border-[#BFDBFE] hover:shadow-[0_6px_16px_rgba(15,23,42,0.07)] hover:-translate-y-[1px] transition-all duration-150 shadow-[0_2px_8px_rgba(15,23,42,0.05)]"
                   >
                     <div className="flex items-center justify-between mb-3">
@@ -616,7 +641,7 @@ export const Fees = () => {
                     {monthlyList.map((m) => (
                       <tr
                         key={m.monthName}
-                        onClick={() => setSelectedMonthData(m)}
+                        onClick={() => handleOpenMonthModal(m)}
                         className="hover:bg-[#F8FAFC] transition-colors duration-150 cursor-pointer"
                       >
                         <td className="py-3.5 px-4 font-bold text-[#0F172A] text-sm">
@@ -640,7 +665,7 @@ export const Fees = () => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              setSelectedMonthData(m);
+                              handleOpenMonthModal(m);
                             }}
                             className="px-2.5 py-1 bg-[#EFF6FF] hover:bg-[#DBEAFE] text-[#2563EB] hover:text-[#1D4ED8] border border-[#BFDBFE] rounded-[8px] font-semibold text-[11px] inline-flex items-center space-x-1 transition cursor-pointer"
                           >
@@ -659,7 +684,7 @@ export const Fees = () => {
                 {monthlyList.map((m) => (
                   <div
                     key={m.monthName}
-                    onClick={() => setSelectedMonthData(m)}
+                    onClick={() => handleOpenMonthModal(m)}
                     className="p-4 bg-white border border-[#E2E8F0] rounded-[14px] flex flex-col cursor-pointer hover:border-[#BFDBFE] hover:shadow-[0_6px_16px_rgba(15,23,42,0.07)] hover:-translate-y-[1px] transition-all duration-150 shadow-[0_2px_8px_rgba(15,23,42,0.05)]"
                   >
                     <div className="flex items-center justify-between mb-3">
@@ -1106,41 +1131,224 @@ export const Fees = () => {
       {selectedYearData && (
         <Modal
           isOpen={!!selectedYearData}
-          onClose={() => setSelectedYearData(null)}
+          onClose={handleCloseYearModal}
           title={`Year ${selectedYearData.year} - Financial & Revenue Breakdown`}
+          maxWidth="max-w-4xl"
         >
-          <div className="space-y-4 text-xs font-sans text-[#334155]">
-            <div className="p-4 rounded-[12px] bg-[#F8FAFC] border border-[#E2E8F0] grid grid-cols-4 gap-3">
+          <div className="space-y-5 text-xs font-sans text-[#334155]">
+            <div className="p-4 rounded-[12px] bg-[#F8FAFC] border border-[#E2E8F0] grid grid-cols-2 sm:grid-cols-4 gap-3 shadow-xs">
               <div>
                 <span className="text-[#64748B] block text-[10px] uppercase font-bold">Annual Revenue</span>
-                <span className="text-base font-extrabold text-[#059669]">₹{selectedYearData.totalAmount.toLocaleString("en-IN")}</span>
+                <span className="text-base sm:text-lg font-extrabold text-[#059669]">₹{selectedYearData.totalAmount.toLocaleString("en-IN")}</span>
               </div>
               <div>
                 <span className="text-[#64748B] block text-[10px] uppercase font-bold">Receipts Issued</span>
-                <span className="text-base font-extrabold text-[#2563EB]">{selectedYearData.receiptCount} Receipts</span>
+                <span className="text-base sm:text-lg font-extrabold text-[#2563EB]">{selectedYearData.receiptCount} Receipts</span>
               </div>
               <div>
                 <span className="text-[#64748B] block text-[10px] uppercase font-bold">Cash Collection</span>
-                <span className="text-xs font-bold text-[#0F172A]">₹{selectedYearData.cashCount.toLocaleString("en-IN")}</span>
+                <span className="text-xs sm:text-sm font-bold text-[#0F172A]">₹{selectedYearData.cashCount.toLocaleString("en-IN")}</span>
               </div>
               <div>
                 <span className="text-[#64748B] block text-[10px] uppercase font-bold">Digital / Online</span>
-                <span className="text-xs font-bold text-[#0F172A]">₹{selectedYearData.onlineCount.toLocaleString("en-IN")}</span>
+                <span className="text-xs sm:text-sm font-bold text-[#0F172A]">₹{selectedYearData.onlineCount.toLocaleString("en-IN")}</span>
               </div>
             </div>
 
             <div className="space-y-2">
-              <h4 className="font-bold text-[#475569] uppercase tracking-wider text-[10px]">Monthly Collections in {selectedYearData.year}</h4>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {Object.values(selectedYearData.monthsMap).map((mObj) => (
-                  <div key={mObj.monthName} className="p-3 bg-[#F8FAFC] rounded-[10px] border border-[#E2E8F0]">
-                    <span className="text-[10px] font-bold text-[#2563EB] block">{mObj.monthName}</span>
-                    <span className="text-sm font-extrabold text-[#059669]">₹{mObj.totalAmount.toLocaleString("en-IN")}</span>
-                    <span className="text-[10px] text-[#64748B] block mt-0.5">{mObj.receiptCount} receipts</span>
-                  </div>
-                ))}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                <h4 className="font-bold text-[#0F172A] uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-[#2563EB]" />
+                  <span>Monthly Collections in {selectedYearData.year}</span>
+                </h4>
+                <span className="text-[10px] text-[#2563EB] font-semibold bg-[#EFF6FF] px-2 py-0.5 rounded-full border border-[#BFDBFE]">
+                  💡 Click on any month below to view its receipts & collection details
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                {Object.values(selectedYearData.monthsMap).map((mObj) => {
+                  const isSelected = selectedYearMonth?.monthName === mObj.monthName;
+                  return (
+                    <div
+                      key={mObj.monthName}
+                      onClick={() => {
+                        if (isSelected) {
+                          setSelectedYearMonth(null);
+                        } else {
+                          setSelectedYearMonth(mObj);
+                          setYearMonthSearch("");
+                        }
+                      }}
+                      className={`p-3 rounded-[10px] border transition-all duration-150 cursor-pointer select-none ${
+                        isSelected
+                          ? "bg-[#EFF6FF] border-[#2563EB] ring-2 ring-[#2563EB]/40 shadow-sm"
+                          : "bg-[#F8FAFC] border-[#E2E8F0] hover:bg-white hover:border-[#BFDBFE] hover:shadow-xs active:scale-[0.99]"
+                      }`}
+                      title={`Click to ${isSelected ? "hide" : "view"} ${mObj.monthName} receipts`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className={`text-[11px] font-bold block ${isSelected ? "text-[#2563EB]" : "text-[#1E293B]"}`}>
+                          {mObj.monthName}
+                        </span>
+                        {isSelected ? (
+                          <span className="px-1.5 py-0.5 bg-[#2563EB] text-white rounded text-[8px] font-extrabold uppercase tracking-wider">
+                            Active
+                          </span>
+                        ) : (
+                          <span className="text-[9px] text-[#2563EB] font-bold">
+                            View ▾
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-sm font-extrabold text-[#059669] block mt-1">
+                        ₹{mObj.totalAmount.toLocaleString("en-IN")}
+                      </span>
+                      <div className="flex items-center justify-between mt-1 text-[10px] text-[#64748B]">
+                        <span>{mObj.receiptCount} receipts</span>
+                        <span>{isSelected ? "▲" : "▼"}</span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
+
+            {/* SELECTED MONTH DETAILED RECEIPTS IN YEAR MODAL */}
+            {selectedYearMonth && (
+              <div className="mt-4 pt-4 border-t border-[#E2E8F0] space-y-3 animate-in fade-in duration-200">
+                <div className="p-3.5 bg-[#EFF6FF] border border-[#BFDBFE] rounded-[12px] flex flex-col md:flex-row md:items-center justify-between gap-3">
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs sm:text-sm font-black text-[#1E3A8A]">
+                        {selectedYearMonth.monthName} {selectedYearData.year} - Receipts & Collection Details
+                      </span>
+                      <span className="px-2 py-0.5 bg-[#2563EB] text-white rounded-full font-bold text-[10px]">
+                        {selectedYearMonth.receiptCount} Receipts
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-[#3B82F6] font-medium mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
+                      <span>Total: <strong className="text-[#059669]">₹{selectedYearMonth.totalAmount.toLocaleString("en-IN")}</strong></span>
+                      <span>Cash: <strong>₹{selectedYearMonth.cashCount.toLocaleString("en-IN")}</strong></span>
+                      <span>Online / Digital: <strong>₹{selectedYearMonth.onlineCount.toLocaleString("en-IN")}</strong></span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2 shrink-0">
+                    <div className="relative">
+                      <Search className="w-3.5 h-3.5 text-[#94A3B8] absolute left-2.5 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        value={yearMonthSearch}
+                        onChange={(e) => setYearMonthSearch(e.target.value)}
+                        placeholder="Search student, ref, mode..."
+                        className="pl-8 pr-3 py-1.5 bg-white border border-[#CBD5E1] rounded-[8px] text-[11px] text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] w-40 sm:w-48"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedYearMonth(null)}
+                      className="px-2.5 py-1.5 bg-white hover:bg-[#F1F5F9] border border-[#CBD5E1] text-[#64748B] hover:text-[#0F172A] rounded-[8px] font-bold text-[11px] transition cursor-pointer"
+                      title="Hide month details"
+                    >
+                      ✕ Close
+                    </button>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto max-h-80 border border-[#E2E8F0] rounded-[10px] bg-white">
+                  <table className="w-full text-left text-xs min-w-[620px]">
+                    <thead className="bg-[#F8FAFC] text-[#475569] uppercase text-[10px] font-bold border-b border-[#E2E8F0] sticky top-0 z-10">
+                      <tr>
+                        <th className="py-2.5 px-3 whitespace-nowrap">Receipt Ref</th>
+                        <th className="py-2.5 px-3 whitespace-nowrap">Student Name</th>
+                        <th className="py-2.5 px-3 whitespace-nowrap">Course / Info</th>
+                        <th className="py-2.5 px-3 whitespace-nowrap">Date</th>
+                        <th className="py-2.5 px-3 whitespace-nowrap">Mode</th>
+                        <th className="py-2.5 px-3 text-right whitespace-nowrap">Amount</th>
+                        <th className="py-2.5 px-3 text-center whitespace-nowrap">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#EEF2F7]">
+                      {selectedYearMonth.payments
+                        .filter((p) => {
+                          if (!yearMonthSearch.trim()) return true;
+                          const q = yearMonthSearch.toLowerCase();
+                          const studentName = (p.admission?.student?.fullName || "").toLowerCase();
+                          const ref = (p.transactionReference || `REC-${p.id.slice(-6)}`).toLowerCase();
+                          const mode = (p.paymentMode || "").toLowerCase();
+                          const course = (p.admission?.courseNameSnapshot || p.admission?.course?.name || "").toLowerCase();
+                          return studentName.includes(q) || ref.includes(q) || mode.includes(q) || course.includes(q);
+                        })
+                        .map((p) => (
+                          <tr key={p.id} className="hover:bg-[#F8FAFC] transition-colors">
+                            <td className="py-2.5 px-3 font-mono font-bold text-[#2563EB] whitespace-nowrap">
+                              {p.transactionReference || `REC-${p.id.slice(-6).toUpperCase()}`}
+                            </td>
+                            <td className="py-2.5 px-3 font-bold text-[#0F172A] whitespace-nowrap">
+                              {p.admission?.studentId || p.admission?.student?.id ? (
+                                <a
+                                  href={`/dashboard/students/${p.admission?.studentId || p.admission?.student?.id}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="hover:text-[#2563EB] hover:underline inline-flex items-center gap-1"
+                                  title="Open Student Profile in new tab"
+                                >
+                                  <span>{p.admission?.student?.fullName || "Student"}</span>
+                                  <ExternalLink className="w-2.5 h-2.5 text-[#2563EB] inline" />
+                                </a>
+                              ) : (
+                                p.admission?.student?.fullName || "Student"
+                              )}
+                            </td>
+                            <td className="py-2.5 px-3 text-[#64748B] text-[11px] whitespace-nowrap">
+                              {p.admission?.courseNameSnapshot || p.admission?.course?.name || "General Course"}
+                            </td>
+                            <td className="py-2.5 px-3 font-mono text-[#64748B] whitespace-nowrap">
+                              {formatDate(p.paymentDate || p.createdAt)}
+                            </td>
+                            <td className="py-2.5 px-3 whitespace-nowrap">
+                              <span className="px-2 py-0.5 bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE] rounded font-bold uppercase text-[10px]">
+                                {p.paymentMode || "CASH"}
+                              </span>
+                            </td>
+                            <td className="py-2.5 px-3 text-right font-extrabold text-[#059669] whitespace-nowrap">
+                              ₹{Number(p.amount).toLocaleString("en-IN")}
+                            </td>
+                            <td className="py-2.5 px-3 text-center whitespace-nowrap">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedReceiptPayment(p);
+                                }}
+                                className="px-2.5 py-1 bg-[#EFF6FF] hover:bg-[#DBEAFE] text-[#2563EB] hover:text-[#1D4ED8] border border-[#BFDBFE] rounded-[6px] font-bold text-[10px] inline-flex items-center gap-1 cursor-pointer transition shadow-2xs"
+                              >
+                                <Printer className="w-3 h-3" />
+                                <span>Print</span>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      {selectedYearMonth.payments.filter((p) => {
+                        if (!yearMonthSearch.trim()) return true;
+                        const q = yearMonthSearch.toLowerCase();
+                        const studentName = (p.admission?.student?.fullName || "").toLowerCase();
+                        const ref = (p.transactionReference || `REC-${p.id.slice(-6)}`).toLowerCase();
+                        const mode = (p.paymentMode || "").toLowerCase();
+                        const course = (p.admission?.courseNameSnapshot || p.admission?.course?.name || "").toLowerCase();
+                        return studentName.includes(q) || ref.includes(q) || mode.includes(q) || course.includes(q);
+                      }).length === 0 && (
+                        <tr>
+                          <td colSpan={7} className="text-center py-8 text-xs text-[#64748B] italic">
+                            No receipts found matching "{yearMonthSearch}" in {selectedYearMonth.monthName} {selectedYearData.year}.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         </Modal>
       )}
@@ -1149,71 +1357,136 @@ export const Fees = () => {
       {selectedMonthData && (
         <Modal
           isOpen={!!selectedMonthData}
-          onClose={() => setSelectedMonthData(null)}
+          onClose={handleCloseMonthModal}
           title={`${selectedMonthData.monthName} - Fee Collection Breakdown`}
+          maxWidth="max-w-4xl"
         >
           <div className="space-y-4 text-xs font-sans text-[#334155]">
-            <div className="p-4 rounded-[12px] bg-[#F8FAFC] border border-[#E2E8F0] grid grid-cols-3 gap-3">
+            <div className="p-4 rounded-[12px] bg-[#F8FAFC] border border-[#E2E8F0] grid grid-cols-2 sm:grid-cols-4 gap-3 shadow-xs">
               <div>
                 <span className="text-[#64748B] block text-[10px] uppercase font-bold">Total Revenue</span>
-                <span className="text-base font-extrabold text-[#059669]">₹{selectedMonthData.totalAmount.toLocaleString("en-IN")}</span>
+                <span className="text-base sm:text-lg font-extrabold text-[#059669]">₹{selectedMonthData.totalAmount.toLocaleString("en-IN")}</span>
               </div>
               <div>
                 <span className="text-[#64748B] block text-[10px] uppercase font-bold">Receipts Count</span>
-                <span className="text-base font-extrabold text-[#2563EB]">{selectedMonthData.receiptCount} Receipts</span>
+                <span className="text-base sm:text-lg font-extrabold text-[#2563EB]">{selectedMonthData.receiptCount} Receipts</span>
               </div>
               <div>
-                <span className="text-[#64748B] block text-[10px] uppercase font-bold">Cash vs Online</span>
-                <span className="text-xs font-bold text-[#0F172A]">Cash: ₹{selectedMonthData.cashCount.toLocaleString("en-IN")}</span>
+                <span className="text-[#64748B] block text-[10px] uppercase font-bold">Cash Collection</span>
+                <span className="text-xs sm:text-sm font-bold text-[#0F172A]">₹{selectedMonthData.cashCount.toLocaleString("en-IN")}</span>
+              </div>
+              <div>
+                <span className="text-[#64748B] block text-[10px] uppercase font-bold">Digital / Online</span>
+                <span className="text-xs sm:text-sm font-bold text-[#0F172A]">₹{selectedMonthData.onlineCount.toLocaleString("en-IN")}</span>
               </div>
             </div>
 
-            <div className="overflow-x-auto max-h-80 border border-[#E2E8F0] rounded-[10px]">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-[#F8FAFC] text-[#475569] uppercase text-[10px] font-bold border-b border-[#E2E8F0] sticky top-0">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-bold text-[#475569] uppercase tracking-wider">
+                All Receipts in {selectedMonthData.monthName}
+              </span>
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 text-[#94A3B8] absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={monthModalSearch}
+                  onChange={(e) => setMonthModalSearch(e.target.value)}
+                  placeholder="Search student, ref, mode..."
+                  className="pl-8 pr-3 py-1.5 bg-white border border-[#CBD5E1] rounded-[8px] text-[11px] text-[#0F172A] outline-none focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB] w-40 sm:w-48"
+                />
+              </div>
+            </div>
+
+            <div className="overflow-x-auto max-h-80 border border-[#E2E8F0] rounded-[10px] bg-white">
+              <table className="w-full text-left text-xs min-w-[620px]">
+                <thead className="bg-[#F8FAFC] text-[#475569] uppercase text-[10px] font-bold border-b border-[#E2E8F0] sticky top-0 z-10">
                   <tr>
-                    <th className="py-2.5 px-3">Receipt Ref</th>
-                    <th className="py-2.5 px-3">Student Name</th>
-                    <th className="py-2.5 px-3">Date</th>
-                    <th className="py-2.5 px-3">Mode</th>
-                    <th className="py-2.5 px-3 text-right">Amount</th>
-                    <th className="py-2.5 px-3 text-center">Action</th>
+                    <th className="py-2.5 px-3 whitespace-nowrap">Receipt Ref</th>
+                    <th className="py-2.5 px-3 whitespace-nowrap">Student Name</th>
+                    <th className="py-2.5 px-3 whitespace-nowrap">Course / Info</th>
+                    <th className="py-2.5 px-3 whitespace-nowrap">Date</th>
+                    <th className="py-2.5 px-3 whitespace-nowrap">Mode</th>
+                    <th className="py-2.5 px-3 text-right whitespace-nowrap">Amount</th>
+                    <th className="py-2.5 px-3 text-center whitespace-nowrap">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#EEF2F7]">
-                  {selectedMonthData.payments.map((p) => (
-                    <tr key={p.id} className="hover:bg-[#F8FAFC] transition-colors">
-                      <td className="py-2.5 px-3 font-mono font-bold text-[#2563EB]">
-                        {p.transactionReference || `REC-${p.id.slice(-6).toUpperCase()}`}
-                      </td>
-                      <td className="py-2.5 px-3 font-bold text-[#0F172A]">
-                        {p.admission?.student?.fullName || "Student"}
-                      </td>
-                      <td className="py-2.5 px-3 font-mono text-[#64748B]">
-                        {formatDate(p.paymentDate || p.createdAt)}
-                      </td>
-                      <td className="py-2.5 px-3">
-                        <span className="px-2 py-0.5 bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE] rounded font-bold uppercase text-[10px]">
-                          {p.paymentMode || "CASH"}
-                        </span>
-                      </td>
-                      <td className="py-2.5 px-3 text-right font-extrabold text-[#059669]">
-                        ₹{Number(p.amount).toLocaleString("en-IN")}
-                      </td>
-                      <td className="py-2.5 px-3 text-center">
-                        <button
-                          onClick={() => {
-                            const rec = p;
-                            setSelectedMonthData(null);
-                            setSelectedReceiptPayment(rec);
-                          }}
-                          className="px-2 py-1 bg-[#EFF6FF] hover:bg-[#DBEAFE] text-[#2563EB] hover:text-[#1D4ED8] rounded font-semibold text-[10px] cursor-pointer"
-                        >
-                          Print
-                        </button>
+                  {selectedMonthData.payments
+                    .filter((p) => {
+                      if (!monthModalSearch.trim()) return true;
+                      const q = monthModalSearch.toLowerCase();
+                      const studentName = (p.admission?.student?.fullName || "").toLowerCase();
+                      const ref = (p.transactionReference || `REC-${p.id.slice(-6)}`).toLowerCase();
+                      const mode = (p.paymentMode || "").toLowerCase();
+                      const course = (p.admission?.courseNameSnapshot || p.admission?.course?.name || "").toLowerCase();
+                      return studentName.includes(q) || ref.includes(q) || mode.includes(q) || course.includes(q);
+                    })
+                    .map((p) => (
+                      <tr key={p.id} className="hover:bg-[#F8FAFC] transition-colors">
+                        <td className="py-2.5 px-3 font-mono font-bold text-[#2563EB] whitespace-nowrap">
+                          {p.transactionReference || `REC-${p.id.slice(-6).toUpperCase()}`}
+                        </td>
+                        <td className="py-2.5 px-3 font-bold text-[#0F172A] whitespace-nowrap">
+                          {p.admission?.studentId || p.admission?.student?.id ? (
+                            <a
+                              href={`/dashboard/students/${p.admission?.studentId || p.admission?.student?.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="hover:text-[#2563EB] hover:underline inline-flex items-center gap-1"
+                              title="Open Student Profile in new tab"
+                            >
+                              <span>{p.admission?.student?.fullName || "Student"}</span>
+                              <ExternalLink className="w-2.5 h-2.5 text-[#2563EB] inline" />
+                            </a>
+                          ) : (
+                            p.admission?.student?.fullName || "Student"
+                          )}
+                        </td>
+                        <td className="py-2.5 px-3 text-[#64748B] text-[11px] whitespace-nowrap">
+                          {p.admission?.courseNameSnapshot || p.admission?.course?.name || "General Course"}
+                        </td>
+                        <td className="py-2.5 px-3 font-mono text-[#64748B] whitespace-nowrap">
+                          {formatDate(p.paymentDate || p.createdAt)}
+                        </td>
+                        <td className="py-2.5 px-3 whitespace-nowrap">
+                          <span className="px-2 py-0.5 bg-[#EFF6FF] text-[#2563EB] border border-[#BFDBFE] rounded font-bold uppercase text-[10px]">
+                            {p.paymentMode || "CASH"}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-extrabold text-[#059669] whitespace-nowrap">
+                          ₹{Number(p.amount).toLocaleString("en-IN")}
+                        </td>
+                        <td className="py-2.5 px-3 text-center whitespace-nowrap">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const rec = p;
+                              setSelectedMonthData(null);
+                              setSelectedReceiptPayment(rec);
+                            }}
+                            className="px-2.5 py-1 bg-[#EFF6FF] hover:bg-[#DBEAFE] text-[#2563EB] hover:text-[#1D4ED8] border border-[#BFDBFE] rounded-[6px] font-bold text-[10px] inline-flex items-center gap-1 cursor-pointer transition shadow-2xs"
+                          >
+                            <Printer className="w-3 h-3" />
+                            <span>Print</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  {selectedMonthData.payments.filter((p) => {
+                    if (!monthModalSearch.trim()) return true;
+                    const q = monthModalSearch.toLowerCase();
+                    const studentName = (p.admission?.student?.fullName || "").toLowerCase();
+                    const ref = (p.transactionReference || `REC-${p.id.slice(-6)}`).toLowerCase();
+                    const mode = (p.paymentMode || "").toLowerCase();
+                    const course = (p.admission?.courseNameSnapshot || p.admission?.course?.name || "").toLowerCase();
+                    return studentName.includes(q) || ref.includes(q) || mode.includes(q) || course.includes(q);
+                  }).length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="text-center py-8 text-xs text-[#64748B] italic">
+                        No receipts found matching "{monthModalSearch}" in {selectedMonthData.monthName}.
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
